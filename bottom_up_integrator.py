@@ -284,8 +284,10 @@ class BottomUpIntegrator(nn.Module):
         # 4. Φ global (coherencia inter-cluster + diversidad)
         phi_global = self._compute_phi_global(valid_clusters)
 
-        # 5. Coherencia vertical (placeholder, se calcula externamente)
-        vertical_coherence = self._compute_vertical_coherence_estimate(valid_clusters)
+        # 5. Coherencia vertical real (células→clusters→organismo)
+        vertical_coherence = self._compute_vertical_coherence(
+            valid_clusters, global_archetype, dominant
+        )
 
         # 6. Etapa de individuación
         integration = global_archetype.min().item()  # Arquetipo más débil
@@ -399,19 +401,108 @@ class BottomUpIntegrator(nn.Module):
 
         return min(1.0, phi_global)
 
-    def _compute_vertical_coherence_estimate(self, clusters: List[Cluster]) -> float:
+    def _compute_vertical_coherence(
+        self,
+        clusters: List[Cluster],
+        organism_state: torch.Tensor,
+        organism_dominant: Archetype
+    ) -> float:
         """
-        Estima coherencia vertical (células-cluster-organismo).
+        Calcula coherencia vertical real entre niveles jerárquicos.
 
-        Esta es una estimación inicial; el valor real se calcula
-        después de tener el organismo completo.
+        Mide la consistencia de información a través de:
+        - Nivel 0 (Células) → Nivel 1 (Clusters) → Nivel 2 (Organismo)
+
+        Componentes:
+        1. Cell-to-Cluster: Alineación de células con su cluster
+        2. Cluster-to-Organism: Alineación de clusters con el organismo
+        3. Hierarchy Consistency: Consistencia del arquetipo dominante
+
+        Args:
+            clusters: Lista de clusters con psyche
+            organism_state: Estado arquetipal global del organismo
+            organism_dominant: Arquetipo dominante del organismo
+
+        Returns:
+            Coherencia vertical [0, 1]
         """
         if not clusters:
             return 0.0
 
-        # Usar coherencia promedio de clusters como estimación
-        coherences = [c.psyche.coherence for c in clusters]
-        return np.mean(coherences) if coherences else 0.0
+        valid_clusters = [c for c in clusters if c.psyche and c.cells]
+        if not valid_clusters:
+            return 0.0
+
+        # =====================================================================
+        # 1. CELL-TO-CLUSTER ALIGNMENT
+        # ¿Las células se alinean con su cluster?
+        # =====================================================================
+        cell_to_cluster_scores = []
+        for cluster in valid_clusters:
+            cluster_state = cluster.psyche.aggregate_state
+            for cell in cluster.cells:
+                # Similitud coseno entre célula y su cluster
+                sim = F.cosine_similarity(
+                    cell.psyche.archetype_state.unsqueeze(0).float(),
+                    cluster_state.unsqueeze(0).float()
+                ).item()
+                # Normalizar a [0, 1]
+                cell_to_cluster_scores.append((sim + 1) / 2)
+
+        avg_cell_to_cluster = np.mean(cell_to_cluster_scores) if cell_to_cluster_scores else 0.5
+
+        # =====================================================================
+        # 2. CLUSTER-TO-ORGANISM ALIGNMENT
+        # ¿Los clusters se alinean con el organismo?
+        # =====================================================================
+        cluster_to_org_scores = []
+        for cluster in valid_clusters:
+            sim = F.cosine_similarity(
+                cluster.psyche.aggregate_state.unsqueeze(0).float(),
+                organism_state.unsqueeze(0).float()
+            ).item()
+            cluster_to_org_scores.append((sim + 1) / 2)
+
+        avg_cluster_to_org = np.mean(cluster_to_org_scores) if cluster_to_org_scores else 0.5
+
+        # =====================================================================
+        # 3. HIERARCHY CONSISTENCY
+        # ¿El arquetipo dominante es consistente entre niveles?
+        # =====================================================================
+        # Contar cuántos clusters comparten el dominante del organismo
+        clusters_aligned = sum(
+            1 for c in valid_clusters
+            if c.psyche.specialization == organism_dominant
+        )
+        cluster_consistency = clusters_aligned / len(valid_clusters)
+
+        # Contar células que comparten el dominante de su cluster
+        cells_aligned = 0
+        total_cells = 0
+        for cluster in valid_clusters:
+            cluster_dominant = cluster.psyche.specialization
+            for cell in cluster.cells:
+                total_cells += 1
+                if cell.psyche.dominant == cluster_dominant:
+                    cells_aligned += 1
+
+        cell_consistency = cells_aligned / total_cells if total_cells > 0 else 0.5
+
+        # =====================================================================
+        # COHERENCIA VERTICAL FINAL
+        # =====================================================================
+        # Promedio ponderado de las tres componentes:
+        # - Cell-to-Cluster: 40% (base de la jerarquía)
+        # - Cluster-to-Organism: 30% (nivel intermedio)
+        # - Hierarchy Consistency: 30% (consistencia global)
+        vertical_coherence = (
+            0.4 * avg_cell_to_cluster +
+            0.3 * avg_cluster_to_org +
+            0.15 * cluster_consistency +
+            0.15 * cell_consistency
+        )
+
+        return min(1.0, max(0.0, vertical_coherence))
 
     def _integration_to_stage(self, integration: float, phi: float) -> IndividuationStage:
         """
