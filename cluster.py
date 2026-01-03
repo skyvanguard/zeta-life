@@ -118,9 +118,15 @@ class ClusterPsyche:
         # Obtener estados de todas las células
         states = torch.stack([c.psyche.archetype_state for c in cells])
 
-        # Pesos basados en energía y phi_local
+        # Calcular sorpresas individuales
+        surprises = [c.psyche.compute_surprise() for c in cells]
+
+        # Pesos basados en energía, phi_local, y plasticidad (de sorpresa)
+        # Células sorprendidas contribuyen más al agregado porque
+        # detectan información nueva relevante para el cluster
         weights = torch.tensor([
-            c.energy * c.psyche.phi_local for c in cells
+            c.energy * c.psyche.phi_local * c.psyche.get_plasticity()
+            for c in cells
         ])
         if weights.sum() > 0:
             weights = weights / weights.sum()
@@ -141,8 +147,7 @@ class ClusterPsyche:
         # Coherencia = similitud promedio entre células
         coherence = 1.0 - variance
 
-        # Error de predicción (basado en sorpresa de células)
-        surprises = [c.psyche.compute_surprise() for c in cells]
+        # Error de predicción (basado en sorpresa ya calculada arriba)
         prediction_error = np.mean(surprises) if surprises else 0.0
 
         # Nivel de integración

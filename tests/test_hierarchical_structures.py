@@ -85,6 +85,38 @@ class TestMicroPsyche:
         surprise_1 = psyche.compute_surprise()
         assert surprise_1 > 0
 
+    def test_accumulated_surprise(self):
+        """update_accumulated_surprise acumula con decaimiento."""
+        psyche = MicroPsyche.create_random()
+        assert psyche.accumulated_surprise == 0.0
+
+        # Actualizar sin cambio de estado
+        psyche.update_accumulated_surprise()
+        assert psyche.accumulated_surprise == 0.0  # Sin sorpresa
+
+        # Cambio de estado genera sorpresa
+        new_state = torch.tensor([0.9, 0.03, 0.03, 0.04])
+        psyche.update_state(new_state, blend_factor=0.8)
+        psyche.update_accumulated_surprise()
+        assert psyche.accumulated_surprise > 0
+
+    def test_get_plasticity(self):
+        """get_plasticity aumenta con sorpresa acumulada."""
+        # Sin sorpresa → baja plasticidad
+        psyche_stable = MicroPsyche.create_random()
+        psyche_stable.accumulated_surprise = 0.0
+        plasticity_low = psyche_stable.get_plasticity()
+
+        # Alta sorpresa → alta plasticidad
+        psyche_surprised = MicroPsyche.create_random()
+        psyche_surprised.accumulated_surprise = 0.8
+        plasticity_high = psyche_surprised.get_plasticity()
+
+        # Verificar rango y orden
+        assert 0.5 <= plasticity_low <= 1.5
+        assert 0.5 <= plasticity_high <= 1.5
+        assert plasticity_high > plasticity_low
+
     def test_alignment_with(self):
         """alignment_with calcula similitud correctamente."""
         psyche = MicroPsyche.create_random(bias=Archetype.PERSONA)

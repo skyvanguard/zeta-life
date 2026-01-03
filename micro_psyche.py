@@ -78,6 +78,7 @@ class MicroPsyche:
     emotional_energy: float  # 0-1
     recent_states: Deque[torch.Tensor] = field(default_factory=lambda: deque(maxlen=5))
     phi_local: float = 0.5
+    accumulated_surprise: float = 0.0  # Sorpresa acumulada para plasticidad
 
     def __post_init__(self):
         """Asegurar que archetype_state está normalizado."""
@@ -137,6 +138,39 @@ class MicroPsyche:
 
         diff = (curr - prev).abs().sum().item()
         return min(1.0, diff)
+
+    def update_accumulated_surprise(self, decay: float = 0.9) -> None:
+        """
+        Actualiza la sorpresa acumulada con decaimiento exponencial.
+
+        Mantiene un promedio móvil de la sorpresa reciente, que se usa
+        para determinar la plasticidad de la célula.
+
+        Args:
+            decay: Factor de decaimiento (0-1). Valores altos = memoria más larga.
+        """
+        current_surprise = self.compute_surprise()
+        self.accumulated_surprise = decay * self.accumulated_surprise + (1 - decay) * current_surprise
+
+    def get_plasticity(self) -> float:
+        """
+        Calcula plasticidad basada en sorpresa acumulada.
+
+        Células con alta sorpresa son más plásticas (más abiertas al cambio).
+        Esto implementa el principio de "free energy minimization":
+        sistemas sorprendidos buscan activamente nuevos modelos.
+
+        Returns:
+            Factor de plasticidad [0.5, 1.5]
+            - 0.5: Muy estable (baja sorpresa)
+            - 1.0: Normal
+            - 1.5: Muy plástico (alta sorpresa)
+        """
+        # Escala no-lineal: baja sorpresa → menos plástico, alta → más
+        # Usamos función sigmoide suavizada centrada en sorpresa=0.3
+        surprise_centered = self.accumulated_surprise - 0.3
+        plasticity = 1.0 + 0.5 * np.tanh(surprise_centered * 3)
+        return float(plasticity)
 
     def alignment_with(self, other_state: torch.Tensor) -> float:
         """

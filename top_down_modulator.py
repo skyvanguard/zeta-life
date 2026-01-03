@@ -352,8 +352,12 @@ class TopDownModulator(nn.Module):
         # 3. Factor de integración local
         phi_factor = 0.7 + 0.3 * cell.psyche.phi_local  # 0.7-1.0
 
+        # 4. Factor de plasticidad (basado en sorpresa acumulada)
+        # Células sorprendidas son más receptivas a modulación top-down
+        plasticity = cell.psyche.get_plasticity()  # 0.5-1.5
+
         # Combinar factores
-        adaptive_strength = base_strength * alignment_factor * energy_factor * phi_factor
+        adaptive_strength = base_strength * alignment_factor * energy_factor * phi_factor * plasticity
 
         # Limitar a rango razonable
         return min(0.3, max(0.02, adaptive_strength))
@@ -473,6 +477,9 @@ class TopDownModulator(nn.Module):
                 1.0,
                 cell.psyche.emotional_energy + 0.03 * adaptive_strength
             )
+
+        # 4. Actualizar sorpresa acumulada para plasticidad futura
+        cell.psyche.update_accumulated_surprise()
 
     # =========================================================================
     # MODULACIÓN COMPLETA
