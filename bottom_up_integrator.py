@@ -313,27 +313,89 @@ class BottomUpIntegrator(nn.Module):
             vertical_coherence=vertical_coherence
         )
 
+    def _compute_inter_cluster_integration(self, clusters: List[Cluster]) -> float:
+        """
+        Calcula integración real entre clusters.
+
+        Mide qué tan conectados están los clusters entre sí usando
+        similitud coseno de sus estados agregados.
+
+        Integración óptima requiere:
+        - Clusters suficientemente diferentes (no idénticos)
+        - Pero no completamente desconectados
+
+        Returns:
+            Valor de integración [0, 1]
+        """
+        if len(clusters) < 2:
+            return 0.7  # Valor alto con un solo cluster (trivialmente integrado)
+
+        # Calcular similitud coseno entre todos los pares de clusters
+        similarities = []
+        for i, c1 in enumerate(clusters):
+            for j, c2 in enumerate(clusters):
+                if i < j and c1.psyche and c2.psyche:
+                    sim = F.cosine_similarity(
+                        c1.psyche.aggregate_state.unsqueeze(0).float(),
+                        c2.psyche.aggregate_state.unsqueeze(0).float()
+                    ).item()
+                    # Normalizar de [-1, 1] a [0, 1]
+                    similarities.append((sim + 1) / 2)
+
+        if not similarities:
+            return 0.7
+
+        avg_sim = np.mean(similarities)
+
+        # Función de integración más suave:
+        # - sim=0.0 (opuestos): integration=0.6 (conectados pero muy diferentes)
+        # - sim=0.5 (moderado): integration=1.0 (óptimo)
+        # - sim=1.0 (idénticos): integration=0.5 (sincronización, no integración)
+        #
+        # Usamos una parábola invertida centrada en 0.5, pero más suave
+        # integration = 1.0 - (avg_sim - 0.5)^2 * 2
+        deviation = abs(avg_sim - 0.5)
+        integration = 1.0 - deviation * deviation * 2
+
+        # Asegurar mínimo razonable
+        integration = max(0.4, min(1.0, integration))
+
+        return integration
+
     def _compute_phi_global(self, clusters: List[Cluster]) -> float:
         """
         Calcula Φ global del organismo.
 
-        Combina:
-        - Coherencia promedio de clusters
-        - Diversidad de especializaciones (queremos los 4 arquetipos)
+        Combina tres factores:
+        1. Coherencia intra-cluster: qué tan coherentes son los clusters internamente
+        2. Integración inter-cluster: qué tan conectados están entre sí
+        3. Diversidad arquetipal: qué tan diversos son los arquetipos
+
+        Φ = intra × inter × (0.6 + 0.4 × diversidad)
         """
         if not clusters:
             return 0.0
 
-        # Coherencia promedio
-        avg_phi = np.mean([c.psyche.phi_cluster for c in clusters])
+        valid_clusters = [c for c in clusters if c.psyche]
+        if not valid_clusters:
+            return 0.0
 
-        # Diversidad de especializaciones
-        specializations = [c.psyche.specialization.value for c in clusters]
+        # 1. Coherencia intra-cluster promedio
+        intra_coherences = [c.psyche.phi_cluster for c in valid_clusters]
+        avg_intra = np.mean(intra_coherences) if intra_coherences else 0.0
+
+        # 2. Integración inter-cluster (similitud real entre clusters)
+        inter_integration = self._compute_inter_cluster_integration(valid_clusters)
+
+        # 3. Diversidad de especializaciones
+        specializations = [c.psyche.specialization.value for c in valid_clusters]
         unique_specs = len(set(specializations))
         diversity_bonus = unique_specs / 4.0  # 1.0 si tiene los 4 arquetipos
 
-        # Φ global = coherencia × (0.5 + 0.5 × diversidad)
-        phi_global = avg_phi * (0.5 + 0.5 * diversity_bonus)
+        # Φ global = promedio geométrico de intra e inter, modulado por diversidad
+        # Esto requiere que AMBOS sean altos para tener phi alto
+        phi_base = np.sqrt(avg_intra * inter_integration)
+        phi_global = phi_base * (0.6 + 0.4 * diversity_bonus)
 
         return min(1.0, phi_global)
 

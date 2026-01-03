@@ -81,21 +81,39 @@ class MicroPsyche:
 
     def __post_init__(self):
         """Asegurar que archetype_state está normalizado."""
-        if self.archetype_state.sum() > 0:
+        # Solo normalizar si no es distribución de probabilidad válida
+        # (evitar doble softmax que uniformiza estados)
+        state_sum = self.archetype_state.sum().item()
+        if abs(state_sum - 1.0) > 0.01:  # No es distribución válida
             self.archetype_state = F.softmax(self.archetype_state, dim=0)
         if len(self.recent_states) == 0:
             self.recent_states.append(self.archetype_state.clone())
 
-    def update_state(self, new_state: torch.Tensor, blend_factor: float = 0.1):
+    def update_state(
+        self,
+        new_state: torch.Tensor,
+        blend_factor: float = 0.1,
+        noise_scale: float = 0.02
+    ):
         """
-        Actualiza el estado arquetipal con mezcla suave.
+        Actualiza el estado arquetipal con mezcla suave y ruido estocástico.
+
+        El ruido preserva diversidad y evita sincronización total.
 
         Args:
             new_state: Nuevo estado propuesto [4]
             blend_factor: Cuánto del nuevo estado incorporar (0-1)
+            noise_scale: Escala del ruido estocástico (default 0.02)
         """
         # Mezcla suave
         blended = (1 - blend_factor) * self.archetype_state + blend_factor * new_state
+
+        # Añadir ruido estocástico para preservar diversidad
+        # Esto evita la convergencia total a estados idénticos
+        if noise_scale > 0:
+            noise = torch.randn(4) * noise_scale
+            blended = blended + noise
+
         self.archetype_state = F.softmax(blended, dim=0)
 
         # Actualizar dominante
@@ -170,11 +188,16 @@ class MicroPsyche:
             bias: Arquetipo hacia el cual sesgar (opcional)
         """
         if bias is not None:
-            # Estado sesgado hacia un arquetipo
-            # Usar valores más extremos para que softmax preserve el sesgo
-            # softmax([2.0, 0.1, 0.1, 0.1]) ≈ [0.70, 0.10, 0.10, 0.10]
-            state = torch.ones(4) * 0.1
-            state[bias.value] = 2.0
+            # Estado sesgado hacia un arquetipo CON VARIACIÓN ALEATORIA
+            # Base: sesgo fuerte hacia el arquetipo dominante
+            # Variación: ruido aleatorio para diversidad
+            base_dominant = 2.0 + np.random.uniform(-0.3, 0.3)  # 1.7 a 2.3
+            base_others = 0.1 + np.random.uniform(-0.05, 0.15)  # 0.05 a 0.25
+
+            state = torch.ones(4) * base_others
+            # Añadir variación individual a cada componente
+            state = state + torch.rand(4) * 0.2  # Variación 0-0.2
+            state[bias.value] = base_dominant
         else:
             # Estado completamente aleatorio
             state = torch.rand(4)
@@ -384,17 +407,22 @@ def compute_local_phi(cell: ConsciousCell, neighbors: list) -> float:
 def apply_psyche_contagion(
     cell: ConsciousCell,
     neighbors: list,
-    contagion_rate: float = 0.1
+    contagion_rate: float = 0.1,
+    similarity_threshold: float = 0.85,
+    friction_factor: float = 0.2
 ):
     """
-    Aplica contagio psíquico de vecinos.
+    Aplica contagio psíquico de vecinos con fricción adaptativa.
 
-    Las células cercanas tienden a alinearse arquetipalmente.
+    Las células cercanas tienden a alinearse arquetipalmente,
+    pero la fricción evita sincronización total.
 
     Args:
         cell: Célula a actualizar
         neighbors: Lista de vecinos
-        contagion_rate: Velocidad de contagio
+        contagion_rate: Velocidad de contagio base
+        similarity_threshold: Umbral de similitud para aplicar fricción
+        friction_factor: Factor de reducción cuando similitud > threshold
     """
     if not neighbors:
         return
@@ -415,8 +443,20 @@ def apply_psyche_contagion(
     states = torch.stack(states)
     weighted_avg = (weights.unsqueeze(1) * states).sum(dim=0)
 
-    # Aplicar influencia
-    cell.psyche.update_state(weighted_avg, blend_factor=contagion_rate)
+    # Calcular similitud actual con el promedio de vecinos
+    current_similarity = cell.psyche.alignment_with(weighted_avg)
+
+    # Aplicar fricción si la similitud ya es alta
+    # Esto evita la convergencia total
+    effective_rate = contagion_rate
+    if current_similarity > similarity_threshold:
+        # Reducir drásticamente el contagio cuando ya son muy similares
+        # Cuanto más similar, menos contagio
+        excess = (current_similarity - similarity_threshold) / (1.0 - similarity_threshold)
+        effective_rate = contagion_rate * (friction_factor + (1 - friction_factor) * (1 - excess))
+
+    # Aplicar influencia con tasa efectiva
+    cell.psyche.update_state(weighted_avg, blend_factor=effective_rate)
 
 
 # =============================================================================
