@@ -369,7 +369,9 @@ class TestClusterAssigner:
             sample_cells, sample_clusters, force_reassign=True
         )
 
-        assert len(clusters) == 4
+        # Con clustering dinámico, el número de clusters puede variar
+        # dentro del rango permitido (min_clusters a max_clusters)
+        assert assigner.config.min_clusters <= len(clusters) <= assigner.config.max_clusters
         assert len(assigner.cluster_history) == 1
 
     def test_should_reassign_interval(self, assigner, sample_clusters):
