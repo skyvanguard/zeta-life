@@ -68,11 +68,13 @@ class SimulationConfig:
     # Dinámica
     energy_decay: float = 0.01
     phi_threshold: float = 0.3  # Umbral para consciencia
+    base_energy_recovery: float = 0.005  # Recuperación base independiente de phi
 
     # Ambiente
     enable_perturbations: bool = False
-    perturbation_interval: int = 20
-    perturbation_strength: float = 0.3
+    perturbation_interval: int = 50  # Más tiempo entre perturbaciones (era 20)
+    perturbation_strength: float = 0.2  # Perturbaciones más suaves (era 0.3)
+    post_perturbation_contagion: float = 0.5  # Contagio extra post-perturbación
 
 
 # =============================================================================
@@ -391,17 +393,20 @@ class HierarchicalSimulation:
             # Actualizar phi local
             cell.psyche.phi_local = compute_local_phi(cell, neighbors)
 
-            # Recuperar energía si phi es alto
+            # Recuperación base independiente de phi (permite recuperarse de perturbaciones)
+            cell.energy = min(1.0, cell.energy + self.config.base_energy_recovery)
+
+            # Bonus adicional si phi es alto (coherencia con vecinos)
             if cell.psyche.phi_local > self.config.phi_threshold:
-                cell.energy = min(1.0, cell.energy + 0.02)
+                cell.energy = min(1.0, cell.energy + 0.015)
 
     def _apply_perturbation(self) -> None:
         """Aplica perturbación aleatoria al sistema."""
         n_affected = max(1, int(len(self.cells) * 0.2))
-        affected = np.random.choice(self.cells, n_affected, replace=False)
+        affected = list(np.random.choice(self.cells, n_affected, replace=False))
 
         for cell in affected:
-            # Perturbar estado arquetípico
+            # Perturbar estado arquetípico (más suave con strength=0.2)
             noise = torch.randn(4) * self.config.perturbation_strength
             cell.psyche.archetype_state = F.softmax(
                 cell.psyche.archetype_state + noise, dim=0
@@ -412,8 +417,23 @@ class HierarchicalSimulation:
                 unbiased_argmax(cell.psyche.archetype_state)
             )
 
-            # Reducir energía
-            cell.energy *= 0.8
+            # Reducir energía (menos agresivo: 0.85 en lugar de 0.8)
+            cell.energy *= 0.85
+
+        # Re-sincronización post-perturbación: contagio extra para células afectadas
+        affected_ids = {id(c) for c in affected}
+        for cell in affected:
+            neighbors = [
+                c for c in self.cells
+                if id(c) not in affected_ids and cell.distance_to(c) < 25.0
+            ]
+            if neighbors:
+                # Contagio más fuerte desde vecinos NO afectados
+                apply_psyche_contagion(
+                    cell,
+                    neighbors,
+                    contagion_rate=self.config.post_perturbation_contagion
+                )
 
     # =========================================================================
     # MÉTRICAS Y REGISTRO
@@ -744,7 +764,7 @@ def run_emergence_experiment(
 
 
 def run_perturbation_experiment(
-    n_steps: int = 150,
+    n_steps: int = 200,
     verbose: bool = True
 ) -> Dict:
     """
@@ -752,13 +772,13 @@ def run_perturbation_experiment(
 
     Hipótesis: El sistema debería recuperarse después de perturbaciones.
     """
+    # Usar defaults mejorados: interval=50, strength=0.2
     config = SimulationConfig(
         n_cells=80,
         n_clusters=4,
         n_steps=n_steps,
-        enable_perturbations=True,
-        perturbation_interval=30,
-        perturbation_strength=0.4
+        enable_perturbations=True
+        # Usa defaults: perturbation_interval=50, perturbation_strength=0.2
     )
 
     sim = HierarchicalSimulation(config)
@@ -768,24 +788,27 @@ def run_perturbation_experiment(
         print("=" * 60)
         print("  EXPERIMENTO: Resiliencia ante Perturbaciones")
         print("=" * 60)
+        print(f"  Intervalo: {config.perturbation_interval}, Fuerza: {config.perturbation_strength}")
 
     sim.run(n_steps, verbose=verbose)
 
     # Analizar recuperación
     metrics = sim.metrics_history
 
-    # Encontrar mínimos después de perturbaciones
-    perturbation_steps = [30, 60, 90, 120]
+    # Calcular pasos de perturbación dinámicamente
+    interval = config.perturbation_interval
+    perturbation_steps = [i for i in range(interval, n_steps, interval)]
     recoveries = []
 
     for p_step in perturbation_steps:
         if p_step >= len(metrics):
             continue
 
-        # Valor en perturbación y 10 pasos después
+        # Valor en perturbación y 20 pasos después (más tiempo para recuperar)
         at_perturbation = metrics[p_step].phi_global
-        if p_step + 10 < len(metrics):
-            after_recovery = metrics[p_step + 10].phi_global
+        recovery_window = min(20, interval - 5)  # Ventana de recuperación
+        if p_step + recovery_window < len(metrics):
+            after_recovery = metrics[p_step + recovery_window].phi_global
             recovery = after_recovery - at_perturbation
             recoveries.append(recovery)
 
