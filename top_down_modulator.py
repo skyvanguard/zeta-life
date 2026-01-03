@@ -241,6 +241,123 @@ class TopDownModulator(nn.Module):
     # NIVEL 1 → NIVEL 0: Clusters modulan Células
     # =========================================================================
 
+    def compute_archetype_goal(
+        self,
+        organism: OrganismConsciousness
+    ) -> torch.Tensor:
+        """
+        Calcula la distribución arquetipal objetivo que el organismo necesita.
+
+        Estrategia compensatoria: impulsar arquetipos débiles para lograr
+        equilibrio e integración.
+
+        Args:
+            organism: Consciencia del organismo
+
+        Returns:
+            Tensor[4] con la distribución objetivo normalizada
+        """
+        current = organism.global_archetype
+
+        # Identificar desequilibrios
+        # Objetivo: distribución equilibrada pero manteniendo especialización
+        ideal_balanced = torch.ones(4) / 4  # [0.25, 0.25, 0.25, 0.25]
+
+        # Cuánto necesitamos compensar
+        deficit = ideal_balanced - current  # Positivo = necesita más
+
+        # Crear objetivo compensatorio
+        # Más peso a arquetipos con déficit
+        compensation_strength = 0.3  # Qué tan agresiva es la compensación
+        goal = current + compensation_strength * deficit
+
+        # Normalizar
+        goal = F.softmax(goal, dim=0)
+
+        return goal
+
+    def modulate_cell_archetype(
+        self,
+        cell: ConsciousCell,
+        archetype_goal: torch.Tensor,
+        strength: float = 0.1
+    ) -> None:
+        """
+        Modula directamente el estado arquetipal de una célula.
+
+        Esta es la clave de la modulación top-down efectiva:
+        el organismo puede influir en la distribución de arquetipos
+        de sus células.
+
+        Args:
+            cell: Célula a modular
+            archetype_goal: Distribución arquetipal objetivo
+            strength: Fuerza de la modulación (0-1)
+        """
+        # Calcular dirección de cambio
+        current = cell.psyche.archetype_state
+        delta = archetype_goal - current
+
+        # Aplicar cambio suave (en espacio de logits para mantener proporciones)
+        # Convertir a logits, modificar, reconvertir
+        epsilon = 1e-6
+        current_logits = torch.log(current + epsilon)
+        goal_logits = torch.log(archetype_goal + epsilon)
+
+        # Interpolar en espacio de logits
+        new_logits = current_logits + strength * (goal_logits - current_logits)
+
+        # Reconvertir a probabilidades
+        new_state = F.softmax(new_logits, dim=0)
+
+        # Actualizar estado (sin aplicar softmax adicional)
+        cell.psyche.archetype_state = new_state
+        cell.psyche.dominant = Archetype(unbiased_argmax(new_state))
+
+        # Añadir al historial
+        cell.psyche.recent_states.append(new_state.clone())
+
+    def compute_adaptive_strength(
+        self,
+        cell: ConsciousCell,
+        organism: OrganismConsciousness,
+        base_strength: float = 0.1
+    ) -> float:
+        """
+        Calcula fuerza adaptativa de modulación para una célula.
+
+        Factores:
+        - Células desalineadas reciben más modulación
+        - Células con baja energía emocional reciben menos
+        - Células con alto phi_local reciben más (más integradas)
+
+        Args:
+            cell: Célula objetivo
+            organism: Consciencia del organismo
+            base_strength: Fuerza base
+
+        Returns:
+            Fuerza adaptativa [0, 0.3]
+        """
+        # 1. Factor de alineación (inverso)
+        alignment = F.cosine_similarity(
+            cell.psyche.archetype_state.unsqueeze(0).float(),
+            organism.global_archetype.unsqueeze(0).float()
+        ).item()
+        alignment_factor = 1.0 + (1.0 - alignment)  # 1.0-2.0
+
+        # 2. Factor de energía emocional
+        energy_factor = 0.5 + 0.5 * cell.psyche.emotional_energy  # 0.5-1.0
+
+        # 3. Factor de integración local
+        phi_factor = 0.7 + 0.3 * cell.psyche.phi_local  # 0.7-1.0
+
+        # Combinar factores
+        adaptive_strength = base_strength * alignment_factor * energy_factor * phi_factor
+
+        # Limitar a rango razonable
+        return min(0.3, max(0.02, adaptive_strength))
+
     def generate_cell_modulation(
         self,
         organism: OrganismConsciousness,
@@ -319,26 +436,42 @@ class TopDownModulator(nn.Module):
         self,
         cell: ConsciousCell,
         modulation: torch.Tensor,
-        strength: float = 0.05
+        organism: OrganismConsciousness,
+        archetype_goal: torch.Tensor,
+        strength: float = 0.1
     ) -> None:
         """
-        Aplica señal de modulación a una célula.
+        Aplica señal de modulación completa a una célula.
+
+        Incluye:
+        1. Modulación del estado físico (cell.state)
+        2. Modulación del estado arquetipal (cell.psyche.archetype_state)
+        3. Actualización de energía emocional
 
         Args:
             cell: Célula a modular
-            modulation: Señal de modulación
-            strength: Fuerza de la modulación
+            modulation: Señal de modulación física
+            organism: Consciencia del organismo
+            archetype_goal: Distribución arquetipal objetivo
+            strength: Fuerza base de la modulación
         """
-        # Aplicar al estado físico
-        cell.state = cell.state + strength * modulation
+        # Calcular fuerza adaptativa
+        adaptive_strength = self.compute_adaptive_strength(cell, organism, strength)
 
-        # La modulación también puede afectar energía emocional
+        # 1. Aplicar al estado físico
+        cell.state = cell.state + adaptive_strength * modulation
+
+        # 2. Aplicar modulación arquetipal (NUEVO - clave para top-down efectivo)
+        archetype_strength = adaptive_strength * 0.5  # Más suave para arquetipos
+        self.modulate_cell_archetype(cell, archetype_goal, archetype_strength)
+
+        # 3. Actualizar energía emocional
         mod_magnitude = modulation.abs().mean().item()
-        if mod_magnitude > 0.5:
-            # Alta modulación aumenta energía emocional
+        if mod_magnitude > 0.3:
+            # Modulación aumenta energía emocional (más conexión con organismo)
             cell.psyche.emotional_energy = min(
                 1.0,
-                cell.psyche.emotional_energy + 0.05
+                cell.psyche.emotional_energy + 0.03 * adaptive_strength
             )
 
     # =========================================================================
@@ -370,8 +503,14 @@ class TopDownModulator(nn.Module):
             'attention': {},
             'predictions': {},
             'cell_surprises': [],
-            'avg_surprise': 0.0
+            'avg_surprise': 0.0,
+            'archetype_goal': None,
+            'cells_modulated': 0
         }
+
+        # 0. Calcular objetivo arquetipal (compensatorio)
+        archetype_goal = self.compute_archetype_goal(organism)
+        results['archetype_goal'] = archetype_goal
 
         # 1. Distribuir atención
         attention = self.distribute_attention(organism, clusters)
@@ -383,6 +522,7 @@ class TopDownModulator(nn.Module):
 
         # 3. Modular células
         all_surprises = []
+        cells_modulated = 0
 
         for cluster in clusters:
             cluster_attention = attention.get(cluster.id, 0.5)
@@ -401,10 +541,15 @@ class TopDownModulator(nn.Module):
                 all_surprises.append(surprise)
 
                 if apply_to_cells:
-                    self.apply_modulation_to_cell(cell, modulation)
+                    # Usar la nueva firma con modulación arquetipal
+                    self.apply_modulation_to_cell(
+                        cell, modulation, organism, archetype_goal
+                    )
+                    cells_modulated += 1
 
         results['cell_surprises'] = all_surprises
         results['avg_surprise'] = np.mean(all_surprises) if all_surprises else 0.0
+        results['cells_modulated'] = cells_modulated
 
         return results
 
