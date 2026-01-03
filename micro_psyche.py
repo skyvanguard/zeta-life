@@ -24,6 +24,36 @@ from cell_state import CellRole
 
 
 # =============================================================================
+# UTILIDADES
+# =============================================================================
+
+def unbiased_argmax(tensor: torch.Tensor, tolerance: float = 0.01) -> int:
+    """
+    Argmax sin sesgo hacia índices bajos en caso de empate.
+
+    Cuando hay valores casi iguales (dentro de tolerance del máximo),
+    selecciona aleatoriamente entre ellos en lugar de siempre
+    retornar el índice más bajo.
+
+    Args:
+        tensor: Tensor 1D de valores
+        tolerance: Margen para considerar valores como "empatados"
+
+    Returns:
+        Índice del máximo (aleatorio si hay empate)
+    """
+    max_val = tensor.max().item()
+    # Encontrar todos los índices con valores cercanos al máximo
+    candidates = (tensor >= max_val - tolerance).nonzero(as_tuple=True)[0]
+
+    if len(candidates) == 1:
+        return candidates[0].item()
+    else:
+        # Selección aleatoria entre candidatos empatados
+        return candidates[np.random.randint(len(candidates))].item()
+
+
+# =============================================================================
 # MICRO-PSIQUE
 # =============================================================================
 
@@ -69,7 +99,7 @@ class MicroPsyche:
         self.archetype_state = F.softmax(blended, dim=0)
 
         # Actualizar dominante
-        self.dominant = Archetype(self.archetype_state.argmax().item())
+        self.dominant = Archetype(unbiased_argmax(self.archetype_state))
 
         # Guardar en historial
         self.recent_states.append(self.archetype_state.clone())
@@ -141,8 +171,10 @@ class MicroPsyche:
         """
         if bias is not None:
             # Estado sesgado hacia un arquetipo
+            # Usar valores más extremos para que softmax preserve el sesgo
+            # softmax([2.0, 0.1, 0.1, 0.1]) ≈ [0.70, 0.10, 0.10, 0.10]
             state = torch.ones(4) * 0.1
-            state[bias.value] = 0.7
+            state[bias.value] = 2.0
         else:
             # Estado completamente aleatorio
             state = torch.rand(4)
@@ -151,7 +183,7 @@ class MicroPsyche:
 
         return cls(
             archetype_state=state,
-            dominant=Archetype(state.argmax().item()),
+            dominant=Archetype(unbiased_argmax(state)),
             emotional_energy=np.random.uniform(0.3, 0.7),
             recent_states=deque([state.clone()], maxlen=5),
             phi_local=0.5

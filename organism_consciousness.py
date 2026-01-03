@@ -23,7 +23,7 @@ from zeta_individuation import IndividuationStage, IntegrationMetrics
 from zeta_conscious_self import ConsciousnessIndex
 
 # Importar de módulos nuevos
-from micro_psyche import ConsciousCell, MicroPsyche
+from micro_psyche import ConsciousCell, MicroPsyche, unbiased_argmax
 from cluster import Cluster, ClusterPsyche
 
 
@@ -131,11 +131,13 @@ class OrganismConsciousness:
     @classmethod
     def create_initial(cls) -> 'OrganismConsciousness':
         """Crea consciencia inicial (estado base)."""
+        # Seleccionar arquetipo aleatorio para evitar sesgo hacia PERSONA
+        random_archetype = Archetype(np.random.randint(4))
         return cls(
             consciousness_index=ConsciousnessIndex(),
             phi_global=0.0,
             global_archetype=torch.ones(4) / 4,
-            dominant_archetype=Archetype.PERSONA,
+            dominant_archetype=random_archetype,
             individuation_stage=IndividuationStage.INCONSCIENTE,
             self_model=torch.zeros(6),  # archetype[4] + phi + coherence
             vertical_coherence=0.0
@@ -184,7 +186,7 @@ class OrganismConsciousness:
         global_archetype = F.softmax(global_archetype, dim=0)
 
         # 3. Arquetipo dominante
-        dominant = Archetype(global_archetype.argmax().item())
+        dominant = Archetype(unbiased_argmax(global_archetype))
 
         # 4. Φ global (coherencia inter-cluster + diversidad)
         # Queremos: alta coherencia interna + diversidad de especializaciones

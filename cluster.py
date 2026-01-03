@@ -20,7 +20,7 @@ from enum import Enum
 # Importar del sistema existente
 from zeta_psyche import Archetype
 from cell_state import CellRole
-from micro_psyche import ConsciousCell, MicroPsyche, compute_local_phi
+from micro_psyche import ConsciousCell, MicroPsyche, compute_local_phi, unbiased_argmax
 
 
 # =============================================================================
@@ -90,9 +90,11 @@ class ClusterPsyche:
     @classmethod
     def create_empty(cls) -> 'ClusterPsyche':
         """Crea una psique de cluster vacía."""
+        # Seleccionar arquetipo aleatorio para evitar sesgo hacia PERSONA
+        random_archetype = Archetype(np.random.randint(4))
         return cls(
             aggregate_state=torch.ones(4) / 4,
-            specialization=Archetype.PERSONA,
+            specialization=random_archetype,
             phi_cluster=0.0,
             coherence=0.0,
             prediction_error=0.0,
@@ -130,7 +132,7 @@ class ClusterPsyche:
         aggregate = F.softmax(aggregate, dim=0)
 
         # Especialización = arquetipo dominante
-        specialization = Archetype(aggregate.argmax().item())
+        specialization = Archetype(unbiased_argmax(aggregate))
 
         # Φ cluster = 1 - varianza normalizada
         variance = states.var(dim=0).mean().item()
@@ -214,7 +216,8 @@ class Cluster:
         """Arquetipo dominante del cluster."""
         if self.psyche:
             return self.psyche.specialization
-        return Archetype.PERSONA
+        # Fallback aleatorio para evitar sesgo hacia PERSONA
+        return Archetype(np.random.randint(4))
 
     def _update_centroid(self):
         """Actualiza el centroide espacial."""
