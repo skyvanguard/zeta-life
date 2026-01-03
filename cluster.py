@@ -135,7 +135,8 @@ class ClusterPsyche:
 
         # Agregación ponderada
         aggregate = (weights.unsqueeze(1) * states).sum(dim=0)
-        aggregate = F.softmax(aggregate, dim=0)
+        # NO aplicar softmax - el agregado ya es distribución válida
+        # (cada estado es softmax, promedio ponderado preserva suma=1)
 
         # Especialización = arquetipo dominante
         specialization = Archetype(unbiased_argmax(aggregate))

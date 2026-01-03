@@ -148,16 +148,16 @@ class BottomUpIntegrator(nn.Module):
 
         weights = torch.tensor(weights, dtype=torch.float32)
 
-        # Normalizar pesos (softmax para que sumen 1)
+        # Normalizar pesos (simple, no softmax para preservar proporciones)
         if weights.sum() > 0:
-            weights = F.softmax(weights, dim=0)
+            weights = weights / weights.sum()
         else:
             weights = torch.ones(len(cells)) / len(cells)
 
         # 2. Agregación ponderada de arquetipos
         archetype_states = torch.stack([c.psyche.archetype_state for c in cells])
         aggregate = (weights.unsqueeze(1) * archetype_states).sum(dim=0)
-        aggregate = F.softmax(aggregate, dim=0)
+        # NO aplicar softmax - el agregado ya es distribución válida
 
         # 3. Calcular Φ cluster (coherencia intra-cluster)
         # Φ = 1 - varianza_normalizada
@@ -264,19 +264,25 @@ class BottomUpIntegrator(nn.Module):
         if not valid_clusters:
             return OrganismConsciousness.create_initial()
 
-        # 1. Calcular pesos de clusters
+        # 1. Calcular pesos de clusters (basado en importancia × tamaño)
         weights = []
         for cluster in valid_clusters:
             importance = self.compute_cluster_importance(cluster)
-            weights.append(importance)
+            # Peso proporcional a tamaño para preservar distribución
+            weight = importance * cluster.size
+            weights.append(weight)
 
         weights = torch.tensor(weights, dtype=torch.float32)
-        weights = F.softmax(weights, dim=0)
+        # Normalización simple (no softmax) para preservar proporciones
+        if weights.sum() > 0:
+            weights = weights / weights.sum()
+        else:
+            weights = torch.ones(len(valid_clusters)) / len(valid_clusters)
 
         # 2. Agregación de arquetipos (votación ponderada)
         cluster_states = torch.stack([c.psyche.aggregate_state for c in valid_clusters])
         global_archetype = (weights.unsqueeze(1) * cluster_states).sum(dim=0)
-        global_archetype = F.softmax(global_archetype, dim=0)
+        # NO aplicar softmax - el agregado ya es distribución válida
 
         # 3. Arquetipo dominante
         dominant = Archetype(unbiased_argmax(global_archetype))

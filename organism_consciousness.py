@@ -168,22 +168,23 @@ class OrganismConsciousness:
             return cls.create_initial()
 
         # 1. Calcular pesos de cada cluster
+        # Peso = phi_cluster × tamaño (proporcional, sin softmax para preservar ratios)
         weights = []
         for cluster in valid_clusters:
-            # Peso = phi_cluster × tamaño normalizado
-            weight = cluster.psyche.phi_cluster * (cluster.size / 20.0)
+            weight = cluster.psyche.phi_cluster * cluster.size
             weights.append(weight)
 
         weights = torch.tensor(weights)
         if weights.sum() > 0:
-            weights = F.softmax(weights, dim=0)
+            # Normalización simple (no softmax) para preservar proporciones
+            weights = weights / weights.sum()
         else:
             weights = torch.ones(len(valid_clusters)) / len(valid_clusters)
 
         # 2. Agregación de estados arquetipales
         states = torch.stack([c.psyche.aggregate_state for c in valid_clusters])
         global_archetype = (weights.unsqueeze(1) * states).sum(dim=0)
-        global_archetype = F.softmax(global_archetype, dim=0)
+        # NO aplicar softmax adicional - la agregación ya produce distribución válida
 
         # 3. Arquetipo dominante
         dominant = Archetype(unbiased_argmax(global_archetype))
