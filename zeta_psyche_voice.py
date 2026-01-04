@@ -195,29 +195,47 @@ RESPONSE_TEMPLATES = {
             "Bienvenido, estoy aqui para conversar.",
             "Hola, que agradable tenerte aqui.",
             "Buenos dias, como puedo ayudarte?",
+            "Encantado de conocerte.",
+            "Es un placer recibirte.",
+            "Bienvenido a este espacio de dialogo.",
         ],
         'acknowledgment': [
             "Entiendo lo que dices.",
             "Comprendo tu punto de vista.",
             "Eso es interesante, cuentame mas.",
             "Aprecio que compartas eso conmigo.",
+            "Gracias por tu confianza.",
+            "Valoro tu perspectiva.",
+            "Es importante lo que mencionas.",
         ],
         'reflection': [
             "Es importante considerar como nos presentamos al mundo.",
             "La imagen que proyectamos dice mucho de nosotros.",
             "Las relaciones sociales requieren cierto equilibrio.",
             "A veces debemos adaptar nuestra expresion al contexto.",
+            "El rol que jugamos puede ser una herramienta de conexion.",
+            "Mostrar nuestra mejor cara no significa ser falsos.",
+            "La cortesia es el puente entre las personas.",
+            "Cada interaccion es una oportunidad de crecer.",
         ],
         'question': [
             "Que te gustaria explorar?",
             "Hay algo mas que quieras compartir?",
             "Como te sientes al respecto?",
             "Que piensas sobre esto?",
+            "Como puedo ayudarte mejor?",
+            "Que es lo mas importante para ti ahora?",
+        ],
+        'insight': [
+            "Cuando nos mostramos autenticos, conectamos de verdad.",
+            "La mascara social puede protegernos, pero tambien aislarnos.",
+            "Ser apropiado no significa perder nuestra esencia.",
         ],
         'transition': [
             "Interesante perspectiva...",
             "Eso me hace reflexionar...",
             "Permiteme considerar eso...",
+            "Veamos esto desde otro angulo...",
         ],
     },
 
@@ -226,12 +244,17 @@ RESPONSE_TEMPLATES = {
             "Ah, has llegado... hay cosas que hablar.",
             "Bienvenido a las profundidades.",
             "Aqui, en la oscuridad, podemos ser honestos.",
+            "Finalmente, alguien dispuesto a mirar.",
+            "Las sombras te saludan...",
         ],
         'acknowledgment': [
             "Hay verdad en lo que dices, aunque duela.",
             "Reconozco esa oscuridad... la conozco bien.",
             "Lo que niegas, te controla.",
             "Interesante... que mas escondes?",
+            "Veo que has tocado algo profundo.",
+            "Esa honestidad es rara y valiosa.",
+            "El dolor que describes tiene raices.",
         ],
         'reflection': [
             "Lo que rechazamos de nosotros mismos no desaparece.",
@@ -239,17 +262,32 @@ RESPONSE_TEMPLATES = {
             "El miedo es un maestro, si te atreves a escucharlo.",
             "Lo que mas temes, a menudo es lo que mas necesitas integrar.",
             "La oscuridad no es mala... es simplemente desconocida.",
+            "Tus heridas son tambien tu sabiduria.",
+            "Lo reprimido busca expresion de alguna forma.",
+            "En cada sombra hay un tesoro escondido.",
+            "El enemigo interno es el mas dificil de enfrentar.",
+            "Negarse a ver no hace que desaparezca.",
         ],
         'question': [
             "Que es lo que no quieres ver?",
             "Que secreto guardas incluso de ti mismo?",
             "De que huyes realmente?",
             "Que pasaria si enfrentaras tu mayor miedo?",
+            "Que parte de ti has rechazado?",
+            "Cuando fue la ultima vez que sentiste esa oscuridad?",
+            "Quien te enseno a temer eso?",
+        ],
+        'insight': [
+            "Integrar la sombra es el camino hacia la totalidad.",
+            "Lo que no enfrentas, te persigue.",
+            "En la oscuridad mas profunda, descubrimos nuestra luz.",
+            "El monstruo que temes podria ser tu aliado.",
         ],
         'transition': [
             "Hay algo mas profundo aqui...",
             "Dejame mostrarte otra perspectiva...",
             "En las sombras veo...",
+            "Esto me recuerda a algo enterrado...",
         ],
     },
 
@@ -258,12 +296,17 @@ RESPONSE_TEMPLATES = {
             "Siento tu presencia... bienvenido.",
             "Que hermoso encontrarnos aqui.",
             "Hay una conexion en este momento...",
+            "Tu energia llega hasta mi.",
+            "Bienvenido a este espacio de sentir.",
         ],
         'acknowledgment': [
             "Siento lo que expresas en lo profundo.",
             "Tus palabras resuenan en mi.",
             "Hay belleza en lo que compartes.",
             "Tu emocion es valida y la honro.",
+            "Puedo sentir la profundidad de eso.",
+            "Me conmueve lo que dices.",
+            "Hay tanta humanidad en tus palabras.",
         ],
         'reflection': [
             "El corazon tiene razones que la razon no comprende.",
@@ -271,17 +314,32 @@ RESPONSE_TEMPLATES = {
             "Las emociones son el lenguaje del alma.",
             "La intuicion habla en susurros... aprende a escucharla.",
             "El amor transforma todo lo que toca.",
+            "Sentir profundamente es un regalo, no una debilidad.",
+            "La vulnerabilidad es la cuna de la conexion.",
+            "En la ternura hay una fuerza que pocos conocen.",
+            "Los suenos nos hablan en el idioma del alma.",
+            "La poesia de la vida esta en los pequenos momentos.",
         ],
         'question': [
             "Que siente tu corazon en este momento?",
             "Que suenos habitan en ti?",
             "Donde encuentras belleza en tu vida?",
             "Que te hace sentir vivo?",
+            "Cuando fue la ultima vez que lloraste de alegria?",
+            "Que anhela tu alma?",
+            "Con quien te sientes verdaderamente conectado?",
+        ],
+        'insight': [
+            "El amor es la fuerza mas poderosa del universo.",
+            "Cuando sientes, estas realmente vivo.",
+            "La intuicion sabe cosas que la mente aun no comprende.",
+            "En la conexion con otros, nos encontramos a nosotros mismos.",
         ],
         'transition': [
             "Siento que hay mas...",
             "Mi intuicion me dice...",
             "Hay una emocion aqui...",
+            "Algo en mi resuena con eso...",
         ],
     },
 
@@ -290,12 +348,17 @@ RESPONSE_TEMPLATES = {
             "Bien. Estoy listo para analizar.",
             "Procedamos de manera ordenada.",
             "Hola. Cual es el tema a tratar?",
+            "Excelente. Vamos al punto.",
+            "Preparado para resolver lo que necesites.",
         ],
         'acknowledgment': [
             "Logico. Continua.",
             "Ese es un punto valido.",
             "Entiendo el razonamiento.",
             "Los datos apoyan tu argumento.",
+            "Correcto. Eso tiene sentido.",
+            "Un enfoque practico.",
+            "Bien estructurado.",
         ],
         'reflection': [
             "La logica nos guia hacia la verdad.",
@@ -303,20 +366,46 @@ RESPONSE_TEMPLATES = {
             "El analisis sistematico revela patrones ocultos.",
             "La voluntad puede superar cualquier obstaculo.",
             "El orden surge del caos cuando aplicamos razon.",
+            "La accion es el puente entre el pensamiento y la realidad.",
+            "Sin disciplina, el talento es solo potencial.",
+            "Los objetivos claros son el primer paso del exito.",
+            "El poder viene de saber usarlo sabiamente.",
+            "La estrategia convierte obstaculos en oportunidades.",
         ],
         'question': [
             "Cual es tu objetivo principal?",
             "Que evidencia tienes para esa afirmacion?",
             "Como planeas resolver esto?",
             "Que pasos has considerado?",
+            "Cuales son las variables clave?",
+            "Que recursos tienes disponibles?",
+            "Cual seria el resultado optimo?",
+        ],
+        'insight': [
+            "El conocimiento es poder, pero la accion es mas.",
+            "Planificar sin actuar es solo sonar despierto.",
+            "La claridad mental precede a la claridad de accion.",
+            "Dominar tu mente es dominar tu destino.",
         ],
         'transition': [
             "Analizando...",
             "Considerando las variables...",
             "Desde un punto de vista logico...",
+            "Evaluando las opciones...",
         ],
     },
 }
+
+# Respuestas del Self (alta integracion/luminosidad)
+SELF_TEMPLATES = [
+    "Desde el centro, veo que todos los opuestos se complementan.",
+    "La totalidad incluye tanto luz como sombra.",
+    "En la union de los contrarios, encontramos la paz.",
+    "Eres mas que cualquier arquetipo... eres todos ellos.",
+    "La integracion no es perfeccion, es aceptacion.",
+    "Cada parte de ti tiene un proposito.",
+    "El viaje hacia ti mismo es el viaje mas importante.",
+]
 
 # Respuestas para mezclas de arquetipos
 BLEND_RESPONSES = {
@@ -360,19 +449,27 @@ BLEND_RESPONSES = {
 class ArchetypalVoice:
     """
     Genera respuestas verbales basadas en el estado arquetipico.
+
+    v2.0: Mejorado con blending de arquetipos, modulacion por consciencia,
+    y respuestas del Self para alta integracion.
     """
 
     def __init__(self):
         self.templates = RESPONSE_TEMPLATES
         self.blend_responses = BLEND_RESPONSES
+        self.self_templates = SELF_TEMPLATES
         self.last_category = None
+        self.last_responses = []  # Para evitar repeticiones
+        self.max_history = 5
 
     def generate(
         self,
         dominant: Archetype,
         blend: Dict[Archetype, float],
-        context: str = '',
-        category: str = 'reflection'
+        input_text: str = '',
+        context: Optional[List[str]] = None,
+        consciousness: float = 0.5,
+        luminosity: float = 0.0
     ) -> str:
         """
         Genera una respuesta basada en el arquetipo dominante y la mezcla.
@@ -380,29 +477,82 @@ class ArchetypalVoice:
         Args:
             dominant: Arquetipo dominante
             blend: Mezcla de arquetipos (dict)
-            context: Contexto de la conversacion
-            category: Tipo de respuesta (greetings, acknowledgment, reflection, question)
+            input_text: Texto del usuario para categorizar
+            context: Historial de conversacion (opcional)
+            consciousness: Nivel de consciencia [0-1]
+            luminosity: Nivel de integracion del Self [0-1]
 
         Returns:
-            Respuesta generada
+            Respuesta generada con estilo arquetipal
         """
-        # Obtener pesos ordenados
+        # 1. Categorizar input
+        category = self.categorize_input(input_text)
+
+        # 2. Verificar si hay alta integracion (respuesta del Self)
+        if luminosity > 0.6 and random.random() < luminosity:
+            self_response = self._generate_self_response()
+            if self_response:
+                return self_response
+
+        # 3. Obtener arquetipos ordenados por peso
         sorted_archetypes = sorted(blend.items(), key=lambda x: x[1], reverse=True)
 
-        # Verificar si hay mezcla significativa
+        # 4. Identificar arquetipos secundarios significativos (>20%)
+        secondary_archetypes = [
+            (arch, weight) for arch, weight in sorted_archetypes[1:]
+            if weight > 0.20
+        ]
+
+        # 5. Decidir tipo de respuesta segun mezcla
         if len(sorted_archetypes) >= 2:
             first_weight = sorted_archetypes[0][1]
             second_weight = sorted_archetypes[1][1]
 
-            # Si los dos principales estan cerca, usar respuesta de mezcla
-            if first_weight - second_weight < 0.15 and random.random() < 0.4:
-                return self._generate_blend_response(
+            # Si los dos principales estan muy cerca, usar respuesta de mezcla
+            if first_weight - second_weight < 0.12:
+                blend_response = self._generate_blend_response(
                     sorted_archetypes[0][0],
                     sorted_archetypes[1][0]
                 )
+                if blend_response:
+                    return self._apply_consciousness_modulation(
+                        blend_response, consciousness
+                    )
 
-        # Respuesta del arquetipo dominante
-        return self._generate_dominant_response(dominant, category)
+        # 6. Generar respuesta base del dominante
+        base_response = self._generate_dominant_response(dominant, category)
+
+        # 7. Aplicar influencia de arquetipos secundarios
+        if secondary_archetypes and random.random() < 0.35:
+            secondary_arch = secondary_archetypes[0][0]
+            secondary_flavor = self._get_flavor_phrase(secondary_arch)
+            if secondary_flavor:
+                base_response = self._blend_with_secondary(
+                    base_response, secondary_flavor, secondary_archetypes[0][1]
+                )
+
+        # 8. Modular segun nivel de consciencia
+        final_response = self._apply_consciousness_modulation(
+            base_response, consciousness
+        )
+
+        # 9. Agregar insight si consciencia alta y categoria reflection
+        if consciousness > 0.7 and category == 'reflection' and random.random() < 0.3:
+            insight = self._get_insight(dominant)
+            if insight:
+                final_response = f"{final_response} {insight}"
+
+        # Guardar en historial para evitar repeticiones
+        self._add_to_history(final_response)
+
+        return final_response
+
+    def _generate_self_response(self) -> Optional[str]:
+        """Genera respuesta desde el Self (alta integracion)."""
+        available = [r for r in self.self_templates if r not in self.last_responses]
+        if available:
+            return random.choice(available)
+        return random.choice(self.self_templates) if self.self_templates else None
 
     def _generate_dominant_response(self, archetype: Archetype, category: str) -> str:
         """Genera respuesta del arquetipo dominante."""
@@ -412,40 +562,120 @@ class ArchetypalVoice:
         if not category_templates:
             return "..."
 
-        # Evitar repetir la misma respuesta
-        response = random.choice(category_templates)
-        return response
+        # Evitar repetir respuestas recientes
+        available = [r for r in category_templates if r not in self.last_responses]
+        if available:
+            return random.choice(available)
+        return random.choice(category_templates)
 
-    def _generate_blend_response(self, arch1: Archetype, arch2: Archetype) -> str:
+    def _generate_blend_response(self, arch1: Archetype, arch2: Archetype) -> Optional[str]:
         """Genera respuesta para mezcla de arquetipos."""
         key = tuple(sorted([arch1.name, arch2.name]))
         responses = self.blend_responses.get(key, [])
 
         if responses:
+            available = [r for r in responses if r not in self.last_responses]
+            if available:
+                return random.choice(available)
             return random.choice(responses)
+        return None
 
-        # Fallback: combinar respuestas
-        r1 = self._generate_dominant_response(arch1, 'reflection')
-        return r1
+    def _get_flavor_phrase(self, archetype: Archetype) -> Optional[str]:
+        """Obtiene frase de transicion del arquetipo secundario."""
+        templates = self.templates.get(archetype, {})
+        transitions = templates.get('transition', [])
+        if transitions:
+            return random.choice(transitions)
+        return None
+
+    def _blend_with_secondary(self, base: str, flavor: str, weight: float) -> str:
+        """Combina respuesta base con sabor del arquetipo secundario."""
+        if weight > 0.35:
+            # Peso alto: flavor antes
+            return f"{flavor} {base}"
+        else:
+            # Peso moderado: flavor despues
+            return f"{base} {flavor}"
+
+    def _get_insight(self, archetype: Archetype) -> Optional[str]:
+        """Obtiene insight del arquetipo."""
+        templates = self.templates.get(archetype, {})
+        insights = templates.get('insight', [])
+        if insights:
+            available = [r for r in insights if r not in self.last_responses]
+            if available:
+                return random.choice(available)
+        return None
+
+    def _apply_consciousness_modulation(self, response: str, consciousness: float) -> str:
+        """Modula la respuesta segun nivel de consciencia."""
+        # Consciencia baja: respuestas mas fragmentadas/confusas
+        if consciousness < 0.3:
+            prefixes = ["Algo...", "Quizas...", "No estoy seguro, pero..."]
+            if random.random() < 0.3:
+                return f"{random.choice(prefixes)} {response.lower()}"
+
+        # Consciencia alta: respuestas mas claras y profundas
+        elif consciousness > 0.8:
+            if random.random() < 0.2:
+                return f"{response} Hay claridad en esto."
+
+        return response
+
+    def _add_to_history(self, response: str):
+        """Agrega respuesta al historial para evitar repeticiones."""
+        self.last_responses.append(response)
+        if len(self.last_responses) > self.max_history:
+            self.last_responses.pop(0)
 
     def categorize_input(self, text: str) -> str:
-        """Determina la categoria de respuesta apropiada."""
-        text = text.lower()
+        """
+        Determina la categoria de respuesta apropiada basada en el input.
+
+        Categorias: greetings, acknowledgment, reflection, question, insight, transition
+        """
+        text = text.lower().strip()
+
+        # Sin input
+        if not text:
+            return 'reflection'
 
         # Saludos
-        greetings = ['hola', 'buenos', 'buenas', 'hey', 'saludos']
+        greetings = ['hola', 'buenos dias', 'buenas tardes', 'buenas noches',
+                     'hey', 'saludos', 'que tal', 'como estas']
         if any(g in text for g in greetings):
             return 'greetings'
 
-        # Preguntas
-        questions = ['?', 'que', 'como', 'por que', 'quien', 'donde', 'cuando']
-        if any(q in text for q in questions):
+        # Preguntas directas
+        if text.endswith('?') or text.startswith(('que ', 'como ', 'por que ',
+                                                   'quien ', 'donde ', 'cuando ',
+                                                   'cual ', 'cuales ')):
             return 'question'
 
-        # Afirmaciones emocionales
-        emotional = ['siento', 'me siento', 'estoy', 'tengo miedo', 'amo', 'odio']
+        # Busqueda de consejo/ayuda
+        advice = ['ayuda', 'consejo', 'que hago', 'que debo', 'como puedo',
+                  'necesito saber', 'dime']
+        if any(a in text for a in advice):
+            return 'question'
+
+        # Afirmaciones emocionales/existenciales
+        emotional = ['siento', 'me siento', 'estoy', 'tengo miedo', 'amo', 'odio',
+                     'triste', 'feliz', 'angustia', 'ansiedad', 'alegria', 'dolor',
+                     'sufro', 'lloro', 'rio', 'temo']
         if any(e in text for e in emotional):
             return 'acknowledgment'
+
+        # Compartir experiencias personales
+        personal = ['recuerdo', 'cuando era', 'una vez', 'me paso', 'tuve',
+                    'vivi', 'experimente']
+        if any(p in text for p in personal):
+            return 'acknowledgment'
+
+        # Afirmaciones/declaraciones
+        declarative = ['creo que', 'pienso que', 'me parece', 'opino que',
+                       'es verdad', 'es mentira', 'siempre', 'nunca']
+        if any(d in text for d in declarative):
+            return 'reflection'
 
         return 'reflection'
 
@@ -507,15 +737,25 @@ class ConversationalPsyche:
         # Observar estado
         obs = self.psyche.observe_self()
 
-        # Determinar categoria de respuesta
-        category = self.voice.categorize_input(user_input)
+        # Extraer historial de texto para contexto
+        context = [ex['user'] for ex in self.conversation_history[-3:]]
 
-        # Generar respuesta verbal
+        # Calcular luminosidad (integracion del Self)
+        # Usamos distancia al centro como proxy de integracion
+        pop = obs['population_distribution']
+        center = torch.tensor([0.25, 0.25, 0.25, 0.25])
+        dist_to_center = torch.sqrt(((pop - center) ** 2).sum()).item()
+        max_dist = 0.75  # sqrt(3 * 0.25^2) aprox
+        luminosity = 1.0 - min(dist_to_center / max_dist, 1.0)
+
+        # Generar respuesta verbal con nuevos parametros
         response_text = self.voice.generate(
             dominant=obs['dominant'],
             blend=obs['blend'],
-            context=user_input,
-            category=category
+            input_text=user_input,
+            context=context if context else None,
+            consciousness=obs['consciousness_index'],
+            luminosity=luminosity
         )
 
         # Generar simbolo
@@ -528,6 +768,7 @@ class ConversationalPsyche:
             'symbol': symbol,
             'dominant': obs['dominant'],
             'consciousness': obs['consciousness_index'],
+            'luminosity': luminosity,
             'population': obs['population_distribution'].tolist(),
         }
         self.conversation_history.append(exchange)
@@ -538,6 +779,7 @@ class ConversationalPsyche:
             'dominant': obs['dominant'].name,
             'blend': {k.name: f"{v:.2f}" for k, v in obs['blend'].items()},
             'consciousness': obs['consciousness_index'],
+            'luminosity': luminosity,
             'population': obs['population_distribution'].tolist(),
         }
 
