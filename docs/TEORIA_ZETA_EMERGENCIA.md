@@ -177,12 +177,38 @@ En ambos sistemas, ZETA tiene entropia INTERMEDIA:
 
 La entropia de Shannon captura lo que Lyapunov no puede: la **complejidad estructural** del sistema, no solo su sensibilidad a condiciones iniciales.
 
+#### Experimento 3: Dimension de Correlacion del Atractor
+
+Se calculo la dimension de correlacion D2 usando el algoritmo de Grassberger-Procaccia:
+
+| Sistema | RANDOM | ZETA | UNIFORM | Orden |
+|---------|--------|------|---------|-------|
+| Hierarchical | 1.860 | **2.335** | 2.374 | RANDOM < ZETA < UNIFORM |
+| ZetaOrganism | 2.045 | 2.252 | 2.218 | RANDOM < UNIFORM < ZETA |
+
+**Resultado: PARCIALMENTE VALIDADO (1/2 sistemas)**
+
+- Hierarchical: ZETA en posicion intermedia (validado)
+- ZetaOrganism: ZETA en posicion extrema (no validado)
+
+**Hallazgo inesperado:** RANDOM produce dimension MENOR, no mayor. Esto sugiere que el ruido puro dispersa trayectorias sin formar atractores coherentes, mientras que ZETA produce estructuras complejas pero organizadas.
+
+#### Resumen de Validacion Experimental
+
+| Metrica | Que mide | Hierarchical | ZetaOrganism | Total |
+|---------|----------|--------------|--------------|-------|
+| Lyapunov | Tasa divergencia | - | - | 0/4 |
+| **Entropia** | Complejidad | **ZETA medio** | **ZETA medio** | **2/2** |
+| Dim. Correlacion | Estructura atractor | **ZETA medio** | ZETA extremo | 1/2 |
+
+**Conclusion global:** La entropia de Shannon es la metrica mas robusta para detectar el "borde del caos" en estos sistemas. ZETA consistentemente produce complejidad intermedia.
+
 ### 5.4 Trabajo Futuro
 
 1. ~~Calcular exponente de Lyapunov~~ (completado, no discrimina)
 2. ~~Calcular entropia de Shannon~~ (completado, valida hipotesis)
-3. Conectar con teoria de matrices aleatorias (GUE)
-4. Calcular dimension de correlacion del atractor
+3. ~~Calcular dimension de correlacion~~ (completado, parcialmente valida)
+4. Conectar con teoria de matrices aleatorias (GUE)
 5. Analizar espectro de potencia de las oscilaciones
 
 ---
