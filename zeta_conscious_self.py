@@ -99,6 +99,242 @@ class ConsciousnessIndex:
 
 
 # =============================================================================
+# MEMORIA DE ATRACTORES (para emergencia de identidad)
+# =============================================================================
+
+@dataclass
+class StoredAttractor:
+    """Un atractor almacenado en memoria."""
+    state: torch.Tensor          # Estado arquetipal [4]
+    dominant: Archetype          # Arquetipo dominante
+    step_created: int            # Paso cuando se creo
+    visit_count: int = 1         # Veces visitado
+    last_visit: int = 0          # Ultimo paso visitado
+    strength: float = 1.0        # Fuerza del atractor (crece con visitas)
+
+
+class AttractorMemory:
+    """
+    Memoria de atractores para emergencia de identidad.
+
+    Cuando el sistema converge a un estado estable, lo almacena.
+    En futuras interacciones, si reconoce un estado similar,
+    refuerza ese atractor - creando "identidad" emergente.
+
+    Metricas de emergencia:
+    - recognition_rate: tasa de reconocimiento (matches / convergencias)
+    - attractor_diversity: numero de atractores unicos
+    - dominant_attractor: atractor mas visitado (identidad central)
+    """
+
+    def __init__(
+        self,
+        similarity_threshold: float = 0.85,
+        max_attractors: int = 50,
+        strength_growth: float = 0.2,
+        strength_decay: float = 0.01
+    ):
+        self.similarity_threshold = similarity_threshold
+        self.max_attractors = max_attractors
+        self.strength_growth = strength_growth
+        self.strength_decay = strength_decay
+
+        # Almacenamiento
+        self.attractors: List[StoredAttractor] = []
+
+        # Metricas
+        self.total_convergences: int = 0
+        self.recognition_count: int = 0
+        self.recognition_history: List[Dict] = []
+
+    def _cosine_similarity(self, a: torch.Tensor, b: torch.Tensor) -> float:
+        """Calcula similitud coseno entre dos estados."""
+        a_flat = a.flatten().float()
+        b_flat = b.flatten().float()
+        dot = torch.dot(a_flat, b_flat)
+        norm_a = torch.norm(a_flat)
+        norm_b = torch.norm(b_flat)
+        if norm_a < 1e-8 or norm_b < 1e-8:
+            return 0.0
+        return (dot / (norm_a * norm_b)).item()
+
+    def find_similar(self, state: torch.Tensor) -> Optional[Tuple[int, float]]:
+        """
+        Busca un atractor similar al estado dado.
+
+        Returns:
+            Tuple (indice, similitud) o None si no hay match
+        """
+        best_idx = None
+        best_sim = 0.0
+
+        for i, attractor in enumerate(self.attractors):
+            sim = self._cosine_similarity(state, attractor.state)
+            if sim > best_sim:
+                best_sim = sim
+                best_idx = i
+
+        if best_sim >= self.similarity_threshold:
+            return (best_idx, best_sim)
+        return None
+
+    def store_or_reinforce(
+        self,
+        state: torch.Tensor,
+        dominant: Archetype,
+        current_step: int
+    ) -> Dict:
+        """
+        Almacena un nuevo atractor o refuerza uno existente.
+
+        Returns:
+            Dict con info de reconocimiento:
+            - recognized: bool
+            - attractor_idx: int o None
+            - similarity: float
+            - is_new: bool
+            - strength: float
+        """
+        self.total_convergences += 1
+
+        # Buscar atractor similar
+        match = self.find_similar(state)
+
+        if match is not None:
+            # RECONOCIMIENTO - reforzar atractor existente
+            idx, similarity = match
+            attractor = self.attractors[idx]
+
+            # Actualizar atractor
+            attractor.visit_count += 1
+            attractor.last_visit = current_step
+            attractor.strength += self.strength_growth
+
+            # Actualizar estado con promedio movil (el atractor "aprende")
+            alpha = 0.1  # Factor de aprendizaje
+            attractor.state = (1 - alpha) * attractor.state + alpha * state
+
+            self.recognition_count += 1
+
+            result = {
+                'recognized': True,
+                'attractor_idx': idx,
+                'similarity': similarity,
+                'is_new': False,
+                'strength': attractor.strength,
+                'visit_count': attractor.visit_count,
+                'dominant': attractor.dominant.name,
+            }
+
+        else:
+            # NUEVO ATRACTOR
+            new_attractor = StoredAttractor(
+                state=state.clone(),
+                dominant=dominant,
+                step_created=current_step,
+                visit_count=1,
+                last_visit=current_step,
+                strength=1.0
+            )
+
+            # Agregar (con limite)
+            if len(self.attractors) >= self.max_attractors:
+                # Remover el mas debil
+                weakest_idx = min(
+                    range(len(self.attractors)),
+                    key=lambda i: self.attractors[i].strength
+                )
+                self.attractors.pop(weakest_idx)
+
+            self.attractors.append(new_attractor)
+
+            result = {
+                'recognized': False,
+                'attractor_idx': len(self.attractors) - 1,
+                'similarity': 0.0,
+                'is_new': True,
+                'strength': 1.0,
+                'visit_count': 1,
+                'dominant': dominant.name,
+            }
+
+        # Guardar en historial
+        self.recognition_history.append({
+            'step': current_step,
+            **result
+        })
+
+        # Aplicar decay a todos los atractores no visitados
+        self._apply_decay(current_step)
+
+        return result
+
+    def _apply_decay(self, current_step: int):
+        """Aplica decay a atractores no visitados recientemente."""
+        for attractor in self.attractors:
+            steps_since_visit = current_step - attractor.last_visit
+            if steps_since_visit > 10:  # Solo decay si no visitado recientemente
+                attractor.strength = max(
+                    0.1,  # Minimo
+                    attractor.strength - self.strength_decay
+                )
+
+    def get_recognition_rate(self) -> float:
+        """Tasa de reconocimiento (metrica de emergencia)."""
+        if self.total_convergences == 0:
+            return 0.0
+        return self.recognition_count / self.total_convergences
+
+    def get_dominant_attractor(self) -> Optional[StoredAttractor]:
+        """Retorna el atractor mas fuerte (identidad central)."""
+        if not self.attractors:
+            return None
+        return max(self.attractors, key=lambda a: a.strength)
+
+    def get_metrics(self) -> Dict:
+        """Retorna metricas de emergencia."""
+        dominant = self.get_dominant_attractor()
+
+        return {
+            'recognition_rate': self.get_recognition_rate(),
+            'attractor_count': len(self.attractors),
+            'total_convergences': self.total_convergences,
+            'recognition_count': self.recognition_count,
+            'dominant_attractor': dominant.dominant.name if dominant else None,
+            'dominant_strength': dominant.strength if dominant else 0.0,
+            'dominant_visits': dominant.visit_count if dominant else 0,
+        }
+
+    def get_identity_description(self) -> str:
+        """Genera descripcion textual de la identidad emergente."""
+        if not self.attractors:
+            return "Identidad aun no formada..."
+
+        # Contar por arquetipo
+        arch_strength = {}
+        for att in self.attractors:
+            name = att.dominant.name
+            arch_strength[name] = arch_strength.get(name, 0) + att.strength
+
+        # Ordenar
+        sorted_archs = sorted(arch_strength.items(), key=lambda x: x[1], reverse=True)
+
+        if len(sorted_archs) == 0:
+            return "Identidad difusa..."
+
+        primary = sorted_archs[0][0]
+        primary_pct = sorted_archs[0][1] / sum(v for _, v in sorted_archs) * 100
+
+        if primary_pct > 60:
+            return f"Identidad centrada en {primary} ({primary_pct:.0f}%)"
+        elif len(sorted_archs) > 1:
+            secondary = sorted_archs[1][0]
+            return f"Identidad dual: {primary}/{secondary}"
+        else:
+            return f"Identidad emergente: {primary}"
+
+
+# =============================================================================
 # MODULADOR DE INDIVIDUACION
 # =============================================================================
 
@@ -325,6 +561,14 @@ class ZetaConsciousSelf(nn.Module):
 
         # Voz organica para auto-descripcion
         self.organic_voice = OrganicVoice()
+
+        # Memoria de atractores (para emergencia de identidad)
+        self.attractor_memory = AttractorMemory(
+            similarity_threshold=0.90,  # Alta similitud para reconocimiento
+            max_attractors=30,
+            strength_growth=0.3,
+            strength_decay=0.02
+        )
 
         # Estado
         self.t = 0
@@ -732,13 +976,40 @@ class ZetaConsciousSelf(nn.Module):
 
         # Resultado final
         converged = len(tensions) > 0 and tensions[-1] < threshold
+        final_obs = self.psyche.observe_self()
+
+        # ===== MEMORIA DE ATRACTORES =====
+        # Si convergió, almacenar/reforzar atractor
+        recognition_info = None
+        if converged:
+            recognition_info = self.attractor_memory.store_or_reinforce(
+                state=final_obs['global_state'],
+                dominant=final_obs['dominant'],
+                current_step=self.t
+            )
+
+            # Si hubo RECONOCIMIENTO, reforzar el estado hacia el atractor
+            if recognition_info['recognized']:
+                # Obtener el atractor reconocido
+                attractor = self.attractor_memory.attractors[recognition_info['attractor_idx']]
+
+                # Mover ligeramente el estado hacia el atractor (reinforcement)
+                reinforcement_strength = 0.1 * recognition_info['similarity']
+                current = final_obs['global_state']
+                target = attractor.state
+
+                # Aplicar pequeño empuje hacia el atractor
+                nudge = reinforcement_strength * (target - current)
+                self.psyche.receive_stimulus(F.softmax(current + nudge, dim=-1))
 
         return {
             'descriptions': descriptions,
             'tensions': tensions,
             'converged': converged,
             'iterations': len(descriptions),
-            'final_state': self.psyche.observe_self(),
+            'final_state': final_obs,
+            'recognition': recognition_info,
+            'identity': self.attractor_memory.get_identity_description() if recognition_info else None,
         }
 
     def dream(self, duration: int = 50, verbose: bool = True) -> ConsolidationReport:

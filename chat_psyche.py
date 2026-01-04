@@ -324,6 +324,7 @@ class ZetaPsycheCLI:
   /viaje     - Ver narrativa del viaje psicologico
   /sonar     - Entrar en ciclo de sueno (solo ZetaConsciousSelf)
   /reflexion - Forzar ciclo de auto-reflexion (Strange Loop)
+  /identidad - Ver metricas de identidad emergente
   /trabajo   - Trabajo de integracion activo
   /barra     - Toggle barras de estado (on/off)
   /reset     - Reiniciar psique
@@ -486,6 +487,20 @@ class ZetaPsycheCLI:
             print(f"  {Colors.GREEN}[Convergencia alcanzada]{Colors.RESET}")
         else:
             print(f"  {Colors.GRAY}[Max iteraciones]{Colors.RESET}")
+
+        # Reconocimiento de atractor
+        rec = reflection.get('recognition')
+        if rec:
+            if rec['recognized']:
+                print(f"  {Colors.CYAN}[RECONOCIDO: {rec['dominant']} sim={rec['similarity']:.2f} fuerza={rec['strength']:.1f}]{Colors.RESET}")
+            else:
+                print(f"  {Colors.GRAY}[Nuevo atractor: {rec['dominant']}]{Colors.RESET}")
+
+        # Identidad emergente
+        identity = reflection.get('identity')
+        if identity:
+            print(f"  {Colors.BOLD}{identity}{Colors.RESET}")
+
         print()
 
     def cmd_reflection(self) -> None:
@@ -508,6 +523,37 @@ class ZetaPsycheCLI:
         if reflection.get('final_state'):
             final = reflection['final_state']
             print(f"  Estado final: {final['dominant'].name}")
+
+    def cmd_identity(self) -> None:
+        """Muestra metricas de identidad emergente."""
+        if self.system_type != 'conscious_self':
+            print("  [Requiere ZetaConsciousSelf para identidad]")
+            return
+
+        if not hasattr(self.system, 'attractor_memory'):
+            print("  [Sistema no tiene memoria de atractores]")
+            return
+
+        mem = self.system.attractor_memory
+        metrics = mem.get_metrics()
+
+        print("\n  === IDENTIDAD EMERGENTE ===")
+        print()
+        print(f"  {mem.get_identity_description()}")
+        print()
+        print(f"  Metricas:")
+        print(f"    Recognition rate: {metrics['recognition_rate']:.1%}")
+        print(f"    Atractores unicos: {metrics['attractor_count']}")
+        print(f"    Convergencias: {metrics['total_convergences']}")
+        print(f"    Reconocimientos: {metrics['recognition_count']}")
+        print()
+
+        if metrics['dominant_attractor']:
+            print(f"  Atractor dominante:")
+            print(f"    Arquetipo: {metrics['dominant_attractor']}")
+            print(f"    Fuerza: {metrics['dominant_strength']:.1f}")
+            print(f"    Visitas: {metrics['dominant_visits']}")
+        print()
 
     def toggle_bars(self) -> None:
         """Toggle barras de estado."""
@@ -595,6 +641,10 @@ class ZetaPsycheCLI:
 
                 elif cmd == '/reflexion' or cmd == '/reflection':
                     self.cmd_reflection()
+                    continue
+
+                elif cmd == '/identidad' or cmd == '/identity':
+                    self.cmd_identity()
                     continue
 
                 elif cmd == '/barra' or cmd == '/bars':
