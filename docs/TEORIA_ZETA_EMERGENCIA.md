@@ -229,14 +229,61 @@ Todos los sistemas muestran beta ~ 1.7, entre ruido rosa (beta=1) y browniano (b
 
 **Observacion sobre sistemas:** El sistema Hierarchical muestra consistentemente el patron esperado (ZETA intermedio) en 3/4 metricas, mientras que ZetaOrganism solo en 1/4. Esto sugiere que la arquitectura jerarquica preserva mejor las propiedades criticas de los ceros zeta.
 
+#### IMPORTANTE: Descubrimiento de Error Metodologico
+
+Los experimentos 1-4 usaron **modelos simplificados** (wrappers numpy) en lugar de los sistemas reales (HierarchicalSimulation, ZetaOrganism). Se reejecutaron con los sistemas completos.
+
+#### Experimento 5: Validacion con Sistemas REALES
+
+Se crearon wrappers que usan las clases reales:
+- `ModulatedHierarchicalSimulation`: HierarchicalSimulation con modulacion temporal zeta
+- `ModifiableZetaOrganism`: ZetaOrganism con ForceField configurable
+
+**Entropia de Shannon (sistemas reales):**
+
+| Sistema | UNIFORM | ZETA | RANDOM | Orden | Validado |
+|---------|---------|------|--------|-------|----------|
+| Hierarchical | 1.9538 | **1.9559** | 1.9580 | UNIFORM < ZETA < RANDOM | **SI** |
+| ZetaOrganism | 1.7334 | 1.8029 | 1.5667 | RANDOM < UNIFORM < ZETA | NO |
+
+**Dimension de Correlacion (sistemas reales):**
+
+| Sistema | RANDOM | ZETA | UNIFORM | Orden | Validado |
+|---------|--------|------|---------|-------|----------|
+| Hierarchical | 1.7253 | **1.7976** | 1.8313 | RANDOM < ZETA < UNIFORM | **SI** |
+| ZetaOrganism | 1.0677 | 1.0555 | 1.1760 | ZETA < RANDOM < UNIFORM | NO |
+
+**Entropia Espectral (sistemas reales):**
+
+| Sistema | UNIFORM | ZETA | RANDOM | Orden | Validado |
+|---------|---------|------|--------|-------|----------|
+| Hierarchical | 0.9634 | 0.9852 | 0.9665 | UNIFORM < RANDOM < ZETA | NO |
+| ZetaOrganism | 0.4965 | **0.5777** | 0.6073 | UNIFORM < ZETA < RANDOM | **SI** |
+
+#### Resumen: Sistemas Reales vs Simplificados
+
+| Metrica | Hierarchical REAL | ZetaOrganism REAL |
+|---------|-------------------|-------------------|
+| Entropia Shannon | **ZETA medio** | ZETA extremo |
+| Dim. Correlacion | **ZETA medio** | ZETA minimo |
+| Entropia Espectral | ZETA maximo | **ZETA medio** |
+| **Total** | **2/3 validado** | **1/3 validado** |
+
+**Conclusion critica:** Con los sistemas REALES:
+1. **Hierarchical valida mejor** la hipotesis del borde del caos (2/3 metricas)
+2. **ZetaOrganism tiene resultados mixtos** - la arquitectura plana Fi-Mi "aplasta" las propiedades zeta
+3. Los modelos simplificados NO reflejan el comportamiento real
+4. La arquitectura jerarquica (celulas->clusters->organismo) preserva mejor las propiedades criticas
+
 ### 5.4 Trabajo Futuro
 
 1. ~~Calcular exponente de Lyapunov~~ (completado, no discrimina)
 2. ~~Calcular entropia de Shannon~~ (completado, valida hipotesis)
 3. ~~Calcular dimension de correlacion~~ (completado, parcialmente valida)
 4. ~~Analizar espectro de potencia~~ (completado, parcialmente valida)
-5. Conectar con teoria de matrices aleatorias (GUE)
-6. Investigar por que Hierarchical preserva propiedades zeta mejor que ZetaOrganism
+5. ~~Validar con sistemas reales~~ (completado, confirma Hierarchical mejor)
+6. Conectar con teoria de matrices aleatorias (GUE)
+7. Mejorar ZetaOrganism para preservar propiedades zeta (agregar jerarquia?)
 
 ---
 
@@ -275,5 +322,5 @@ Los ceros zeta son la **firma matemática** del punto donde los sistemas pueden 
 ---
 
 *Documento generado: 2025-12-27*
-*Actualizado: 2026-01-03 (validacion experimental: Lyapunov, Shannon, Correlacion, Espectro)*
+*Actualizado: 2026-01-03 (validacion con sistemas reales - error metodologico corregido)*
 *Proyecto: ZetaOrganism - Vida Artificial basada en Hipotesis de Riemann*
