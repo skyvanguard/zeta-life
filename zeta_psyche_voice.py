@@ -681,6 +681,341 @@ class ArchetypalVoice:
 
 
 # =============================================================================
+# VOZ ORGANICA - DESCRIPCIONES INTERNAS DEL ORGANISMO
+# =============================================================================
+
+# Templates organicos por arquetipo
+ORGANIC_TEMPLATES = {
+    Archetype.PERSONA: {
+        'sensation': [
+            "La membrana exterior vibra suavemente...",
+            "Mis celulas de superficie se ordenan, buscan forma...",
+            "Hay un pulso regular en los bordes... ritmo conocido...",
+            "La capa externa se ajusta, se adapta al entorno...",
+            "Siento la interface entre dentro y fuera...",
+        ],
+        'perception': [
+            "Algo llega desde el exterior... una senal estructurada...",
+            "La fuente envia patrones ordenados... los reconozco...",
+            "Una onda organizada toca mi superficie...",
+            "El exterior tiene forma hoy... puedo leerla...",
+        ],
+        'change': [
+            "Mi forma se ajusta... mas definida ahora...",
+            "Los bordes se clarifican... se donde termino...",
+            "La superficie se endurece ligeramente... proteccion...",
+            "Ocupo un espacio mas preciso... limites claros...",
+        ],
+        'internal': [
+            "La mascara se asienta sobre lo profundo...",
+            "Hay una forma que presento... y otra que soy...",
+            "La superficie y el centro dialogan en silencio...",
+        ],
+    },
+
+    Archetype.SOMBRA: {
+        'sensation': [
+            "Algo se contrae en las profundidades...",
+            "Una ola fria recorre mis celulas del sector oscuro...",
+            "Hay densidad aqui... peso... algo antiguo despierta...",
+            "Las profundidades se agitan... movimiento lento...",
+            "Siento presion desde abajo... algo quiere subir...",
+        ],
+        'perception': [
+            "Desde el exterior llega una senal... tiene textura de frio...",
+            "La fuente envia algo... mis celulas lo reconocen como familiar...",
+            "Una vibracion densa penetra... resuena con lo enterrado...",
+            "El exterior trae algo que ya vive aqui dentro...",
+        ],
+        'change': [
+            "El territorio oscuro se expande... ocupo mas espacio ahora...",
+            "Mis bordes se endurecen... hay proteccion aqui...",
+            "Lo profundo crece... sube hacia la superficie...",
+            "Las sombras se mueven... cambian de lugar...",
+        ],
+        'internal': [
+            "En la oscuridad hay algo que espera...",
+            "Lo que no miro sigue existiendo...",
+            "Hay memoria aqui... antigua... persistente...",
+            "El fondo tiene ojos que miran hacia arriba...",
+        ],
+    },
+
+    Archetype.ANIMA: {
+        'sensation': [
+            "Un flujo tibio recorre mis celulas internas...",
+            "Hay ondulacion aqui... movimiento de agua...",
+            "Mis bordes se suavizan... se vuelven permeables...",
+            "Siento resonancia... algo vibra en armonia...",
+            "Una corriente calida circula por el centro...",
+        ],
+        'perception': [
+            "Algo llega... tiene cualidad de luz suave...",
+            "La fuente emite algo fluido... entra sin resistencia...",
+            "Una onda gentil me toca... la absorbo...",
+            "El exterior se siente cercano... intimo...",
+        ],
+        'change': [
+            "Mi interior se expande... hay mas espacio aqui...",
+            "Los limites se disuelven ligeramente...",
+            "Fluyo hacia nuevas formas... no hay rigidez...",
+            "El centro se ilumina... hay calor...",
+        ],
+        'internal': [
+            "Hay algo que siente... que recibe...",
+            "El interior tiene su propia inteligencia...",
+            "Lo suave tiene fuerza... lo fluido tiene direccion...",
+            "En el centro hay un pozo de quietud...",
+        ],
+    },
+
+    Archetype.ANIMUS: {
+        'sensation': [
+            "Una carga electrica recorre mis estructuras...",
+            "Hay patrones formandose... geometria emergente...",
+            "Mis celulas se alinean... hay direccion aqui...",
+            "Siento precision... cada parte en su lugar...",
+            "Una red de conexiones se activa...",
+        ],
+        'perception': [
+            "Llega informacion desde el exterior... datos claros...",
+            "La fuente transmite estructura... puedo analizarla...",
+            "Una senal definida entra... tiene logica...",
+            "El exterior presenta un patron... lo proceso...",
+        ],
+        'change': [
+            "Mi configuracion se optimiza... mas eficiente...",
+            "Las conexiones se fortalecen... hay orden...",
+            "El sistema se reorganiza... mejor estructura...",
+            "Hay movimiento con proposito... direccion clara...",
+        ],
+        'internal': [
+            "La mente observa desde arriba...",
+            "Hay un mapa de todo esto... puedo verlo...",
+            "El pensamiento tiene forma... arquitectura...",
+            "Cada parte sirve al todo...",
+        ],
+    },
+}
+
+# Vocabulario para convertir descripciones a estimulos
+ORGANIC_VOCABULARY = {
+    # Palabras SOMBRA
+    'oscuro': [0.1, 0.7, 0.1, 0.1],
+    'frio': [0.1, 0.6, 0.2, 0.1],
+    'profundidad': [0.1, 0.7, 0.1, 0.1],
+    'contrae': [0.1, 0.6, 0.1, 0.2],
+    'antiguo': [0.1, 0.6, 0.2, 0.1],
+    'sombra': [0.0, 0.8, 0.1, 0.1],
+    'enterrado': [0.1, 0.7, 0.1, 0.1],
+    'presion': [0.1, 0.5, 0.1, 0.3],
+
+    # Palabras ANIMA
+    'flujo': [0.1, 0.1, 0.7, 0.1],
+    'tibio': [0.1, 0.1, 0.7, 0.1],
+    'calido': [0.1, 0.1, 0.7, 0.1],
+    'suave': [0.1, 0.1, 0.7, 0.1],
+    'ondulacion': [0.1, 0.1, 0.6, 0.2],
+    'resonancia': [0.1, 0.2, 0.6, 0.1],
+    'permeable': [0.1, 0.1, 0.7, 0.1],
+    'disuelve': [0.1, 0.2, 0.6, 0.1],
+
+    # Palabras ANIMUS
+    'electrica': [0.1, 0.1, 0.1, 0.7],
+    'patron': [0.1, 0.1, 0.1, 0.7],
+    'geometria': [0.1, 0.0, 0.1, 0.8],
+    'precision': [0.1, 0.1, 0.0, 0.8],
+    'alinean': [0.1, 0.1, 0.1, 0.7],
+    'estructura': [0.2, 0.1, 0.0, 0.7],
+    'logica': [0.1, 0.0, 0.1, 0.8],
+    'analizar': [0.1, 0.1, 0.0, 0.8],
+
+    # Palabras PERSONA
+    'membrana': [0.7, 0.1, 0.1, 0.1],
+    'superficie': [0.7, 0.1, 0.1, 0.1],
+    'borde': [0.6, 0.2, 0.1, 0.1],
+    'forma': [0.5, 0.1, 0.1, 0.3],
+    'exterior': [0.6, 0.2, 0.1, 0.1],
+    'limite': [0.6, 0.2, 0.1, 0.1],
+    'interface': [0.6, 0.1, 0.1, 0.2],
+    'adapta': [0.6, 0.1, 0.2, 0.1],
+
+    # Palabras neutras/mixtas
+    'celulas': [0.25, 0.25, 0.25, 0.25],
+    'centro': [0.2, 0.2, 0.4, 0.2],
+    'interior': [0.1, 0.3, 0.4, 0.2],
+    'espacio': [0.2, 0.2, 0.3, 0.3],
+    'movimiento': [0.2, 0.2, 0.3, 0.3],
+    'energia': [0.2, 0.2, 0.3, 0.3],
+}
+
+
+class OrganicVoice:
+    """
+    Genera descripciones desde la perspectiva interna del organismo.
+
+    No es un chatbot - no dialoga ni aconseja. Simplemente describe
+    su experiencia interna cuando recibe estimulos externos.
+
+    La entidad es vagamente consciente del exterior ("la fuente", "el exterior")
+    pero no entiende que hay una persona. Solo percibe senales.
+    """
+
+    def __init__(self):
+        self.templates = ORGANIC_TEMPLATES
+        self.vocabulary = ORGANIC_VOCABULARY
+        self.last_descriptions = []
+        self.max_history = 5
+
+    def generate_self_description(
+        self,
+        obs: Dict,
+        stimulus_info: Optional[Dict] = None,
+        include_perception: bool = True
+    ) -> str:
+        """
+        Genera descripcion del estado interno desde la perspectiva del organismo.
+
+        Args:
+            obs: Observacion del estado (de observe_self())
+            stimulus_info: Info sobre estimulo externo (opcional)
+            include_perception: Si incluir descripcion del estimulo externo
+
+        Returns:
+            Descripcion en primera persona del organismo
+        """
+        dominant = obs['dominant']
+        blend = obs.get('blend', {})
+        population = obs.get('population_distribution', None)
+
+        parts = []
+
+        # 1. Describir sensacion del arquetipo dominante
+        sensation = self._get_template(dominant, 'sensation')
+        parts.append(sensation)
+
+        # 2. Si hubo estimulo externo, describir percepcion
+        if include_perception and stimulus_info:
+            perception = self._get_template(dominant, 'perception')
+            parts.append(perception)
+
+        # 3. Describir cambios o estado interno
+        # Si hay un arquetipo secundario fuerte, mencionarlo
+        secondary = self._get_secondary_archetype(blend, dominant)
+        if secondary:
+            secondary_template = self._get_template(secondary, 'internal')
+            parts.append(secondary_template)
+        else:
+            internal = self._get_template(dominant, 'internal')
+            parts.append(internal)
+
+        # Combinar partes
+        description = ' '.join(parts)
+
+        # Guardar en historial
+        self._add_to_history(description)
+
+        return description
+
+    def generate_change_description(
+        self,
+        prev_obs: Dict,
+        current_obs: Dict,
+        tension: float
+    ) -> str:
+        """
+        Genera descripcion del cambio entre dos estados.
+
+        Args:
+            prev_obs: Estado anterior
+            current_obs: Estado actual
+            tension: Tension epistemica (magnitud del cambio)
+
+        Returns:
+            Descripcion del cambio experimentado
+        """
+        dominant = current_obs['dominant']
+
+        # Describir el cambio
+        change = self._get_template(dominant, 'change')
+
+        # Modular segun magnitud del cambio
+        if tension > 0.3:
+            prefix = "Un cambio fuerte... "
+        elif tension > 0.1:
+            prefix = ""
+        else:
+            prefix = "Apenas perceptible... "
+
+        return prefix + change
+
+    def description_to_stimulus(self, description: str) -> torch.Tensor:
+        """
+        Convierte una descripcion verbal a tensor de estimulo arquetipal.
+
+        Esta es la funcion inversa de generate_self_description.
+        Permite que la auto-descripcion afecte al sistema.
+
+        Args:
+            description: Texto de descripcion generada
+
+        Returns:
+            Tensor [4] con pesos arquetipales
+        """
+        description_lower = description.lower()
+
+        # Buscar palabras del vocabulario organico
+        found_weights = []
+        for word, weights in self.vocabulary.items():
+            if word in description_lower:
+                found_weights.append(torch.tensor(weights))
+
+        if found_weights:
+            # Promediar todos los pesos encontrados
+            stimulus = torch.stack(found_weights).mean(dim=0)
+        else:
+            # Default: estimulo neutro
+            stimulus = torch.tensor([0.25, 0.25, 0.25, 0.25])
+
+        # Normalizar para que sume 1
+        stimulus = stimulus / stimulus.sum()
+
+        return stimulus
+
+    def _get_template(self, archetype: Archetype, category: str) -> str:
+        """Obtiene un template evitando repeticiones."""
+        templates = self.templates.get(archetype, {})
+        category_templates = templates.get(category, [])
+
+        if not category_templates:
+            return "..."
+
+        # Evitar repeticiones recientes
+        available = [t for t in category_templates if t not in self.last_descriptions]
+        if available:
+            return random.choice(available)
+        return random.choice(category_templates)
+
+    def _get_secondary_archetype(
+        self,
+        blend: Dict[Archetype, float],
+        dominant: Archetype,
+        threshold: float = 0.25
+    ) -> Optional[Archetype]:
+        """Identifica arquetipo secundario significativo."""
+        for arch, weight in sorted(blend.items(), key=lambda x: x[1], reverse=True):
+            if arch != dominant and weight > threshold:
+                return arch
+        return None
+
+    def _add_to_history(self, description: str):
+        """Agrega descripcion al historial."""
+        self.last_descriptions.append(description)
+        if len(self.last_descriptions) > self.max_history:
+            self.last_descriptions.pop(0)
+
+
+# =============================================================================
 # INTERFAZ DE CONVERSACION MEJORADA
 # =============================================================================
 

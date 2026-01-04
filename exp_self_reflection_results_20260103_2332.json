@@ -1,0 +1,47 @@
+{
+  "timestamp": "20260103_2332",
+  "config": {
+    "n_cells": 50,
+    "n_steps": 150,
+    "stimuli_pattern": "mixed"
+  },
+  "no_loop": {
+    "state_variance": 7.036505422775008e-08,
+    "stability": 0.9999914472982573,
+    "mean_tension": 0.0,
+    "std_tension": 0.0,
+    "convergence_rate": 0.0,
+    "autonomy": 0.7466666666666667,
+    "mean_consciousness": 0.3319674102925795,
+    "archetype_distribution": {
+      "PERSONA": 150,
+      "SOMBRA": 0,
+      "ANIMA": 0,
+      "ANIMUS": 0
+    },
+    "n_tensions_recorded": 0
+  },
+  "with_loop": {
+    "state_variance": 9.429829333384987e-06,
+    "stability": 0.9859090527829742,
+    "mean_tension": 0.005088108838729871,
+    "std_tension": 0.0024993210233838097,
+    "convergence_rate": 1.0,
+    "autonomy": 0.7533333333333333,
+    "mean_consciousness": 0.33061704135339665,
+    "archetype_distribution": {
+      "PERSONA": 0,
+      "SOMBRA": 0,
+      "ANIMA": 150,
+      "ANIMUS": 0
+    },
+    "n_tensions_recorded": 150
+  },
+  "comparison": {
+    "delta_variance": 9.359464279157237e-06,
+    "delta_stability": -0.014082394515283037,
+    "delta_autonomy": 0.006666666666666599,
+    "delta_consciousness": -0.0013503689391828333
+  },
+  "conclusion": "emergent"
+}

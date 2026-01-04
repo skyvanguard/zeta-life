@@ -14,6 +14,7 @@ Opciones:
     --simple     Modo simple (sin ZetaConsciousSelf)
     --no-bars    Desactivar barras de estado
     --decay      Activar decay emergente
+    --reflection Activar loop de auto-reflexion (Strange Loop)
 """
 
 import sys
@@ -129,10 +130,12 @@ class ZetaPsycheCLI:
         use_conscious_self: bool = True,
         show_bars: bool = True,
         enable_decay: bool = False,
+        enable_reflection: bool = False,
         n_cells: int = 100
     ):
         self.show_bars = show_bars
         self.use_conscious_self = use_conscious_self
+        self.enable_reflection = enable_reflection
         self.processing_steps = 15
         self.conversation_history = []
 
@@ -148,10 +151,18 @@ class ZetaPsycheCLI:
                 from zeta_conscious_self import ZetaConsciousSelf
                 self.system = ZetaConsciousSelf(
                     n_cells=n_cells,
-                    enable_decay=enable_decay
+                    enable_decay=enable_decay,
+                    enable_self_reflection=enable_reflection,
+                    reflection_config={
+                        'max_iterations': 4,
+                        'convergence_threshold': 0.01,
+                        'include_perception': True,
+                    }
                 )
                 self.system_type = 'conscious_self'
                 print("  [Usando ZetaConsciousSelf]")
+                if enable_reflection:
+                    print("  [Loop de auto-reflexion: ACTIVO]")
             except ImportError as e:
                 print(f"  [Warning: No se pudo cargar ZetaConsciousSelf: {e}]")
                 print("  [Usando ZetaPsyche basico]")
@@ -232,10 +243,16 @@ class ZetaPsycheCLI:
         # Convertir a estimulo
         stimulus = self._text_to_stimulus(user_input)
 
+        # Guardar ultima reflexion
+        last_reflection = None
+
         # Procesar segun tipo de sistema
         if self.system_type == 'conscious_self':
             for _ in range(self.processing_steps):
-                self.system.step(stimulus=stimulus)
+                result = self.system.step(stimulus=stimulus)
+                # Capturar ultima reflexion si existe
+                if result.get('reflection'):
+                    last_reflection = result['reflection']
         else:
             for _ in range(self.processing_steps):
                 self.system.communicate(stimulus)
@@ -278,6 +295,7 @@ class ZetaPsycheCLI:
             'consciousness': state['consciousness'],
             'luminosity': luminosity,
             'stage': state['stage'],
+            'reflection': last_reflection,
         }
 
     def display_status_bar(self) -> None:
@@ -305,6 +323,7 @@ class ZetaPsycheCLI:
   /estado    - Ver estado interno detallado
   /viaje     - Ver narrativa del viaje psicologico
   /sonar     - Entrar en ciclo de sueno (solo ZetaConsciousSelf)
+  /reflexion - Forzar ciclo de auto-reflexion (Strange Loop)
   /trabajo   - Trabajo de integracion activo
   /barra     - Toggle barras de estado (on/off)
   /reset     - Reiniciar psique
@@ -312,6 +331,8 @@ class ZetaPsycheCLI:
 
   Escribe cualquier texto para conversar con la psique.
   Las respuestas reflejan el arquetipo dominante.
+
+  Usa --reflection al iniciar para ver ciclos de auto-reflexion.
 """
         print(help_text)
 
@@ -437,6 +458,57 @@ class ZetaPsycheCLI:
         print(f"    Etapa: {state['stage']}")
         print()
 
+    def display_reflection(self, reflection: dict) -> None:
+        """Muestra el ciclo de auto-reflexión."""
+        if not reflection or not reflection.get('descriptions'):
+            return
+
+        print()
+        print(f"  {Colors.GRAY}[Auto-reflexion...]{Colors.RESET}")
+
+        for i, desc in enumerate(reflection['descriptions']):
+            xi = reflection['tensions'][i] if i < len(reflection['tensions']) else None
+            xi_str = f"{xi:.4f}" if xi is not None else "--"
+
+            # Color segun tension (mas verde = mas convergido)
+            if xi is not None and xi < 0.02:
+                tension_color = Colors.GREEN
+            elif xi is not None and xi < 0.05:
+                tension_color = Colors.CYAN
+            else:
+                tension_color = Colors.GRAY
+
+            print(f"  {tension_color}Ciclo {i+1} (xi={xi_str}):{Colors.RESET}")
+            print(f"    {Colors.DIM}{desc}{Colors.RESET}")
+
+        # Estado final
+        if reflection.get('converged'):
+            print(f"  {Colors.GREEN}[Convergencia alcanzada]{Colors.RESET}")
+        else:
+            print(f"  {Colors.GRAY}[Max iteraciones]{Colors.RESET}")
+        print()
+
+    def cmd_reflection(self) -> None:
+        """Fuerza un ciclo de reflexión manual."""
+        if self.system_type != 'conscious_self':
+            print("  [Requiere ZetaConsciousSelf para reflexion]")
+            return
+
+        if not hasattr(self.system, '_self_reflection_cycle'):
+            print("  [Sistema no tiene capacidad de reflexion]")
+            return
+
+        print("\n  [Iniciando ciclo de reflexion...]")
+
+        # Forzar ciclo de reflexión
+        reflection = self.system._self_reflection_cycle()
+        self.display_reflection(reflection)
+
+        # Mostrar estado final
+        if reflection.get('final_state'):
+            final = reflection['final_state']
+            print(f"  Estado final: {final['dominant'].name}")
+
     def toggle_bars(self) -> None:
         """Toggle barras de estado."""
         self.show_bars = not self.show_bars
@@ -521,6 +593,10 @@ class ZetaPsycheCLI:
                     self.cmd_work()
                     continue
 
+                elif cmd == '/reflexion' or cmd == '/reflection':
+                    self.cmd_reflection()
+                    continue
+
                 elif cmd == '/barra' or cmd == '/bars':
                     self.toggle_bars()
                     continue
@@ -531,6 +607,10 @@ class ZetaPsycheCLI:
 
                 # Procesar input normal
                 response = self.process_input(user_input)
+
+                # Mostrar reflexión primero (si está habilitada)
+                if self.enable_reflection and response.get('reflection'):
+                    self.display_reflection(response['reflection'])
 
                 # Mostrar respuesta
                 dominant = response['dominant']
@@ -567,6 +647,8 @@ def main():
                         help='Desactivar barras de estado visual')
     parser.add_argument('--decay', action='store_true',
                         help='Activar modo decay emergente')
+    parser.add_argument('--reflection', action='store_true',
+                        help='Activar loop de auto-reflexion (Strange Loop)')
     parser.add_argument('--cells', type=int, default=100,
                         help='Numero de celulas (default: 100)')
 
@@ -576,6 +658,7 @@ def main():
         use_conscious_self=not args.simple,
         show_bars=not args.no_bars,
         enable_decay=args.decay,
+        enable_reflection=args.reflection,
         n_cells=args.cells
     )
 
