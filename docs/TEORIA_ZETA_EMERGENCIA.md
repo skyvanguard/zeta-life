@@ -193,6 +193,29 @@ Se calculo la dimension de correlacion D2 usando el algoritmo de Grassberger-Pro
 
 **Hallazgo inesperado:** RANDOM produce dimension MENOR, no mayor. Esto sugiere que el ruido puro dispersa trayectorias sin formar atractores coherentes, mientras que ZETA produce estructuras complejas pero organizadas.
 
+#### Experimento 4: Espectro de Potencia
+
+Se analizo el espectro de potencia usando el metodo de Welch, midiendo entropia espectral y pendiente (beta en 1/f^beta):
+
+| Sistema | RANDOM | ZETA | UNIFORM | Orden |
+|---------|--------|------|---------|-------|
+| Hierarchical | 0.369 | **0.379** | 0.381 | RANDOM < ZETA < UNIFORM |
+| ZetaOrganism | 0.428 | 0.401 | 0.402 | ZETA < UNIFORM < RANDOM |
+
+**Resultado: PARCIALMENTE VALIDADO (1/2 sistemas)**
+
+- Hierarchical: ZETA en posicion intermedia (validado)
+- ZetaOrganism: ZETA en posicion minima (no validado)
+
+**Pendiente espectral (beta):**
+
+| Sistema | RANDOM | ZETA | UNIFORM |
+|---------|--------|------|---------|
+| Hierarchical | 1.74 | 1.73 | 1.73 |
+| ZetaOrganism | 1.75 | 1.75 | 1.76 |
+
+Todos los sistemas muestran beta ~ 1.7, entre ruido rosa (beta=1) y browniano (beta=2). Esto indica dinamicas de memoria a largo plazo, pero sin diferencias significativas entre modulaciones.
+
 #### Resumen de Validacion Experimental
 
 | Metrica | Que mide | Hierarchical | ZetaOrganism | Total |
@@ -200,16 +223,20 @@ Se calculo la dimension de correlacion D2 usando el algoritmo de Grassberger-Pro
 | Lyapunov | Tasa divergencia | - | - | 0/4 |
 | **Entropia** | Complejidad | **ZETA medio** | **ZETA medio** | **2/2** |
 | Dim. Correlacion | Estructura atractor | **ZETA medio** | ZETA extremo | 1/2 |
+| Espectro Potencia | Distribucion frecuencial | **ZETA medio** | ZETA extremo | 1/2 |
 
 **Conclusion global:** La entropia de Shannon es la metrica mas robusta para detectar el "borde del caos" en estos sistemas. ZETA consistentemente produce complejidad intermedia.
+
+**Observacion sobre sistemas:** El sistema Hierarchical muestra consistentemente el patron esperado (ZETA intermedio) en 3/4 metricas, mientras que ZetaOrganism solo en 1/4. Esto sugiere que la arquitectura jerarquica preserva mejor las propiedades criticas de los ceros zeta.
 
 ### 5.4 Trabajo Futuro
 
 1. ~~Calcular exponente de Lyapunov~~ (completado, no discrimina)
 2. ~~Calcular entropia de Shannon~~ (completado, valida hipotesis)
 3. ~~Calcular dimension de correlacion~~ (completado, parcialmente valida)
-4. Conectar con teoria de matrices aleatorias (GUE)
-5. Analizar espectro de potencia de las oscilaciones
+4. ~~Analizar espectro de potencia~~ (completado, parcialmente valida)
+5. Conectar con teoria de matrices aleatorias (GUE)
+6. Investigar por que Hierarchical preserva propiedades zeta mejor que ZetaOrganism
 
 ---
 
@@ -248,5 +275,5 @@ Los ceros zeta son la **firma matemática** del punto donde los sistemas pueden 
 ---
 
 *Documento generado: 2025-12-27*
-*Actualizado: 2026-01-03 (validacion experimental)*
+*Actualizado: 2026-01-03 (validacion experimental: Lyapunov, Shannon, Correlacion, Espectro)*
 *Proyecto: ZetaOrganism - Vida Artificial basada en Hipotesis de Riemann*
