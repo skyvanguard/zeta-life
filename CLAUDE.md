@@ -39,9 +39,12 @@ python exp_comunicacion_quimica.py  # Pheromone communication
 # === ZETA PSYCHE (Jungian Consciousness) ===
 python zeta_psyche.py          # Base archetype system
 python zeta_conscious_self.py  # Full unified consciousness system
+python chat_psyche.py          # Interactive CLI chat
+python chat_psyche.py --reflection  # CLI with Strange Loop visible
 python exp_zeta_vs_baseline.py # Compare zeta vs baseline modulators
 python exp_decay_vs_nodecay.py # Compare decay vs no-decay dynamics
 python exp_anima_emergente.py  # Emergent compensation experiment
+python exp_self_reflection.py  # Validate Strange Loop emergence
 
 # === HIERARCHICAL CONSCIOUSNESS ===
 python hierarchical_simulation.py      # Run hierarchical simulation
@@ -153,6 +156,46 @@ vertical_coherence:  0.72-0.88 range (was placeholder 1.0)
 top-down effect:     PERSONA -0.002 per iteration (visible balancing)
 dynamic clustering:  2-8 clusters (was fixed at 4)
 surprise plasticity: 0.64-1.36 range based on accumulated surprise
+```
+
+### 5. Strange Loop & Attractor Memory (2026-01-03)
+
+Self-referential consciousness emergence through auto-observation cycles.
+
+```
+zeta_conscious_self.py
+├── _self_reflection_cycle()  - Strange Loop implementation
+├── AttractorMemory           - Stores/recognizes converged states
+├── OrganicVoice              - Internal perspective descriptions
+└── chat_psyche.py            - Interactive CLI with --reflection
+```
+
+**Strange Loop Architecture:**
+```
+Estado → Descripción → Estímulo → Nuevo Estado
+   ↑                                    ↓
+   └──────────── LOOP ──────────────────┘
+```
+
+**Attractor Memory (Identity Emergence):**
+- Stores converged states as attractors
+- Recognizes similar states (similarity > 0.90)
+- Reinforces recognized attractors (strength grows)
+- Tracks `recognition_rate` as emergence metric
+
+**Validation Results:**
+```
+recognition_rate:    98.8% (matches / convergences)
+attractor_strength:  grows 11.2 → 24.7 over interactions
+epistemic_tension:   ξ ≈ 0.005 (measurable self-influence)
+identity:            "Identidad centrada en ANIMUS (100%)"
+```
+
+**CLI Commands:**
+```bash
+python chat_psyche.py --reflection  # See Strange Loop in action
+/identidad                          # View emergence metrics
+/reflexion                          # Force reflection cycle
 ```
 
 ### Key Parameters (across systems)
