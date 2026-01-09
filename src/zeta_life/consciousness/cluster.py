@@ -142,7 +142,13 @@ class ClusterPsyche:
         specialization = Archetype(unbiased_argmax(aggregate))
 
         # Φ cluster = 1 - varianza normalizada
-        variance = states.var(dim=0).mean().item()
+        # Nota: varianza requiere al menos 2 elementos para ser significativa
+        n_cells = states.shape[0]
+        if n_cells >= 2:
+            variance = states.var(dim=0).mean().item()
+        else:
+            # Con 1 célula, no hay variabilidad - asumimos coherencia perfecta
+            variance = 0.0
         phi_cluster = 1.0 - min(1.0, variance * 2)
 
         # Coherencia = similitud promedio entre células
