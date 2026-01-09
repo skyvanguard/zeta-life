@@ -142,6 +142,27 @@ pytest tests/ -v
 
 ---
 
+## Interactive Notebooks
+
+Explore the framework through 5 Jupyter notebooks with visualizations and simulations:
+
+| Notebook | Description |
+|----------|-------------|
+| [01_zeta_kernel](notebooks/01_zeta_kernel.ipynb) | Riemann zeros, kernel visualization, 2D/3D views |
+| [02_zeta_organism](notebooks/02_zeta_organism.ipynb) | Fi-Mi dynamics, force fields, emergent properties |
+| [03_zeta_psyche](notebooks/03_zeta_psyche.ipynb) | Jungian archetypes, individuation process |
+| [04_hierarchical_consciousness](notebooks/04_hierarchical_consciousness.ipynb) | Multi-level architecture, vertical coherence |
+| [05_strange_loop](notebooks/05_strange_loop.ipynb) | Self-reference, attractor memory, identity emergence |
+
+```bash
+# Launch Jupyter
+jupyter notebook notebooks/
+```
+
+Each notebook is self-contained with interactive examples and pre-rendered outputs.
+
+---
+
 ## Project Structure
 
 ```
