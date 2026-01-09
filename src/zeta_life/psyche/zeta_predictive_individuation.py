@@ -133,7 +133,7 @@ class PredictiveIndividuation:
     porque saber lo que no sabemos es clave para el desarrollo.
     """
 
-    def __init__(self, predictive_psyche: ZetaPredictivePsyche):
+    def __init__(self, predictive_psyche: ZetaPredictivePsyche) -> None:
         self.predictive = predictive_psyche
         self.psyche = predictive_psyche.psyche
 
@@ -348,11 +348,11 @@ class PredictiveIndividuation:
         filled = int(min(1.0, max(0.0, value)) * width)
         return '█' * filled + '░' * (width - filled)
 
-    def save(self, path: str = "predictive_individuation_state.json"):
+    def save(self, path: str = "predictive_individuation_state.json") -> None:
         """Guarda estado."""
         self.individuation.save(path)
 
-    def load(self, path: str = "predictive_individuation_state.json"):
+    def load(self, path: str = "predictive_individuation_state.json") -> None:
         """Carga estado."""
         self.individuation.load(path)
 
@@ -368,7 +368,7 @@ class FullConsciousPsyche:
     - Emergencia del Self
     """
 
-    def __init__(self, n_cells: int = 100, load_state: bool = True):
+    def __init__(self, n_cells: int = 100, load_state: bool = True) -> None:
         # Sistema predictivo
         self.predictive = ZetaPredictivePsyche(n_cells=n_cells)
 
@@ -401,11 +401,11 @@ class FullConsciousPsyche:
         """Índice de consciencia total."""
         return self.full_system.full_metrics.total_consciousness()
 
-    def save(self):
+    def save(self) -> None:
         """Guarda estado."""
         self.full_system.save()
 
-    def load(self):
+    def load(self) -> None:
         """Carga estado."""
         self.full_system.load()
 
@@ -414,7 +414,7 @@ class FullConsciousPsyche:
 # DEMO INTERACTIVA
 # =============================================================================
 
-def interactive_session():
+def interactive_session() -> None:
     """Sesión interactiva con el sistema completo."""
     print("\n" + "="*70)
     print("  SISTEMA PREDICTIVO DE CONSCIENCIA E INDIVIDUACIÓN")
@@ -479,7 +479,7 @@ def interactive_session():
                 print(f"  Mensaje: \"{result['self']['message']}\"")
 
 
-def run_demo():
+def run_demo() -> None:
     """Demo rápida del sistema."""
     print("\n" + "="*70)
     print("  DEMO: Sistema Predictivo de Consciencia e Individuación")

@@ -233,7 +233,7 @@ class ZetaPsyche(nn.Module):
         hidden_dim: int = 64,
         M: int = 15,
         sigma: float = 0.1
-    ):
+    ) -> None:
         super().__init__()
 
         self.n_cells: int = n_cells
@@ -480,7 +480,7 @@ class SymbolSystem:
     y viceversa.
     """
 
-    def __init__(self):
+    def __init__(self) -> None:
         # Simbolos basicos (inspirados en el cuaderno)
         self.symbols = [
             # Simbolos de vertices (arquetipos puros)
@@ -670,7 +670,7 @@ def run_consciousness_experiment(
     return results
 
 
-def visualize_consciousness(results: Dict, save_path: str = 'zeta_psyche_consciousness.png'):
+def visualize_consciousness(results: Dict, save_path: str = 'zeta_psyche_consciousness.png') -> None:
     """Visualiza los resultados del experimento."""
 
     fig = plt.figure(figsize=(16, 10))
@@ -756,7 +756,7 @@ class PsycheInterface:
     Traduce entre lenguaje humano y el espacio arquetipico.
     """
 
-    def __init__(self, psyche: ZetaPsyche):
+    def __init__(self, psyche: ZetaPsyche) -> None:
         self.psyche = psyche
         self.symbols = SymbolSystem()
 

@@ -35,7 +35,7 @@ class ZetaSpectrumAnalyzer(nn.Module):
     En lugar de calcular FFT completa, usa correlacion directa con
     las frecuencias zeta conocidas - mas eficiente y directo.
     """
-    def __init__(self, input_size: int, M: int = 15, sigma: float = 0.1):
+    def __init__(self, input_size: int, M: int = 15, sigma: float = 0.1) -> None:
         super().__init__()
         self.M = M
 
@@ -93,7 +93,7 @@ class TensionMarkerDetector(nn.Module):
     Basado en la observacion de que en la distribucion de primos,
     hay puntos donde el patron "normal" se rompe.
     """
-    def __init__(self, hidden_size: int, window_size: int = 5):
+    def __init__(self, hidden_size: int, window_size: int = 5) -> None:
         super().__init__()
         self.window_size = window_size
         self.hidden_size = hidden_size
@@ -109,7 +109,7 @@ class TensionMarkerDetector(nn.Module):
         # Buffer para historial reciente
         self.register_buffer('history', None)
 
-    def reset_history(self, batch_size: int, device: torch.device):
+    def reset_history(self, batch_size: int, device: torch.device) -> None:
         """Reinicia el historial para nuevo batch."""
         self.history = torch.zeros(batch_size, self.window_size, self.hidden_size, device=device)
 
@@ -156,7 +156,7 @@ class ZetaMemoryGated(nn.Module):
     1. Hay resonancia con frecuencias zeta
     2. O hay un "marcador de tension"
     """
-    def __init__(self, hidden_size: int, M: int = 15, sigma: float = 0.1):
+    def __init__(self, hidden_size: int, M: int = 15, sigma: float = 0.1) -> None:
         super().__init__()
         self.hidden_size = hidden_size
         self.M = M
@@ -210,7 +210,7 @@ class ZetaMemoryGatedSimple(nn.Module):
     """
 
     def __init__(self, input_dim: int, hidden_dim: int,
-                 M: int = 15, sigma: float = 0.1):
+                 M: int = 15, sigma: float = 0.1) -> None:
         super().__init__()
         self.input_dim = input_dim
 
@@ -234,7 +234,7 @@ class ZetaMemoryGatedSimple(nn.Module):
         # Internal time counter
         self.t = 0
 
-    def reset_time(self):
+    def reset_time(self) -> None:
         """Reset internal time counter."""
         self.t = 0
 
@@ -279,7 +279,7 @@ class ZetaLSTMResonant(nn.Module):
     Principio: "No imponer, detectar"
     """
     def __init__(self, input_size: int, hidden_size: int,
-                 M: int = 15, sigma: float = 0.1):
+                 M: int = 15, sigma: float = 0.1) -> None:
         super().__init__()
         self.hidden_size = hidden_size
         self.M = M
@@ -367,7 +367,7 @@ class ZetaLSTMResonantSimple(nn.Module):
     Mas rapido de entrenar para experimentos.
     """
     def __init__(self, input_size: int, hidden_size: int,
-                 M: int = 15, sigma: float = 0.1):
+                 M: int = 15, sigma: float = 0.1) -> None:
         super().__init__()
         self.hidden_size = hidden_size
         self.M = M

@@ -21,7 +21,7 @@ import torch.nn.functional as F
 import torch.optim as optim
 import numpy as np
 from collections import deque
-from typing import Dict, List, Optional
+from typing import Dict, List, Optional, Tuple
 
 from .zeta_attentive_predictive import ZetaAttentivePredictive
 
@@ -48,7 +48,7 @@ class OnlineLearner:
         momentum: float = 0.9,
         attention_weight: float = 0.5,
         surprise_threshold: float = 0.3
-    ):
+    ) -> None:
         self.system = system
         self.lr = learning_rate
         self.attention_weight = attention_weight
@@ -204,7 +204,7 @@ class HebbianLearner:
         system: ZetaAttentivePredictive,
         learning_rate: float = 0.01,
         decay: float = 0.99
-    ):
+    ) -> None:
         self.system = system
         self.lr = learning_rate
         self.decay = decay
@@ -278,7 +278,7 @@ class HebbianLearner:
         return result
 
 
-def demo_online_learning():
+def demo_online_learning() -> Tuple[ZetaAttentivePredictive, OnlineLearner, HebbianLearner]:
     """Demuestra el aprendizaje online."""
 
     print("\n" + "=" * 70)

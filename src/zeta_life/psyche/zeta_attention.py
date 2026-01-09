@@ -82,7 +82,7 @@ class ContextDetector(nn.Module):
     - Demanda cognitiva → activa ANIMUS
     """
 
-    def __init__(self, input_dim: int = 4):
+    def __init__(self, input_dim: int = 4) -> None:
         super().__init__()
 
         # Red para detectar contexto desde estímulo + estado
@@ -95,7 +95,7 @@ class ContextDetector(nn.Module):
 
         self._init_weights()
 
-    def _init_weights(self):
+    def _init_weights(self) -> None:
         """Inicialización con bias hacia detección balanceada"""
         for layer in self.context_net:
             if isinstance(layer, nn.Linear):
@@ -144,7 +144,7 @@ class GlobalArchetypalAttention(nn.Module):
         'cognitive': 3     # ANIMUS
     }
 
-    def __init__(self, state_dim: int = 4, temperature: float = 1.0):
+    def __init__(self, state_dim: int = 4, temperature: float = 1.0) -> None:
         super().__init__()
 
         self.state_dim = state_dim
@@ -162,7 +162,7 @@ class GlobalArchetypalAttention(nn.Module):
 
         self._init_weights()
 
-    def _init_weights(self):
+    def _init_weights(self) -> None:
         for layer in self.attention_net:
             if isinstance(layer, nn.Linear):
                 nn.init.xavier_uniform_(layer.weight)
@@ -239,7 +239,7 @@ class MemoryBuffer:
         self.buffer: deque = deque(maxlen=max_size)
         self.importance: List[float] = []  # Importancia de cada item
 
-    def add(self, item: MemoryItem):
+    def add(self, item: MemoryItem) -> None:
         """Añade un nuevo elemento al buffer"""
         self.buffer.append(item)
 
@@ -251,7 +251,7 @@ class MemoryBuffer:
         while len(self.importance) > len(self.buffer):
             self.importance.pop(0)
 
-    def decay(self):
+    def decay(self) -> None:
         """Aplica decaimiento a la importancia de los items"""
         for i in range(len(self.importance)):
             item = self.buffer[i]
@@ -299,7 +299,7 @@ class TemporalAttention(nn.Module):
         memory_dim: int = 13,  # 4+4+3+2 (state+stim+errors+surprise+time)
         hidden_dim: int = 16,
         n_heads: int = 2
-    ):
+    ) -> None:
         super().__init__()
 
         self.memory_dim = memory_dim
@@ -319,7 +319,7 @@ class TemporalAttention(nn.Module):
 
         self._init_weights()
 
-    def _init_weights(self):
+    def _init_weights(self) -> None:
         for proj in [self.query_proj, self.key_proj, self.value_proj, self.output_proj]:
             nn.init.xavier_uniform_(proj.weight)
             nn.init.zeros_(proj.bias)
@@ -405,7 +405,7 @@ class ErrorAttention(nn.Module):
     Los errores con alta precisión (baja varianza) reciben más atención.
     """
 
-    def __init__(self, n_levels: int = 3, history_size: int = 20):
+    def __init__(self, n_levels: int = 3, history_size: int = 20) -> None:
         super().__init__()
 
         self.n_levels = n_levels
@@ -426,13 +426,13 @@ class ErrorAttention(nn.Module):
 
         self._init_weights()
 
-    def _init_weights(self):
+    def _init_weights(self) -> None:
         for layer in self.attention_net:
             if isinstance(layer, nn.Linear):
                 nn.init.xavier_uniform_(layer.weight)
                 nn.init.zeros_(layer.bias)
 
-    def update_history(self, errors: torch.Tensor):
+    def update_history(self, errors: torch.Tensor) -> None:
         """Actualiza el historial de errores"""
         self.error_history.append(errors.detach())
         if len(self.error_history) > self.history_size:
@@ -514,7 +514,7 @@ class AttentionIntegrator(nn.Module):
     - attention_coherence: Qué tan alineados están los niveles [0,1]
     """
 
-    def __init__(self, state_dim: int = 4):
+    def __init__(self, state_dim: int = 4) -> None:
         super().__init__()
 
         self.state_dim = state_dim
@@ -535,7 +535,7 @@ class AttentionIntegrator(nn.Module):
 
         self._init_weights()
 
-    def _init_weights(self):
+    def _init_weights(self) -> None:
         for layer in self.coherence_net:
             if isinstance(layer, nn.Linear):
                 nn.init.xavier_uniform_(layer.weight)
@@ -649,7 +649,7 @@ class AttentionMetrics:
         attention: torch.Tensor,
         coherence: float,
         intensity: float
-    ):
+    ) -> None:
         """Actualiza el historial"""
         self.attention_history.append(attention.detach())
         self.coherence_history.append(coherence)
@@ -732,7 +732,7 @@ class ZetaAttentionSystem(nn.Module):
         state_dim: int = 4,
         memory_size: int = 100,
         temperature: float = 1.0
-    ):
+    ) -> None:
         super().__init__()
 
         self.state_dim = state_dim
@@ -863,7 +863,7 @@ class ZetaAttentionSystem(nn.Module):
 # DEMO Y PRUEBAS
 # =============================================================================
 
-def demo_attention_system():
+def demo_attention_system() -> None:
     """Demostracion del sistema de atencion"""
 
     print("=" * 70)

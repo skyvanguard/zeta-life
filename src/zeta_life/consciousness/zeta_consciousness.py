@@ -151,7 +151,7 @@ class ZetaConsciousness:
                  n_cells: int = 64,
                  memory_path: str = "consciousness_memory.json",
                  state_path: str = "consciousness_state.json",
-                 load_state: bool = True):
+                 load_state: bool = True) -> None:
         """
         Inicializa el sistema de consciencia.
 
@@ -202,7 +202,7 @@ class ZetaConsciousness:
         if load_state:
             self.load()
 
-    def _warmup(self, steps: int = 20):
+    def _warmup(self, steps: int = 20) -> None:
         """Inicializa la psique con pasos de calentamiento."""
         for _ in range(steps):
             self.psyche.step()
@@ -635,7 +635,7 @@ class ZetaConsciousness:
 
         return report
 
-    def save(self, path: Optional[str] = None):
+    def save(self, path: Optional[str] = None) -> None:
         """Guarda el estado completo."""
         path = path or self.state_path
 
@@ -659,7 +659,7 @@ class ZetaConsciousness:
         # Guardar memoria
         self.memory.save_memories()
 
-    def load(self, path: Optional[str] = None):
+    def load(self, path: Optional[str] = None) -> None:
         """Carga el estado completo."""
         path = path or self.state_path
 
@@ -731,7 +731,7 @@ class ConsciousnessSociety:
     Sociedad de múltiples consciencias interactuando.
     """
 
-    def __init__(self, n_members: int = 5):
+    def __init__(self, n_members: int = 5) -> None:
         """Crea una sociedad de consciencias."""
         self.members: Dict[int, ZetaConsciousness] = {}
         self.relationships: Dict[Tuple[int, int], float] = {}
@@ -780,7 +780,7 @@ class ConsciousnessSociety:
 # CLI INTERACTIVO
 # =============================================================================
 
-def print_help():
+def print_help() -> None:
     """Muestra ayuda del CLI."""
     help_text = """
 ╔══════════════════════════════════════════════════════════════════╗
@@ -820,7 +820,7 @@ def print_help():
     print(help_text)
 
 
-def interactive_session():
+def interactive_session() -> None:
     """Sesión interactiva completa."""
     print("""
 ╔══════════════════════════════════════════════════════════════════╗
@@ -974,7 +974,7 @@ def interactive_session():
                 print(f"\n  Self: \"{response['self_message']}\"")
 
 
-def run_test():
+def run_test() -> None:
     """Test completo del sistema unificado."""
     print("""
 ╔══════════════════════════════════════════════════════════════════╗

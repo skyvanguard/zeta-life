@@ -66,7 +66,7 @@ class ZetaKernel:
            = 2 * Σ_ρ exp(-σ|γ|) * cos(γt)
     """
 
-    def __init__(self, M: int = 50, sigma: float = 0.1):
+    def __init__(self, M: int = 50, sigma: float = 0.1) -> None:
         """
         Args:
             M: Número de ceros a usar
@@ -291,14 +291,14 @@ class ZetaGameOfLife:
 class ZetaVisualizer:
     """Visualización del Game of Life con kernel zeta."""
 
-    def __init__(self, game: ZetaGameOfLife):
+    def __init__(self, game: ZetaGameOfLife) -> None:
         self.game = game
 
         # Colormap personalizado
         colors = ['#0a0a0a', '#00ff88']  # Negro -> Verde neón
         self.cmap = LinearSegmentedColormap.from_list('zeta', colors)
 
-    def plot_state(self, title: Optional[str] = None, ax=None):
+    def plot_state(self, title: Optional[str] = None, ax=None) -> plt.Axes:
         """Muestra el estado actual del grid."""
         if ax is None:
             fig, ax = plt.subplots(figsize=(10, 10))
@@ -313,7 +313,7 @@ class ZetaVisualizer:
 
         return ax
 
-    def plot_kernel(self, size: int = 50):
+    def plot_kernel(self, size: int = 50) -> plt.Figure:
         """Visualiza el kernel zeta en 2D."""
         fig, axes = plt.subplots(1, 3, figsize=(15, 5))
 
@@ -340,7 +340,7 @@ class ZetaVisualizer:
         plt.tight_layout()
         return fig
 
-    def plot_correlations(self, max_distance: int = 30):
+    def plot_correlations(self, max_distance: int = 30) -> plt.Figure:
         """Compara correlaciones: inicial vs evolucionado vs aleatorio."""
         fig, ax = plt.subplots(figsize=(10, 6))
 
@@ -364,7 +364,7 @@ class ZetaVisualizer:
 
         return fig
 
-    def animate(self, frames: int = 100, interval: int = 100, save_path: Optional[str] = None):
+    def animate(self, frames: int = 100, interval: int = 100, save_path: Optional[str] = None) -> FuncAnimation:
         """Crea una animación de la evolución."""
         fig, ax = plt.subplots(figsize=(10, 10))
 
@@ -372,7 +372,7 @@ class ZetaVisualizer:
         ax.axis('off')
         title = ax.set_title('')
 
-        def update(frame):
+        def update(frame) -> list:
             self.game.step()
             im.set_array(self.game.grid)
             stats = self.game.get_statistics()
@@ -389,7 +389,7 @@ class ZetaVisualizer:
         return anim
 
 
-def compare_random_vs_zeta(rows: int = 100, cols: int = 100, steps: int = 100):
+def compare_random_vs_zeta(rows: int = 100, cols: int = 100, steps: int = 100) -> plt.Figure:
     """
     Compara la evolución de Game of Life con inicialización aleatoria
     vs inicialización con kernel zeta.
@@ -457,7 +457,7 @@ def compare_random_vs_zeta(rows: int = 100, cols: int = 100, steps: int = 100):
     return fig
 
 
-def demo():
+def demo() -> None:
     """Demostración completa del sistema."""
     print("=" * 60)
     print("ZETA GAME OF LIFE - Fase 1: Ruido Estructurado")

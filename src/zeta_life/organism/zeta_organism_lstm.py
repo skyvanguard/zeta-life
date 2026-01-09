@@ -45,7 +45,7 @@ class ZetaOrganismLSTM(nn.Module):
                  M: int = 15, sigma: float = 0.1,
                  zeta_weight: float = 0.2,
                  fi_threshold: float = 0.7,
-                 equilibrium_factor: float = 0.5):
+                 equilibrium_factor: float = 0.5) -> None:
         super().__init__()
 
         self.grid_size = grid_size
@@ -82,7 +82,7 @@ class ZetaOrganismLSTM(nn.Module):
         self.next_cell_id += 1
         return cell_id
 
-    def _create_cells(self, seed_fi: bool = False):
+    def _create_cells(self, seed_fi: bool = False) -> None:
         """Crea celulas en posiciones aleatorias."""
         self.cells = []
         self.cell_pool.reset()
@@ -110,11 +110,11 @@ class ZetaOrganismLSTM(nn.Module):
 
         self._update_grids()
 
-    def initialize(self, seed_fi: bool = True):
+    def initialize(self, seed_fi: bool = True) -> None:
         """Inicializa organismo."""
         self._create_cells(seed_fi=seed_fi)
 
-    def _update_grids(self):
+    def _update_grids(self) -> None:
         """Actualiza grids de energia y roles."""
         self.energy_grid.zero_()
         self.role_grid.zero_()
@@ -144,7 +144,7 @@ class ZetaOrganismLSTM(nn.Module):
         neighbors = self._get_neighbors(fi_cell, radius=5)
         return sum(1 for n in neighbors if n.role_idx == 0)  # MASS
 
-    def step(self):
+    def step(self) -> None:
         """Un paso de simulacion con memoria LSTM."""
         # 1. Calcular campo de fuerzas
         field, gradient = self.force_field.compute_with_gradient(
@@ -200,7 +200,7 @@ class ZetaOrganismLSTM(nn.Module):
         # 8. Guardar historia
         self.history.append(self.get_metrics())
 
-    def _update_roles_and_energy(self, field, gradient):
+    def _update_roles_and_energy(self, field: torch.Tensor, gradient: torch.Tensor) -> None:
         """Actualiza roles y energia usando logica Fi-Mi."""
         fi_cells = [c for c in self.cells if c.role_idx == 1]
         mass_cells = [c for c in self.cells if c.role_idx == 0]
@@ -235,7 +235,7 @@ class ZetaOrganismLSTM(nn.Module):
                 for follower in followers:
                     follower.energy = min(1.0, follower.energy + per_follower)
 
-    def _move_cells(self, gradient):
+    def _move_cells(self, gradient: torch.Tensor) -> None:
         """Mueve celulas siguiendo gradiente del campo."""
         for cell in self.cells:
             x, y = cell.position
@@ -272,7 +272,7 @@ class ZetaOrganismLSTM(nn.Module):
             'timestep': self.cell_pool.t
         }
 
-    def damage(self, region: tuple, intensity: float = 0.5):
+    def damage(self, region: tuple, intensity: float = 0.5) -> int:
         """Aplica dano a una region."""
         x1, y1, x2, y2 = region
         damaged = []

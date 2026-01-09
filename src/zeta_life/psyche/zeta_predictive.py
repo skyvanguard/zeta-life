@@ -42,7 +42,7 @@ class StimulusPredictor(nn.Module):
     qué input llegará del mundo externo.
     """
 
-    def __init__(self, history_len: int = 5, hidden_dim: int = 64, M: int = 15):
+    def __init__(self, history_len: int = 5, hidden_dim: int = 64, M: int = 15) -> None:
         super().__init__()
 
         self.history_len = history_len
@@ -122,7 +122,7 @@ class StimulusPredictor(nn.Module):
             'mean_surprise': np.mean(self.error_history) if self.error_history else surprise,
         }
 
-    def update_history(self, stimulus: torch.Tensor):
+    def update_history(self, stimulus: torch.Tensor) -> None:
         """Añade estímulo al historial."""
         self.stimulus_history.append(stimulus.detach().clone())
 
@@ -139,7 +139,7 @@ class StatePredictor(nn.Module):
     Cada arquetipo tiene su propio "estilo" de predicción.
     """
 
-    def __init__(self, hidden_dim: int = 64, M: int = 15):
+    def __init__(self, hidden_dim: int = 64, M: int = 15) -> None:
         super().__init__()
 
         self.hidden_dim = hidden_dim
@@ -282,7 +282,7 @@ class MetaPredictor(nn.Module):
     Predice cuándo el sistema va a equivocarse.
     """
 
-    def __init__(self, error_history_len: int = 5, hidden_dim: int = 64, M: int = 15):
+    def __init__(self, error_history_len: int = 5, hidden_dim: int = 64, M: int = 15) -> None:
         super().__init__()
 
         self.error_history_len = error_history_len
@@ -396,7 +396,7 @@ class MetaPredictor(nn.Module):
             'mean_calibration': np.mean(self.calibration_history),
         }
 
-    def update_history(self, error_L2: torch.Tensor, surprise: float):
+    def update_history(self, error_L2: torch.Tensor, surprise: float) -> None:
         """Actualiza historiales."""
         self.error_history.append(error_L2.detach().clone())
         self.surprise_history.append(surprise)
@@ -416,7 +416,7 @@ class PredictiveConsciousnessMetrics:
     - predictive_depth: Calidad de meta-predicción
     """
 
-    def __init__(self, window: int = 50):
+    def __init__(self, window: int = 50) -> None:
         self.window = window
 
         self.error_pred_history: Deque[torch.Tensor] = deque(maxlen=window)
@@ -430,7 +430,7 @@ class PredictiveConsciousnessMetrics:
         error_real: torch.Tensor,
         confidence: float,
         meta_surprise: float
-    ):
+    ) -> None:
         """Actualiza métricas con nuevos datos."""
         self.error_pred_history.append(error_pred.detach().clone())
         self.error_real_history.append(error_real.detach().clone())
@@ -554,7 +554,7 @@ class ArchetypeInfluenceComputer:
         'meta_error_low': 0.1,
     }
 
-    def __init__(self, thresholds: Dict = None):
+    def __init__(self, thresholds: Optional[Dict] = None) -> None:
         self.thresholds = thresholds or self.DEFAULT_THRESHOLDS
 
         # Error histórico por arquetipo
@@ -647,7 +647,7 @@ class ArchetypeInfluenceComputer:
 
         return min(mean_errors, key=mean_errors.get)
 
-    def update_archetype_errors(self, state: torch.Tensor, error: float):
+    def update_archetype_errors(self, state: torch.Tensor, error: float) -> None:
         """Registra error asociado al arquetipo dominante."""
         dominant_idx = state.argmax().item()
         dominant_arch = Archetype(dominant_idx)
@@ -673,7 +673,7 @@ class ZetaPredictivePsyche(nn.Module):
         M: int = 15,
         hidden_dim: int = 64,
         history_len: int = 5
-    ):
+    ) -> None:
         super().__init__()
 
         # Sistema base de arquetipos

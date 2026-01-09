@@ -63,7 +63,7 @@ if HAS_TORCH:
         Actua como una "percepcion" estructurada del vecindario.
         """
 
-        def __init__(self, in_channels: int, M: int = 15, R: int = 2, sigma: float = 0.1):
+        def __init__(self, in_channels: int, M: int = 15, R: int = 2, sigma: float = 0.1) -> None:
             super().__init__()
             self.M = M
             self.R = R
@@ -103,7 +103,7 @@ if HAS_TORCH:
     class SobelFilter(nn.Module):
         """Filtros Sobel para detectar gradientes."""
 
-        def __init__(self, in_channels: int):
+        def __init__(self, in_channels: int) -> None:
             super().__init__()
             sobel_x = torch.tensor([[-1, 0, 1], [-2, 0, 2], [-1, 0, 1]], dtype=torch.float32)
             sobel_y = torch.tensor([[-1, -2, -1], [0, 0, 0], [1, 2, 1]], dtype=torch.float32)
@@ -139,7 +139,7 @@ if HAS_TORCH:
             R: int = 2,
             sigma: float = 0.1,
             fire_rate: float = 0.5
-        ):
+        ) -> None:
             super().__init__()
             self.channels = channels
             self.fire_rate = fire_rate
@@ -260,7 +260,7 @@ if HAS_TORCH:
             target: np.ndarray,
             device: str = 'cpu',
             lr: float = 2e-3
-        ):
+        ) -> None:
             self.model = model.to(device)
             self.device = device
 
@@ -344,7 +344,7 @@ if HAS_TORCH:
             iterations: int = 2000,
             batch_size: int = 8,
             log_every: int = 100
-        ):
+        ) -> None:
             """
             Entrena el modelo.
             """
@@ -450,7 +450,7 @@ if HAS_TORCH:
             return fig
 
 
-def create_simple_target(size: int = 64) -> np.ndarray:
+def create_simple_target(size: int = 64) -> "np.ndarray":
     """
     Crea un target simple (circulo con patron).
     """
@@ -472,7 +472,7 @@ def create_simple_target(size: int = 64) -> np.ndarray:
     return target
 
 
-def create_zeta_pattern_target(size: int = 64, M: int = 10, sigma: float = 0.1) -> np.ndarray:
+def create_zeta_pattern_target(size: int = 64, M: int = 10, sigma: float = 0.1) -> "np.ndarray":
     """
     Crea un target con patron basado en kernel zeta.
     """
@@ -501,7 +501,7 @@ def create_zeta_pattern_target(size: int = 64, M: int = 10, sigma: float = 0.1) 
     return target
 
 
-def demo_zeta_nca():
+def demo_zeta_nca() -> Optional[Tuple["ZetaNCA", "ZetaNCATrainer"]]:
     """
     Demostracion del Zeta Neural CA.
     """

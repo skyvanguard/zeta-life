@@ -133,7 +133,7 @@ class AttractorMemory:
         max_attractors: int = 50,
         strength_growth: float = 0.2,
         strength_decay: float = 0.01
-    ):
+    ) -> None:
         self.similarity_threshold = similarity_threshold
         self.max_attractors = max_attractors
         self.strength_growth = strength_growth
@@ -269,7 +269,7 @@ class AttractorMemory:
 
         return result
 
-    def _apply_decay(self, current_step: int):
+    def _apply_decay(self, current_step: int) -> None:
         """Aplica decay a atractores no visitados recientemente."""
         for attractor in self.attractors:
             steps_since_visit = current_step - attractor.last_visit
@@ -347,7 +347,7 @@ class IndividuationModulator:
     - Alta sorpresa = potencial de insight
     """
 
-    def __init__(self):
+    def __init__(self) -> None:
         self.insight_threshold = 0.6
         self.progress_multiplier = 1.0
 
@@ -502,10 +502,10 @@ class ZetaConsciousSelf(nn.Module):
         dream_frequency: int = 100,
         load_state: bool = False,
         enable_decay: bool = False,
-        decay_config: Dict = None,
+        decay_config: Optional[Dict] = None,
         enable_self_reflection: bool = False,
-        reflection_config: Dict = None
-    ):
+        reflection_config: Optional[Dict] = None
+    ) -> None:
         super().__init__()
 
         # Configuracion de auto-reflexion (loop de Strange Loop)
@@ -768,7 +768,7 @@ class ZetaConsciousSelf(nn.Module):
         self,
         dominant: Archetype,
         modulation: Dict
-    ):
+    ) -> None:
         """Actualiza metricas de individuacion con modulacion."""
         # Factor base
         base_rate = 0.02 * modulation['progress_multiplier']
@@ -798,7 +798,7 @@ class ZetaConsciousSelf(nn.Module):
         self.individuation.metrics.animus_balance = min(1.0, self.individuation.metrics.animus_balance)
         self.individuation.metrics.self_coherence = min(1.0, self.individuation.metrics.self_coherence)
 
-    def _cap_metrics(self):
+    def _cap_metrics(self) -> None:
         """Cap all metrics to [0, 1] range."""
         m = self.individuation.metrics
         m.persona_flexibility = max(0.0, min(1.0, m.persona_flexibility))
@@ -807,7 +807,7 @@ class ZetaConsciousSelf(nn.Module):
         m.animus_balance = max(0.0, min(1.0, m.animus_balance))
         m.self_coherence = max(0.0, min(1.0, m.self_coherence))
 
-    def _apply_decay(self, stimulus: torch.Tensor):
+    def _apply_decay(self, stimulus: torch.Tensor) -> None:
         """
         Aplica decay agresivo a las métricas de individuación.
 
@@ -877,7 +877,7 @@ class ZetaConsciousSelf(nn.Module):
         ap_result: Dict,
         self_manifestation,
         modulation: Dict
-    ):
+    ) -> None:
         """Actualiza el indice de consciencia integrado."""
         # Predictivo
         self.consciousness.predictive = ap_result['consciousness_breakdown']['predictive']
@@ -1021,7 +1021,7 @@ class ZetaConsciousSelf(nn.Module):
 
         return report
 
-    def _apply_dream_effects(self, report: ConsolidationReport):
+    def _apply_dream_effects(self, report: ConsolidationReport) -> None:
         """Aplica los efectos del sueno a la individuacion."""
         # Boost general por consolidacion
         consolidation_bonus = 0.02 * (report.memories_replayed / 30)
@@ -1099,11 +1099,11 @@ class ZetaConsciousSelf(nn.Module):
         older = self.consciousness_history[-window*2:-window]
         return np.mean(recent) - np.mean(older)
 
-    def save(self, path: str = "conscious_self_state.json"):
+    def save(self, path: str = "conscious_self_state.json") -> None:
         """Guarda estado."""
         self.individuation.save(path)
 
-    def load(self, path: str = "conscious_self_state.json"):
+    def load(self, path: str = "conscious_self_state.json") -> None:
         """Carga estado."""
         self.individuation.load(path)
 
@@ -1112,7 +1112,7 @@ class ZetaConsciousSelf(nn.Module):
 # DEMO
 # =============================================================================
 
-def demo_conscious_self():
+def demo_conscious_self() -> 'ZetaConsciousSelf':
     """Demuestra el sistema integrado completo."""
 
     print("\n" + "=" * 70)

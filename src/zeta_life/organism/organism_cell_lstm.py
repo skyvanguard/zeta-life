@@ -4,6 +4,8 @@
 Evolucion de OrganismCell: reemplaza ZetaMemoryGatedSimple por ZetaLSTMCell
 para capturar dependencias temporales mas complejas.
 """
+from typing import Iterator
+
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
@@ -67,7 +69,7 @@ class OrganismCellLSTM(nn.Module):
             nn.Linear(hidden_dim, state_dim)
         )
 
-    def reset_memory(self, batch_size: int = 1, device=None):
+    def reset_memory(self, batch_size: int = 1, device=None) -> None:
         """Resetea el estado LSTM."""
         if device is None:
             device = next(self.parameters()).device
@@ -196,7 +198,7 @@ class OrganismCellLSTMPool:
         self.c_states = {}  # cell_id -> c tensor
         self.t = 0
 
-    def reset(self, device=None):
+    def reset(self, device=None) -> None:
         """Resetea todos los estados."""
         if device is None:
             device = next(self.cell.parameters()).device
@@ -211,7 +213,7 @@ class OrganismCellLSTMPool:
             self.c_states[cell_id] = torch.zeros(1, self.hidden_dim, device=device)
         return self.h_states[cell_id], self.c_states[cell_id]
 
-    def set_state(self, cell_id: int, h: torch.Tensor, c: torch.Tensor):
+    def set_state(self, cell_id: int, h: torch.Tensor, c: torch.Tensor) -> None:
         """Guarda estado LSTM de una celula."""
         self.h_states[cell_id] = h
         self.c_states[cell_id] = c
@@ -237,19 +239,19 @@ class OrganismCellLSTMPool:
 
         return new_state, role, memory_info
 
-    def step_time(self):
+    def step_time(self) -> None:
         """Avanza timestep global."""
         self.t += 1
 
-    def parameters(self):
+    def parameters(self) -> Iterator[torch.nn.Parameter]:
         """Retorna parametros de la celda compartida."""
         return self.cell.parameters()
 
-    def state_dict(self):
+    def state_dict(self) -> dict:
         """Retorna state dict de la celda."""
         return self.cell.state_dict()
 
-    def load_state_dict(self, state_dict):
+    def load_state_dict(self, state_dict) -> None:
         """Carga state dict."""
         self.cell.load_state_dict(state_dict)
 

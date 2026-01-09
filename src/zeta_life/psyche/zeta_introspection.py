@@ -170,7 +170,7 @@ class StateExplainer:
     Genera explicaciones del estado psíquico en lenguaje natural.
     """
 
-    def __init__(self):
+    def __init__(self) -> None:
         self.explanation_templates = {
             'dominant': [
                 "En este momento, {archetype} es mi arquetipo dominante.",
@@ -299,7 +299,7 @@ class TrajectoryNarrator:
     Narra la trayectoria psíquica - cuenta la historia del viaje interno.
     """
 
-    def __init__(self, max_history: int = 50):
+    def __init__(self, max_history: int = 50) -> None:
         self.history: List[PsychicMoment] = []
         self.max_history = max_history
         self.transition_narratives = {
@@ -467,7 +467,7 @@ class InsightGenerator:
     Genera insights a partir de la introspección.
     """
 
-    def __init__(self):
+    def __init__(self) -> None:
         self.insight_templates = {
             InsightType.OBSERVACION: [
                 "Noto que {observation}.",
@@ -661,7 +661,7 @@ class IntrospectivePsyche:
     Integra individuación + auto-explicación + meta-cognición.
     """
 
-    def __init__(self, n_cells: int = 64, load_state: bool = True):
+    def __init__(self, n_cells: int = 64, load_state: bool = True) -> None:
         # Base: psique con individuación
         self.individuation_psyche = IndividuatingPsyche(n_cells=n_cells, load_state=load_state)
 
@@ -748,7 +748,7 @@ class IntrospectivePsyche:
 
         return insights
 
-    def _add_insight(self, insight: Insight):
+    def _add_insight(self, insight: Insight) -> None:
         """Añade un insight al historial."""
         self.insights.append(insight)
         if len(self.insights) > self.max_insights:
@@ -852,7 +852,7 @@ class IntrospectivePsyche:
         """Realiza trabajo de integración."""
         return self.individuation_psyche.do_work(work_name)
 
-    def save(self, path: str = "introspective_state.json"):
+    def save(self, path: str = "introspective_state.json") -> None:
         """Guarda estado completo."""
         # Guardar individuación
         self.individuation_psyche.save()
@@ -865,7 +865,7 @@ class IntrospectivePsyche:
         with open(path, 'w', encoding='utf-8') as f:
             json.dump(state, f, indent=2, ensure_ascii=False)
 
-    def load(self, path: str = "introspective_state.json"):
+    def load(self, path: str = "introspective_state.json") -> None:
         """Carga estado completo."""
         self.individuation_psyche.load()
 
@@ -903,7 +903,7 @@ class IntrospectivePsyche:
             pass
 
 
-def interactive_session():
+def interactive_session() -> None:
     """Sesión interactiva con introspección."""
     print("\n" + "="*60)
     print("  ZETA INTROSPECCIÓN - Meta-Cognición Psíquica")
@@ -1008,7 +1008,7 @@ def interactive_session():
                 print(f"\n  Insight: {insight['content']}")
 
 
-def run_test():
+def run_test() -> None:
     """Test del sistema de introspección."""
     print("\n" + "="*60)
     print("  TEST: Sistema de Introspección")

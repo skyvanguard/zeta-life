@@ -137,11 +137,11 @@ class ResistanceSystem:
         }
     }
 
-    def __init__(self):
+    def __init__(self) -> None:
         self.active_defenses: Dict[str, float] = {}
         self.defense_history: List[Tuple[str, str, float]] = []
 
-    def activate_defense(self, defense_name: str, intensity: float = 1.0):
+    def activate_defense(self, defense_name: str, intensity: float = 1.0) -> None:
         """Activa una defensa con cierta intensidad."""
         if defense_name in self.DEFENSE_MECHANISMS:
             current = self.active_defenses.get(defense_name, 0)
@@ -161,7 +161,7 @@ class ResistanceSystem:
                 total_resistance += intensity * defense['strength']
         return min(1.0, total_resistance)
 
-    def decay_defenses(self, rate: float = 0.05):
+    def decay_defenses(self, rate: float = 0.05) -> None:
         """Las defensas decaen naturalmente con el tiempo."""
         for defense in list(self.active_defenses.keys()):
             self.active_defenses[defense] *= (1 - rate)
@@ -285,7 +285,7 @@ class SelfSystem:
 
     SELF_SYMBOLS = ['☉', '◎', '✦', '⊙', '❂', '✧', '◉', '⚹']
 
-    def __init__(self):
+    def __init__(self) -> None:
         self.manifestations: List[SelfManifestation] = []
         self.total_luminosity: float = 0.0
         self.center_history: List[torch.Tensor] = []
@@ -427,7 +427,7 @@ class IndividuationProcess:
     Integra psique, resistencias, trabajos y emergencia del Self.
     """
 
-    def __init__(self, psyche: ZetaPsyche):
+    def __init__(self, psyche: ZetaPsyche) -> None:
         self.psyche = psyche
         self.interface = PsycheInterface(psyche)  # Interfaz para procesar texto
         self.stage = IndividuationStage.INCONSCIENTE
@@ -449,7 +449,7 @@ class IndividuationProcess:
             IndividuationStage.SELF_REALIZADO: 0.9
         }
 
-    def update_stage(self):
+    def update_stage(self) -> None:
         """Actualiza la etapa basado en integración."""
         integration = self.metrics.overall_integration()
 
@@ -462,7 +462,7 @@ class IndividuationProcess:
                     self._record_stage_transition(old_stage, stage)
                 break
 
-    def _record_stage_transition(self, old: IndividuationStage, new: IndividuationStage):
+    def _record_stage_transition(self, old: IndividuationStage, new: IndividuationStage) -> None:
         """Registra una transición de etapa."""
         # Determinar arquetipo involucrado
         archetype_by_stage = {
@@ -549,7 +549,7 @@ class IndividuationProcess:
             }
         }
 
-    def _update_metrics(self, dominant: Archetype, resistance: float, stimulus: str):
+    def _update_metrics(self, dominant: Archetype, resistance: float, stimulus: str) -> None:
         """Actualiza métricas basado en la activación."""
         # Factor de aprendizaje (reducido por resistencia)
         learning_rate = 0.05 * (1 - resistance * 0.5)
@@ -720,7 +720,7 @@ class IndividuationProcess:
         filled = int(value * width)
         return '█' * filled + '░' * (width - filled)
 
-    def save(self, path: str = "individuation_state.json"):
+    def save(self, path: str = "individuation_state.json") -> None:
         """Guarda el estado de individuación."""
         state = {
             'stage': self.stage.name,
@@ -742,7 +742,7 @@ class IndividuationProcess:
         with open(path, 'w', encoding='utf-8') as f:
             json.dump(state, f, indent=2, ensure_ascii=False)
 
-    def load(self, path: str = "individuation_state.json"):
+    def load(self, path: str = "individuation_state.json") -> bool:
         """Carga el estado de individuación."""
         try:
             with open(path, 'r', encoding='utf-8') as f:
@@ -773,7 +773,7 @@ class IndividuatingPsyche:
     Interfaz unificada para todo el sistema.
     """
 
-    def __init__(self, n_cells: int = 64, load_state: bool = True):
+    def __init__(self, n_cells: int = 64, load_state: bool = True) -> None:
         self.psyche = ZetaPsyche(n_cells=n_cells)
         self.individuation = IndividuationProcess(self.psyche)
 
@@ -799,16 +799,16 @@ class IndividuatingPsyche:
         """Retorna estado completo."""
         return self.individuation.get_status_report()
 
-    def save(self):
+    def save(self) -> None:
         """Guarda estado."""
         self.individuation.save()
 
-    def load(self):
+    def load(self) -> None:
         """Carga estado."""
         self.individuation.load()
 
 
-def visualize_individuation(process: IndividuationProcess, save_path: str = "individuation_progress.png"):
+def visualize_individuation(process: IndividuationProcess, save_path: str = "individuation_progress.png") -> Optional[str]:
     """Visualiza el progreso de individuación."""
     try:
         import matplotlib.pyplot as plt
@@ -907,7 +907,7 @@ def visualize_individuation(process: IndividuationProcess, save_path: str = "ind
         return None
 
 
-def interactive_session():
+def interactive_session() -> None:
     """Sesión interactiva de individuación."""
     print("\n" + "="*60)
     print("  ZETA INDIVIDUACIÓN - Proceso de Desarrollo Psicológico")
@@ -997,7 +997,7 @@ def interactive_session():
                 print(f"  Mensaje del Self: \"{self_info['message']}\"")
 
 
-def run_test():
+def run_test() -> None:
     """Test del sistema de individuación."""
     print("\n" + "="*60)
     print("  TEST: Sistema de Individuación")
