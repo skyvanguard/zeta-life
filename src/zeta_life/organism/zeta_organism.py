@@ -4,7 +4,7 @@ import torch
 import torch.nn as nn
 import numpy as np
 from dataclasses import dataclass, field
-from typing import List, Dict
+from typing import List, Dict, Tuple, Optional
 from .cell_state import CellState, CellRole
 from .force_field import ForceField
 from .behavior_engine import BehaviorEngine
@@ -13,7 +13,7 @@ from .organism_cell import OrganismCell
 @dataclass
 class CellEntity:
     """Entidad célula en el grid."""
-    position: tuple
+    position: Tuple[int, int]
     state: torch.Tensor
     role: torch.Tensor  # probabilities [MASS, FORCE, CORRUPT]
     energy: float = 0.0
@@ -31,7 +31,7 @@ class ZetaOrganism(nn.Module):
                  state_dim: int = 32, hidden_dim: int = 64,
                  M: int = 15, sigma: float = 0.1,
                  fi_threshold: float = 0.7,
-                 equilibrium_factor: float = 0.5):
+                 equilibrium_factor: float = 0.5) -> None:
         super().__init__()
 
         self.grid_size = grid_size
@@ -54,7 +54,7 @@ class ZetaOrganism(nn.Module):
         # Crear células iniciales (sin Fi semilla)
         self._create_cells(seed_fi=False)
 
-    def _create_cells(self, seed_fi: bool = False):
+    def _create_cells(self, seed_fi: bool = False) -> None:
         """Crea células en posiciones aleatorias."""
         self.cells = []
 
@@ -80,11 +80,11 @@ class ZetaOrganism(nn.Module):
 
         self._update_grids()
 
-    def initialize(self, seed_fi: bool = True):
+    def initialize(self, seed_fi: bool = True) -> None:
         """Inicializa organismo con células aleatorias (con Fi semilla opcional)."""
         self._create_cells(seed_fi=seed_fi)
 
-    def _update_grids(self):
+    def _update_grids(self) -> None:
         """Actualiza grids de energía y roles."""
         self.energy_grid.zero_()
         self.role_grid.zero_()
@@ -109,7 +109,7 @@ class ZetaOrganism(nn.Module):
 
         return neighbors
 
-    def step(self):
+    def step(self) -> None:
         """Un paso de simulación HÍBRIDO: reglas Fi-Mi + BehaviorEngine neural."""
         # 1. Calcular campo de fuerzas (solo Fi emiten)
         field, gradient = self.force_field.compute_with_gradient(

@@ -14,7 +14,7 @@ import torch.nn as nn
 import torch.nn.functional as F
 import numpy as np
 from dataclasses import dataclass, field
-from typing import Deque, Optional, Tuple
+from typing import Deque, Optional, Tuple, List
 from collections import deque
 from enum import Enum
 
@@ -80,7 +80,7 @@ class MicroPsyche:
     phi_local: float = 0.5
     accumulated_surprise: float = 0.0  # Sorpresa acumulada para plasticidad
 
-    def __post_init__(self):
+    def __post_init__(self) -> None:
         """Asegurar que archetype_state está normalizado."""
         # Solo normalizar si no es distribución de probabilidad válida
         # (evitar doble softmax que uniformiza estados)
@@ -95,7 +95,7 @@ class MicroPsyche:
         new_state: torch.Tensor,
         blend_factor: float = 0.1,
         noise_scale: float = 0.02
-    ):
+    ) -> None:
         """
         Actualiza el estado arquetipal con mezcla suave y ruido estocástico.
 
@@ -282,7 +282,7 @@ class ConsciousCell:
     cluster_id: int = -1
     cluster_weight: float = 1.0
 
-    def __post_init__(self):
+    def __post_init__(self) -> None:
         """Inicializar psique si no se proporcionó."""
         if self.psyche is None:
             self.psyche = MicroPsyche.create_random()
@@ -322,11 +322,11 @@ class ConsciousCell:
         """Calcula similitud psíquica con otra célula."""
         return self.psyche.alignment_with(other.psyche.archetype_state)
 
-    def update_energy(self, delta: float, min_val: float = 0.0, max_val: float = 1.0):
+    def update_energy(self, delta: float, min_val: float = 0.0, max_val: float = 1.0) -> None:
         """Actualiza energía con límites."""
         self.energy = max(min_val, min(max_val, self.energy + delta))
 
-    def apply_archetype_influence(self, influence: torch.Tensor, strength: float = 0.1):
+    def apply_archetype_influence(self, influence: torch.Tensor, strength: float = 0.1) -> None:
         """
         Aplica influencia arquetipal externa.
 
@@ -408,7 +408,7 @@ class ConsciousCell:
 # UTILIDADES
 # =============================================================================
 
-def compute_local_phi(cell: ConsciousCell, neighbors: list) -> float:
+def compute_local_phi(cell: ConsciousCell, neighbors: List[ConsciousCell]) -> float:
     """
     Calcula Φ local (integración con vecinos).
 
@@ -443,11 +443,11 @@ def compute_local_phi(cell: ConsciousCell, neighbors: list) -> float:
 
 def apply_psyche_contagion(
     cell: ConsciousCell,
-    neighbors: list,
+    neighbors: List[ConsciousCell],
     contagion_rate: float = 0.1,
     similarity_threshold: float = 0.85,
     friction_factor: float = 0.2
-):
+) -> None:
     """
     Aplica contagio psíquico de vecinos con fricción adaptativa.
 

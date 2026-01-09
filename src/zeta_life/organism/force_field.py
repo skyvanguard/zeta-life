@@ -4,8 +4,9 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 import numpy as np
+from typing import List, Tuple
 
-def get_zeta_zeros(M: int) -> list:
+def get_zeta_zeros(M: int) -> List[float]:
     """Primeros M ceros no triviales de zeta."""
     zeros = [14.134725, 21.022040, 25.010858, 30.424876, 32.935062,
              37.586178, 40.918720, 43.327073, 48.005151, 49.773832,
@@ -19,7 +20,7 @@ class ForceField(nn.Module):
     """Campo de fuerzas propagado por convolucion zeta."""
 
     def __init__(self, grid_size: int = 64, M: int = 15,
-                 sigma: float = 0.1, kernel_radius: int = 7):
+                 sigma: float = 0.1, kernel_radius: int = 7) -> None:
         super().__init__()
         self.grid_size = grid_size
         self.M = M
@@ -81,7 +82,7 @@ class ForceField(nn.Module):
         return field
 
     def compute_with_gradient(self, energy: torch.Tensor,
-                              roles: torch.Tensor) -> tuple:
+                              roles: torch.Tensor) -> Tuple[torch.Tensor, torch.Tensor]:
         """Computa campo y gradiente.
 
         Returns:
@@ -98,7 +99,7 @@ class ForceField(nn.Module):
         gradient = torch.cat([grad_x, grad_y], dim=1)
         return field, gradient
 
-    def attraction_force(self, position: tuple, field: torch.Tensor,
+    def attraction_force(self, position: Tuple[int, int], field: torch.Tensor,
                         gradient: torch.Tensor) -> torch.Tensor:
         """Fuerza de atraccion en una posicion."""
         x, y = position

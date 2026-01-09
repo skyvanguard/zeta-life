@@ -51,7 +51,7 @@ class ClusterPsyche:
     prediction_error: float
     integration_level: float
 
-    def __post_init__(self):
+    def __post_init__(self) -> None:
         """Normalizar estado agregado."""
         if self.aggregate_state.sum() > 0:
             self.aggregate_state = F.softmax(self.aggregate_state, dim=0)
@@ -198,7 +198,7 @@ class Cluster:
     neighbors: List[int] = field(default_factory=list)
     collective_role: CellRole = CellRole.MASS
 
-    def __post_init__(self):
+    def __post_init__(self) -> None:
         """Inicializar psique y calcular centroide."""
         if self.cells:
             self._update_centroid()
@@ -231,7 +231,7 @@ class Cluster:
         # Fallback aleatorio para evitar sesgo hacia PERSONA
         return Archetype(np.random.randint(4))
 
-    def _update_centroid(self):
+    def _update_centroid(self) -> None:
         """Actualiza el centroide espacial."""
         if not self.cells:
             return
@@ -243,7 +243,7 @@ class Cluster:
         center = positions.mean(dim=0)
         self.centroid = (center[0].item(), center[1].item())
 
-    def _update_collective_role(self):
+    def _update_collective_role(self) -> None:
         """Determina el rol colectivo del cluster."""
         if not self.cells:
             self.collective_role = CellRole.MASS
@@ -256,20 +256,20 @@ class Cluster:
 
         self.collective_role = CellRole(np.argmax(role_counts))
 
-    def add_cell(self, cell: ConsciousCell):
+    def add_cell(self, cell: ConsciousCell) -> None:
         """Agrega una célula al cluster."""
         cell.cluster_id = self.id
         self.cells.append(cell)
         self._update_centroid()
 
-    def remove_cell(self, cell: ConsciousCell):
+    def remove_cell(self, cell: ConsciousCell) -> None:
         """Remueve una célula del cluster."""
         if cell in self.cells:
             self.cells.remove(cell)
             cell.cluster_id = -1
             self._update_centroid()
 
-    def update_psyche(self):
+    def update_psyche(self) -> None:
         """Actualiza la psique del cluster desde sus células."""
         self.psyche = ClusterPsyche.from_cells(self.cells)
         self._update_collective_role()
@@ -292,7 +292,7 @@ class Cluster:
         """Retorna células con rol Mass."""
         return [c for c in self.cells if c.is_mass]
 
-    def broadcast_influence(self, influence: torch.Tensor, strength: float = 0.1):
+    def broadcast_influence(self, influence: torch.Tensor, strength: float = 0.1) -> None:
         """
         Aplica influencia arquetipal a todas las células del cluster.
 

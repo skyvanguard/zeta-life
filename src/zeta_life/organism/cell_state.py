@@ -3,6 +3,7 @@
 import torch
 from enum import Enum
 from dataclasses import dataclass, field
+from typing import Optional
 import math
 
 class CellRole(Enum):
@@ -30,7 +31,7 @@ class CellState:
 
     def update_role(self, fi_threshold: float = 0.7,
                     min_followers: int = 3,
-                    rival_detected: bool = False):
+                    rival_detected: bool = False) -> None:
         """Actualiza rol segun condiciones."""
         if self.role == CellRole.MASS:
             # MASS -> FORCE: alta energia + seguidores

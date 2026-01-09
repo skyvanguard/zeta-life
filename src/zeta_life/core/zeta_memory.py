@@ -93,7 +93,7 @@ class SemanticMemory:
     def from_dict(cls, data: dict) -> 'SemanticMemory':
         return cls(**data)
 
-    def reinforce(self, new_weights: List[float], alpha: float = 0.3):
+    def reinforce(self, new_weights: List[float], alpha: float = 0.3) -> None:
         """Refuerza la asociacion con nuevos pesos."""
         for i in range(4):
             self.archetype_weights[i] = (
@@ -141,8 +141,8 @@ class ZetaMemorySystem:
     - Olvido gradual de memorias no accesadas
     """
 
-    def __init__(self, memory_path: str = None):
-        self.memory_path = memory_path or "zeta_memories.json"
+    def __init__(self, memory_path: Optional[str] = None) -> None:
+        self.memory_path: str = memory_path or "zeta_memories.json"
 
         # Memorias
         self.episodic: List[EpisodicMemory] = []
@@ -161,7 +161,7 @@ class ZetaMemorySystem:
         # Cargar memorias existentes
         self._load_memories()
 
-    def _load_memories(self):
+    def _load_memories(self) -> None:
         """Carga memorias desde archivo."""
         if os.path.exists(self.memory_path):
             try:
@@ -186,7 +186,7 @@ class ZetaMemorySystem:
             except Exception as e:
                 print(f"  [Error cargando memorias: {e}]")
 
-    def save_memories(self):
+    def save_memories(self) -> None:
         """Guarda memorias a archivo."""
         data = {
             'episodic': [m.to_dict() for m in self.episodic],
@@ -212,8 +212,8 @@ class ZetaMemorySystem:
         archetype_state: torch.Tensor,
         dominant: Archetype,
         consciousness: float,
-        tags: List[str] = None
-    ):
+        tags: Optional[List[str]] = None
+    ) -> None:
         """
         Almacena un episodio en memoria de corto plazo.
         Se consolidara si es lo suficientemente intenso.
@@ -258,7 +258,7 @@ class ZetaMemorySystem:
 
         return intensity
 
-    def _learn_semantic(self, text: str, state: torch.Tensor):
+    def _learn_semantic(self, text: str, state: torch.Tensor) -> None:
         """Aprende asociaciones semanticas del texto."""
         words = text.lower().split()
 
@@ -286,7 +286,7 @@ class ZetaMemorySystem:
                     last_accessed=datetime.now().isoformat()
                 )
 
-    def _consolidate_buffer(self):
+    def _consolidate_buffer(self) -> None:
         """
         Consolida memorias del buffer de corto plazo a largo plazo.
         Solo las memorias intensas se consolidan.
@@ -461,7 +461,7 @@ class MemoryAwarePsyche:
     Extension de ConversationalPsyche con memoria a largo plazo.
     """
 
-    def __init__(self, n_cells: int = 100, memory_path: str = None):
+    def __init__(self, n_cells: int = 100, memory_path: Optional[str] = None) -> None:
         # Importar aqui para evitar circular import
         from zeta_psyche_voice import ConversationalPsyche
 
@@ -520,7 +520,7 @@ class MemoryAwarePsyche:
 
         return response
 
-    def _apply_semantic_modulation(self, modulation: torch.Tensor):
+    def _apply_semantic_modulation(self, modulation: torch.Tensor) -> None:
         """Aplica modulacion semantica al estado de la psique."""
         # Aplicar como estimulo suave
         self.psyche.psyche.communicate(modulation)
@@ -588,11 +588,11 @@ class MemoryAwarePsyche:
 
         return "\n".join(lines)
 
-    def save(self):
+    def save(self) -> None:
         """Guarda memorias a disco."""
         self.memory.save_memories()
 
-    def forget_session(self):
+    def forget_session(self) -> None:
         """Olvida la sesion actual (limpia buffer sin consolidar)."""
         self.memory.short_term_buffer = []
 
@@ -601,7 +601,7 @@ class MemoryAwarePsyche:
 # CLI CON MEMORIA
 # =============================================================================
 
-def run_memory_cli():
+def run_memory_cli() -> None:
     """CLI interactivo con memoria a largo plazo."""
     print()
     print("=" * 60)

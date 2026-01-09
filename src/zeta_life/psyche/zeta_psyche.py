@@ -82,7 +82,7 @@ class TetrahedralSpace:
     - V3 (ANIMUS):  (-1, -1, 1)
     """
 
-    def __init__(self):
+    def __init__(self) -> None:
         # Vertices del tetraedro regular en 3D
         self.vertices = torch.tensor([
             [1.0, 1.0, 1.0],      # PERSONA
@@ -154,7 +154,7 @@ def get_zeta_zeros(M: int = 15) -> torch.Tensor:
 class ZetaModulator(nn.Module):
     """Modula la dinamica usando ceros de Riemann."""
 
-    def __init__(self, M: int = 15, sigma: float = 0.1):
+    def __init__(self, M: int = 15, sigma: float = 0.1) -> None:
         super().__init__()
         self.M = M
         self.sigma = sigma
@@ -197,11 +197,11 @@ class PsychicCell:
     memory: torch.Tensor = None  # Memoria de posiciones anteriores
     age: int = 0
 
-    def __post_init__(self):
+    def __post_init__(self) -> None:
         if self.memory is None:
             self.memory = torch.zeros(10, 4)  # Ultimas 10 posiciones
 
-    def update_memory(self):
+    def update_memory(self) -> None:
         """Guarda posicion actual en memoria."""
         self.memory = torch.roll(self.memory, 1, dims=0)
         self.memory[0] = self.position.clone()
@@ -236,8 +236,8 @@ class ZetaPsyche(nn.Module):
     ):
         super().__init__()
 
-        self.n_cells = n_cells
-        self.hidden_dim = hidden_dim
+        self.n_cells: int = n_cells
+        self.hidden_dim: int = hidden_dim
 
         # Espacio tetraedrico
         self.space = TetrahedralSpace()
@@ -275,7 +275,7 @@ class ZetaPsyche(nn.Module):
         # Inicializar celulas
         self._init_cells()
 
-    def _init_cells(self):
+    def _init_cells(self) -> None:
         """Inicializa celulas en posiciones aleatorias."""
         self.cells = []
         for _ in range(self.n_cells):
@@ -291,7 +291,7 @@ class ZetaPsyche(nn.Module):
 
         self._update_global_state()
 
-    def _update_global_state(self):
+    def _update_global_state(self) -> None:
         """Actualiza el estado global (promedio de todas las celulas)."""
         if len(self.cells) == 0:
             self.global_state = torch.ones(4) / 4
@@ -369,7 +369,7 @@ class ZetaPsyche(nn.Module):
             'population_distribution': pop_dist,
         }
 
-    def receive_stimulus(self, stimulus: torch.Tensor):
+    def receive_stimulus(self, stimulus: torch.Tensor) -> None:
         """
         Recibe un estimulo externo.
 
@@ -428,7 +428,7 @@ class ZetaPsyche(nn.Module):
         obs = self.observe_self()
         self.consciousness_history.append(obs['consciousness_index'])
 
-    def step(self, stimulus: torch.Tensor = None):
+    def step(self, stimulus: Optional[torch.Tensor] = None) -> Dict:
         """Ejecuta un paso de la psique."""
         if stimulus is None:
             stimulus = torch.rand(4)  # Estimulo aleatorio

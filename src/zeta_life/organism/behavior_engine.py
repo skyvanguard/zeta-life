@@ -10,6 +10,7 @@ Implementation of the behavior algorithm from research notes:
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
+from typing import Tuple, List
 
 
 class BehaviorEngine(nn.Module):
@@ -22,7 +23,7 @@ class BehaviorEngine(nn.Module):
     - Net role calculation (B = AA* - A*A)
     """
 
-    def __init__(self, state_dim: int = 32, hidden_dim: int = 64):
+    def __init__(self, state_dim: int = 32, hidden_dim: int = 64) -> None:
         """Initialize the BehaviorEngine.
 
         Args:
@@ -47,7 +48,7 @@ class BehaviorEngine(nn.Module):
         )
 
     def bidirectional_influence(self, cell: torch.Tensor,
-                                 neighbors: torch.Tensor) -> tuple:
+                                 neighbors: torch.Tensor) -> Tuple[torch.Tensor, torch.Tensor]:
         """A <-> B: Calculate bidirectional influence.
 
         Models the mutual interaction between a cell (A) and its neighbors (B).
@@ -169,7 +170,7 @@ class BehaviorEngine(nn.Module):
         return net
 
     def step(self, cell: torch.Tensor, neighbors: torch.Tensor,
-             potential: float, alpha: float = 0.3) -> tuple:
+             potential: float, alpha: float = 0.3) -> Tuple[torch.Tensor, torch.Tensor]:
         """Execute one complete step of the behavior engine.
 
         Combines all behavior components:
