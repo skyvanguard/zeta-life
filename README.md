@@ -2,9 +2,11 @@
 
 **Artificial Consciousness through the Riemann Zeta Function**
 
-[![Python 3.9+](https://img.shields.io/badge/python-3.9+-blue.svg)](https://www.python.org/downloads/)
+[![CI](https://github.com/fruiz/zeta-life/actions/workflows/ci.yml/badge.svg)](https://github.com/fruiz/zeta-life/actions/workflows/ci.yml)
+[![Python 3.10+](https://img.shields.io/badge/python-3.10+-blue.svg)](https://www.python.org/downloads/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-[![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black)
+[![Code style: ruff](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/astral-sh/ruff/main/assets/badge/v2.json)](https://github.com/astral-sh/ruff)
+[![Tests](https://img.shields.io/badge/tests-296%20passed-brightgreen.svg)](tests/)
 
 ---
 

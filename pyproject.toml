@@ -82,8 +82,26 @@ target-version = ["py39", "py310", "py311"]
 
 [tool.ruff]
 line-length = 100
-select = ["E", "F", "W", "I", "N", "D", "UP"]
-ignore = ["D100", "D104"]
+target-version = "py310"
+
+[tool.ruff.lint]
+select = [
+    "E",      # pycodestyle errors
+    "F",      # pyflakes
+    "W",      # pycodestyle warnings
+    "I",      # isort
+    "UP",     # pyupgrade
+]
+ignore = [
+    "E501",   # line too long (handled by formatter)
+    "E741",   # ambiguous variable name
+    "F401",   # unused import (too many false positives during dev)
+    "F841",   # unused variable
+]
+
+[tool.ruff.lint.per-file-ignores]
+"tests/*" = ["D", "S101"]  # No docstrings required in tests, allow assert
+"experiments/*" = ["D", "T201"]  # No docstrings, allow print
 
 [tool.mypy]
 python_version = "3.10"
