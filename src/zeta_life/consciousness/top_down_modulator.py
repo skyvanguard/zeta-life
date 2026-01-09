@@ -138,7 +138,7 @@ class TopDownModulator(nn.Module):
         if cluster.psyche.specialization.value == weakest_idx:
             base_attention *= 1.2  # 20% más atención a arquetipos débiles
 
-        return min(1.0, base_attention)
+        return float(min(1.0, base_attention))
 
     def _get_complement_idx(self, archetype: Archetype) -> int:
         """Retorna índice del arquetipo complementario."""
@@ -384,7 +384,7 @@ class TopDownModulator(nn.Module):
             base_signal = self.modulation_net(organism.global_archetype.float())
 
         # Escalar por atención del cluster
-        modulation = base_signal * cluster_attention
+        modulation: torch.Tensor = base_signal * cluster_attention
 
         return modulation
 
@@ -591,7 +591,7 @@ class TopDownModulator(nn.Module):
             ).item()
             alignments.append((alignment + 1) / 2)  # Normalizar a [0, 1]
 
-        return np.mean(alignments)
+        return float(np.mean(alignments))
 
 
 # =============================================================================
@@ -631,7 +631,8 @@ if __name__ == "__main__":
     attention = modulator.distribute_attention(organism, clusters)
     for cluster_id, att in attention.items():
         cluster = clusters[cluster_id]
-        print(f"   Cluster {cluster_id} ({cluster.psyche.specialization.name}): "
+        specialization_name = cluster.psyche.specialization.name if cluster.psyche else "None"
+        print(f"   Cluster {cluster_id} ({specialization_name}): "
               f"atención={att:.3f}")
 
     # Test predicciones

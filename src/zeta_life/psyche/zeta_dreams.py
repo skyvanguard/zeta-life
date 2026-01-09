@@ -20,14 +20,14 @@ import torch
 import torch.nn.functional as F
 import numpy as np
 from dataclasses import dataclass, field
-from typing import Dict, List, Tuple, Optional
+from typing import Any, Dict, List, Tuple, Optional
 from datetime import datetime
 from enum import Enum
 
 # Fix Windows console encoding
 if sys.platform == 'win32':
     try:
-        sys.stdout.reconfigure(encoding='utf-8', errors='replace')
+        sys.stdout.reconfigure(encoding='utf-8', errors='replace')  # type: ignore[union-attr]
     except:
         pass
 
@@ -199,7 +199,7 @@ class DreamNarrativeGenerator:
         """Genera una transicion entre arquetipos."""
         key = (from_arch, to_arch)
         if key in self.transitions:
-            return random.choice(self.transitions[key])
+            return str(random.choice(self.transitions[key]))
 
         # Transicion generica
         return f"El escenario cambia... ahora..."
@@ -254,7 +254,7 @@ class DreamSystem:
         self.current_dream = []
         return "Cerrando los ojos... entrando al mundo de los suenos..."
 
-    def exit_dream(self) -> DreamReport:
+    def exit_dream(self) -> Optional[DreamReport]:
         """Sale del modo sueno y genera reporte."""
         self.is_dreaming = False
 
@@ -265,10 +265,10 @@ class DreamSystem:
         dream_type = self._determine_dream_type()
 
         # Arquetipo dominante
-        archetype_counts = {}
+        archetype_counts: Dict[Archetype, int] = {}
         for frag in self.current_dream:
             archetype_counts[frag.archetype] = archetype_counts.get(frag.archetype, 0) + 1
-        dominant = max(archetype_counts, key=archetype_counts.get)
+        dominant = max(archetype_counts, key=lambda k: archetype_counts[k])
 
         # Generar narrativa completa
         narrative = self._compile_narrative()
@@ -294,7 +294,7 @@ class DreamSystem:
         self.current_dream = []
         return report
 
-    def dream_step(self) -> DreamFragment:
+    def dream_step(self) -> Optional[DreamFragment]:
         """
         Ejecuta un paso del sueno.
 
@@ -378,7 +378,7 @@ class DreamSystem:
         compensation = compensation / compensation.sum()
 
         # Combinar
-        stimulus = (
+        stimulus: torch.Tensor = (
             0.3 * current +           # Inercia
             0.2 * memory_activation + # Memoria
             0.2 * compensation +      # Compensacion
@@ -500,7 +500,7 @@ class DreamingPsyche:
     Extension de MemoryAwarePsyche con capacidad de sonar.
     """
 
-    def __init__(self, n_cells: int = 100, memory_path: str = None):
+    def __init__(self, n_cells: int = 100, memory_path: Optional[str] = None):
         from zeta_memory import MemoryAwarePsyche
 
         self.base = MemoryAwarePsyche(n_cells=n_cells, memory_path=memory_path)
@@ -509,9 +509,10 @@ class DreamingPsyche:
         # Historial de suenos
         self.dream_history: List[DreamReport] = []
 
-    def process(self, user_input: str) -> Dict:
+    def process(self, user_input: str) -> Dict[Any, Any]:
         """Procesa input (delegado a base)."""
-        return self.base.process(user_input)
+        result: Dict[Any, Any] = self.base.process(user_input)
+        return result
 
     def dream(self, duration: int = 50, verbose: bool = True) -> DreamReport:
         """
@@ -576,8 +577,19 @@ class DreamingPsyche:
                 journey_str = " -> ".join(s for s, _ in report.archetype_journey[:10])
                 print(f"    {journey_str}...")
                 print()
+            return report
 
-        return report
+        # Return a default empty DreamReport when report is None
+        return DreamReport(
+            duration=duration,
+            dream_type=DreamType.COMPENSATORIO,
+            fragments=[],
+            dominant_archetype=Archetype.PERSONA,
+            narrative="No se recordo ningun sueno.",
+            insights=[],
+            archetype_journey=[],
+            consolidation_effects={}
+        )
 
     def get_dream_summary(self) -> str:
         """Resumen de suenos recientes."""

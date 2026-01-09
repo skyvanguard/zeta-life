@@ -27,7 +27,7 @@ import os
 # Fix Windows console encoding
 if sys.platform == 'win32':
     try:
-        sys.stdout.reconfigure(encoding='utf-8', errors='replace')
+        sys.stdout.reconfigure(encoding='utf-8', errors='replace')  # type: ignore[union-attr]
     except (AttributeError, io.UnsupportedOperation):
         pass
 
@@ -254,9 +254,9 @@ class ZetaMemorySystem:
         max_entropy = np.log(4)
 
         # Intensidad = 1 - entropia normalizada
-        intensity = 1.0 - (entropy / max_entropy).item()
+        intensity = 1.0 - float(entropy / max_entropy)
 
-        return intensity
+        return float(intensity)
 
     def _learn_semantic(self, text: str, state: torch.Tensor) -> None:
         """Aprende asociaciones semanticas del texto."""
@@ -395,11 +395,11 @@ class ZetaMemorySystem:
             return torch.tensor([0.25, 0.25, 0.25, 0.25])
 
         # Promedio ponderado
-        modulations = torch.stack(modulations)
-        weights = torch.tensor(weights)
-        weights = weights / weights.sum()
+        modulations_stacked = torch.stack(modulations)
+        weights_tensor = torch.tensor(weights)
+        weights_tensor = weights_tensor / weights_tensor.sum()
 
-        result = (modulations * weights.unsqueeze(1)).sum(dim=0)
+        result = (modulations_stacked * weights_tensor.unsqueeze(1)).sum(dim=0)
         return F.softmax(result, dim=-1)
 
     # =========================================================================
@@ -518,7 +518,8 @@ class MemoryAwarePsyche:
         ]
         response['semantic_influence'] = semantic_mod.tolist()
 
-        return response
+        result: Dict[Any, Any] = response
+        return result
 
     def _apply_semantic_modulation(self, modulation: torch.Tensor) -> None:
         """Aplica modulacion semantica al estado de la psique."""

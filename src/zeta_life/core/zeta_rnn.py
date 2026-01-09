@@ -12,7 +12,8 @@ The zeta zeros gamma_j create oscillators that capture long-range temporal depen
 import numpy as np
 import torch
 import torch.nn as nn
-from typing import List, Optional, Tuple
+from typing import Any, Dict, List, Literal, Optional, Tuple, Union, overload
+from numpy.typing import NDArray
 
 # Reuse existing zeta zeros function
 try:
@@ -92,7 +93,9 @@ class ZetaMemoryLayer(nn.Module):
         """
         # Compute cos(gamma_j * t) for all zeros
         # Shape: (M,)
-        cos_terms = torch.cos(self.gammas * t)
+        # Use .data to get the underlying tensor for arithmetic operations
+        gammas_tensor: torch.Tensor = self.gammas  # type: ignore[assignment]
+        cos_terms = torch.cos(gammas_tensor * t)
 
         # Weighted sum: sum_j(phi_j * cos(gamma_j * t))
         # Shape: scalar
@@ -336,11 +339,25 @@ class ZetaSequenceGenerator:
         # Projection from feature_dim to scalar
         self.projection = np.random.randn(feature_dim) / np.sqrt(feature_dim)
 
+    @overload
+    def generate_batch(
+        self,
+        batch_size: int,
+        return_numpy: Literal[False] = ...
+    ) -> Tuple[torch.Tensor, torch.Tensor]: ...
+
+    @overload
+    def generate_batch(
+        self,
+        batch_size: int,
+        return_numpy: Literal[True] = ...
+    ) -> Tuple[NDArray[np.floating[Any]], NDArray[np.floating[Any]]]: ...
+
     def generate_batch(
         self,
         batch_size: int,
         return_numpy: bool = False
-    ) -> Tuple[torch.Tensor, torch.Tensor]:
+    ) -> Union[Tuple[torch.Tensor, torch.Tensor], Tuple[NDArray[np.floating[Any]], NDArray[np.floating[Any]]]]:
         """
         Generate a batch of sequences.
 
@@ -488,7 +505,7 @@ class ZetaLSTMExperiment:
         batch_size: int = 32,
         batches_per_epoch: int = 20,
         lr: float = 1e-3
-    ) -> dict:
+    ) -> Dict[str, Any]:
         """
         Run comparison experiment.
 
@@ -502,7 +519,7 @@ class ZetaLSTMExperiment:
         vanilla_opt = torch.optim.Adam(vanilla_params, lr=lr)
         zeta_opt = torch.optim.Adam(zeta_params, lr=lr)
 
-        results = {
+        results: Dict[str, Any] = {
             'vanilla_loss': [],
             'zeta_loss': [],
             'vanilla_eval': [],
@@ -527,8 +544,8 @@ class ZetaLSTMExperiment:
             results['zeta_eval'].append(z_eval)
 
         # Compute improvement
-        final_vanilla = np.mean(results['vanilla_eval'][-5:])
-        final_zeta = np.mean(results['zeta_eval'][-5:])
+        final_vanilla = float(np.mean(results['vanilla_eval'][-5:]))
+        final_zeta = float(np.mean(results['zeta_eval'][-5:]))
         improvement = (final_vanilla - final_zeta) / final_vanilla * 100
 
         results['final_vanilla_loss'] = final_vanilla

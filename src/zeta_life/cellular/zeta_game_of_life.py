@@ -131,7 +131,7 @@ class ZetaGameOfLife:
         self.threshold = threshold
         self.seed = seed
         self.generation = 0
-        self.history = []
+        self.history: List[np.ndarray] = []
 
         # Inicializar grid con ruido zeta estructurado
         self.grid = self._initialize_zeta_noise()
@@ -181,7 +181,7 @@ class ZetaGameOfLife:
         std = np.std(real_field)
 
         # Umbral: valores > threshold*std se convierten en células vivas
-        binary = (real_field > mean + self.threshold * std).astype(int)
+        binary: np.ndarray = (real_field > mean + self.threshold * std).astype(int)
 
         return binary
 
@@ -298,7 +298,7 @@ class ZetaVisualizer:
         colors = ['#0a0a0a', '#00ff88']  # Negro -> Verde neón
         self.cmap = LinearSegmentedColormap.from_list('zeta', colors)
 
-    def plot_state(self, title: Optional[str] = None, ax=None) -> plt.Axes:
+    def plot_state(self, title: Optional[str] = None, ax: Optional[plt.Axes] = None) -> plt.Axes:
         """Muestra el estado actual del grid."""
         if ax is None:
             fig, ax = plt.subplots(figsize=(10, 10))

@@ -1,6 +1,6 @@
 # ZetaIntegrationFeedback: Sistema de Retroalimentacion Metrica-Psique
 from dataclasses import dataclass
-from typing import Dict, Tuple, Optional
+from typing import Any, Dict, Tuple, Optional
 import torch
 from .zeta_psyche import ZetaPsyche, Archetype
 from .zeta_individuation import IndividuationStage, IntegrationMetrics
@@ -92,25 +92,26 @@ class IntegrationWorkFeedback:
     def apply_work_effect(self, work_type: str, psyche: ZetaPsyche, metrics: IntegrationMetrics, stage: IndividuationStage) -> Tuple[str, float]:
         if work_type not in self.WORK_EFFECTS:
             return f"Unknown: {work_type}", 0.0
-        effect = self.WORK_EFFECTS[work_type]
+        effect: Dict[str, Any] = dict(self.WORK_EFFECTS[work_type])  # type: ignore[call-overload]
         cooperation = IntegrationFeedback.STAGE_COOPERATION.get(stage, 0.5)
         effectiveness = 0.5 + 0.5 * cooperation
         target = effect["target"]
-        energy_boost = effect["energy"] * self.intensity * effectiveness
+        energy_boost: float = effect["energy"] * self.intensity * effectiveness
         for cell in psyche.cells:
             if target is None:
                 cell.energy = min(1.0, cell.energy + energy_boost * 0.5)
-            elif Archetype(torch.argmax(cell.position).item()) == target:
+            elif Archetype(int(torch.argmax(cell.position).item())) == target:
                 cell.energy = min(1.0, cell.energy + energy_boost)
         center = torch.tensor([0.25, 0.25, 0.25, 0.25])
-        shift = effect["shift"] * self.intensity * effectiveness
+        shift: float = effect["shift"] * self.intensity * effectiveness
         for cell in psyche.cells:
             with torch.no_grad():
                 new_pos = cell.position + shift * (center - cell.position)
                 cell.position.copy_(torch.clamp(new_pos, min=0.01) / torch.clamp(new_pos, min=0.01).sum())
-        current = getattr(metrics, effect["metric"])
+        metric_name: str = effect["metric"]
+        current = getattr(metrics, metric_name)
         new_value = min(1.0, current + 0.05 * self.intensity * effectiveness)
-        setattr(metrics, effect["metric"], new_value)
+        setattr(metrics, metric_name, new_value)
         return f"{work_type} applied with effectiveness {effectiveness:.2f}", effectiveness
 
 def create_feedback_system(smoothing_factor: float = 0.1, work_intensity: float = 1.0) -> Tuple[IntegrationFeedback, IntegrationWorkFeedback]:

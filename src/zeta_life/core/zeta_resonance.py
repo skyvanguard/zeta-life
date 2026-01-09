@@ -70,8 +70,8 @@ class ZetaSpectrumAnalyzer(nn.Module):
 
         # Calcular correlacion con osciladores zeta
         # Osciladores teoricos en tiempo t
-        zeta_cos = torch.cos(self.gammas * t)  # [M]
-        zeta_sin = torch.sin(self.gammas * t)  # [M]
+        zeta_cos = torch.cos(self.gammas * t)  # type: ignore[operator, arg-type]  # [M]
+        zeta_sin = torch.sin(self.gammas * t)  # type: ignore[operator, arg-type]  # [M]
 
         # Correlacion ponderada por phi (Abel regularization)
         cos_corr = (cos_coeffs * zeta_cos * self.phi).sum(dim=1)  # [batch]
@@ -143,7 +143,7 @@ class TensionMarkerDetector(nn.Module):
         comparison = torch.cat([h, h_mean], dim=1)  # [batch, hidden*2]
 
         # Detectar desviacion (tension)
-        tension = self.change_detector(comparison)
+        tension: torch.Tensor = self.change_detector(comparison)
 
         return tension
 
@@ -185,8 +185,8 @@ class ZetaMemoryGated(nn.Module):
             m_t: [batch, hidden] - memoria zeta gateada
         """
         # Calcular oscilacion zeta base
-        cos_terms = torch.cos(self.gammas * t)
-        zeta_weight = (self.phi * cos_terms).sum() / self.M
+        cos_terms = torch.cos(self.gammas * t)  # type: ignore[operator, arg-type]
+        zeta_weight = (self.phi * cos_terms).sum() / self.M  # type: ignore[operator]
 
         # Memoria zeta raw
         m_raw = zeta_weight * h
@@ -252,7 +252,7 @@ class ZetaMemoryGatedSimple(nn.Module):
         self.t += 1
 
         # Oscilacion zeta en tiempo t
-        oscillation = (self.phi * torch.cos(self.gammas * self.t)).sum()
+        oscillation = (self.phi * torch.cos(self.gammas * self.t)).sum()  # type: ignore[operator, arg-type]
 
         # Transformar entrada con modulacion zeta
         zeta_mod = self.memory_net(x) * oscillation
@@ -291,9 +291,9 @@ class ZetaLSTMResonant(nn.Module):
         self.zeta_memory = ZetaMemoryGated(hidden_size, M, sigma)
 
         # Diagnosticos
-        self.last_resonances = []
-        self.last_tensions = []
-        self.last_gates = []
+        self.last_resonances: List[float] = []
+        self.last_tensions: List[float] = []
+        self.last_gates: List[float] = []
 
     def forward(self, x: torch.Tensor,
                 return_diagnostics: bool = False) -> Tuple[torch.Tensor, Tuple]:
@@ -401,8 +401,8 @@ class ZetaLSTMResonantSimple(nn.Module):
             h_new, c = self.lstm_cell(x[:, t], (h, c))
 
             # Calcular memoria zeta
-            cos_terms = torch.cos(self.gammas * t)
-            zeta_weight = (self.phi * cos_terms).sum() / self.M
+            cos_terms = torch.cos(self.gammas * t)  # type: ignore[operator, arg-type]
+            zeta_weight = (self.phi * cos_terms).sum() / self.M  # type: ignore[operator]
             m_raw = zeta_weight * h
 
             # Gate basado en estado actual (detecta si es relevante)

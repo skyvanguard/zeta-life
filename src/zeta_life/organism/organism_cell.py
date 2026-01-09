@@ -8,12 +8,13 @@ from typing import Tuple, Optional
 
 # Import ZetaMemoryGatedSimple from zeta_resonance
 try:
-    from ..core.zeta_resonance import ZetaMemoryGatedSimple
+    from ..core.zeta_resonance import ZetaMemoryGatedSimple as _ZetaMemoryGatedSimple
+    ZetaMemoryGatedSimple = _ZetaMemoryGatedSimple
 except ImportError:
     # Fallback: define locally if import fails
     from .force_field import get_zeta_zeros
 
-    class ZetaMemoryGatedSimple(nn.Module):
+    class ZetaMemoryGatedSimple(nn.Module):  # type: ignore[no-redef]
         """Memoria zeta con gate aprendido."""
 
         def __init__(self, input_dim: int, hidden_dim: int,
@@ -35,7 +36,9 @@ except ImportError:
 
         def forward(self, x: torch.Tensor) -> tuple:
             self.t += 1
-            oscillation = (self.phi * torch.cos(self.gammas * self.t)).sum()
+            phi: torch.Tensor = self.phi  # type: ignore[assignment]
+            gammas: torch.Tensor = self.gammas  # type: ignore[assignment]
+            oscillation = (phi * torch.cos(gammas * self.t)).sum()
             zeta_mod = self.memory_net(x) * oscillation
             gate = self.gate_net(x)
             memory = gate * zeta_mod
@@ -119,7 +122,8 @@ class OrganismCell(nn.Module):
         # Combinar todo
         combined = torch.cat([state, neighbors_agg, field_grad], dim=-1)  # [B, state_dim*2 + 2]
 
-        return self.perception_net(combined)
+        result: torch.Tensor = self.perception_net(combined)
+        return result
 
     def get_memory(self, perception: torch.Tensor) -> Tuple[torch.Tensor, float]:
         """Obtiene memoria gateada basada en percepcion.

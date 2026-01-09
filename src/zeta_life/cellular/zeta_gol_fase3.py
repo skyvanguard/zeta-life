@@ -20,7 +20,7 @@ import matplotlib.pyplot as plt
 from matplotlib.colors import LinearSegmentedColormap
 from scipy.signal import convolve2d
 from scipy.fft import fft2, ifft2, fftfreq
-from typing import List, Tuple, Optional, Dict
+from typing import List, Tuple, Optional, Dict, Any, Union
 from collections import deque
 import warnings
 
@@ -156,7 +156,7 @@ class ZetaSpectralFilter:
         # Añadir componente DC para estabilidad
         H[0, 0] = 1.0
 
-        return H
+        return H  # type: ignore[return-value,no-any-return]
 
     def apply(self, grid: np.ndarray) -> np.ndarray:
         """
@@ -169,7 +169,7 @@ class ZetaSpectralFilter:
         """
         spectrum = fft2(grid)
         filtered_spectrum = spectrum * self.transfer_function
-        filtered = np.real(ifft2(filtered_spectrum))
+        filtered: np.ndarray = np.real(ifft2(filtered_spectrum))
         return filtered
 
 
@@ -219,7 +219,7 @@ class ZetaFullSystem:
         self.spatial_kernel = self._build_spatial_kernel()
 
         # Historial para memoria
-        self.history = deque(maxlen=memory_depth)
+        self.history: deque[np.ndarray] = deque(maxlen=memory_depth)
 
         # Inicialización
         if seed is not None:
@@ -228,7 +228,7 @@ class ZetaFullSystem:
         self.history.append(self.grid.copy())
 
         # Métricas
-        self.metrics_history = []
+        self.metrics_history: List[Dict[str, Union[int, float]]] = []
 
     def _build_spatial_kernel(self, R: int = 2) -> np.ndarray:
         """Construye kernel espacial zeta (de Fase 2)."""
@@ -268,12 +268,13 @@ class ZetaFullSystem:
                     phase = gamma * x + gamma_y * y + phases[k]
                     field[i, j] += w * np.exp(1j * phase)
 
-        real_field = np.real(field)
-        return (real_field > np.mean(real_field)).astype(float)
+        real_field: np.ndarray = np.real(field)
+        return (real_field > np.mean(real_field)).astype(float)  # type: ignore[return-value,no-any-return]
 
     def weighted_neighbors(self) -> np.ndarray:
         """Calcula vecinos ponderados con kernel zeta."""
-        return convolve2d(self.grid, self.spatial_kernel, mode='same', boundary='wrap')
+        result: np.ndarray = convolve2d(self.grid, self.spatial_kernel, mode='same', boundary='wrap')
+        return result
 
     def apply_gol_rules(self, neighbors: np.ndarray) -> np.ndarray:
         """Aplica reglas tipo GoL con umbrales continuos."""
@@ -285,7 +286,8 @@ class ZetaFullSystem:
                   (neighbors >= self.survive_range[0]) & \
                   (neighbors <= self.survive_range[1])
 
-        return (birth | survive).astype(float)
+        result: np.ndarray = (birth | survive).astype(float)
+        return result
 
     def step(self) -> np.ndarray:
         """
@@ -330,7 +332,7 @@ class ZetaFullSystem:
             self.step()
         return self.grid
 
-    def get_statistics(self) -> Dict:
+    def get_statistics(self) -> Dict[str, Union[int, float]]:
         """Calcula estadísticas del estado actual."""
         alive = np.sum(self.grid)
         return {

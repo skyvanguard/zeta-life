@@ -28,8 +28,9 @@ import matplotlib.pyplot as plt
 # Fix Windows console encoding
 if sys.platform == 'win32':
     try:
-        sys.stdout.reconfigure(encoding='utf-8', errors='replace')
-    except:
+        if hasattr(sys.stdout, 'reconfigure'):
+            sys.stdout.reconfigure(encoding='utf-8', errors='replace')  # type: ignore[union-attr]
+    except Exception:
         pass
 
 from ..psyche.zeta_psyche import ZetaPsyche, Archetype, SymbolSystem
@@ -70,7 +71,7 @@ class SocialPsyche:
     def get_state(self) -> torch.Tensor:
         """Obtiene estado arquetipico actual."""
         obs = self.psyche.observe_self()
-        return obs['population_distribution']
+        return torch.as_tensor(obs['population_distribution'])
 
     def get_expressed_state(self) -> torch.Tensor:
         """Estado que expresa a otros (modulado por expresividad)."""
@@ -105,7 +106,7 @@ class PersonalityGenerator:
     }
 
     @classmethod
-    def generate(cls, id: int, bias: Archetype = None) -> SocialPsyche:
+    def generate(cls, id: int, bias: Optional[Archetype] = None) -> SocialPsyche:
         """Genera una psique con personalidad unica."""
         # Bias aleatorio si no se especifica
         if bias is None:
@@ -190,19 +191,19 @@ class PsycheSociety:
 
     def get_collective_state(self) -> torch.Tensor:
         """Estado colectivo (promedio ponderado por expresividad)."""
-        states = []
-        weights = []
+        states_list: List[torch.Tensor] = []
+        weights_list: List[float] = []
 
         for member in self.members:
-            states.append(member.get_expressed_state())
-            weights.append(member.expressiveness)
+            states_list.append(member.get_expressed_state())
+            weights_list.append(member.expressiveness)
 
-        states = torch.stack(states)
-        weights = torch.tensor(weights)
-        weights = weights / weights.sum()
+        states_tensor = torch.stack(states_list)
+        weights_tensor = torch.tensor(weights_list)
+        weights_tensor = weights_tensor / weights_tensor.sum()
 
-        collective = (states * weights.unsqueeze(1)).sum(dim=0)
-        return collective
+        collective = (states_tensor * weights_tensor.unsqueeze(1)).sum(dim=0)
+        return torch.as_tensor(collective)
 
     def get_polarization(self) -> float:
         """
@@ -276,7 +277,7 @@ class PsycheSociety:
 
         return interaction
 
-    def broadcast_stimulus(self, stimulus: torch.Tensor, source_id: int = None):
+    def broadcast_stimulus(self, stimulus: torch.Tensor, source_id: Optional[int] = None) -> None:
         """
         Envia un estimulo a todos los miembros.
         Si hay source_id, ese miembro no recibe (es el emisor).
@@ -315,10 +316,11 @@ class PsycheSociety:
                 response = self.voice.generate(
                     dominant=dominant,
                     blend={Archetype(i): state[i].item() for i in range(4)},
-                    category='reflection'
+                    input_text='reflection'
                 )
 
-                round_data['exchanges'].append({
+                exchanges_list: List[Dict] = round_data['exchanges']  # type: ignore[assignment]
+                exchanges_list.append({
                     'speaker': member.name,
                     'symbol': symbol,
                     'dominant': dominant.name,

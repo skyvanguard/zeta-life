@@ -99,7 +99,8 @@ class BehaviorEngine(nn.Module):
         recursive = aa_star * cell
 
         # Normalize for stability while preserving relative magnitude
-        return recursive / (recursive.norm() + 1e-8) * cell.norm()
+        result: torch.Tensor = recursive / (recursive.norm() + 1e-8) * cell.norm()
+        return result
 
     def transform_with_potential(self, local_cube: torch.Tensor,
                                   potential: float,
@@ -132,7 +133,7 @@ class BehaviorEngine(nn.Module):
         transformed = self.transform_net(with_v)
 
         # Add continuity term: + alpha * A
-        new_cube = transformed.view(shape) + alpha * original
+        new_cube: torch.Tensor = transformed.view(shape) + alpha * original
 
         return new_cube
 
@@ -165,7 +166,7 @@ class BehaviorEngine(nn.Module):
         # Note: For real vectors these are mathematically equal,
         # so this will be 0. The semantic meaning comes from
         # how we use this in context with other cells.
-        net = (aa_star - a_star_a) / (a_star_a + 1e-8)
+        net: torch.Tensor = (aa_star - a_star_a) / (a_star_a + 1e-8)
 
         return net
 

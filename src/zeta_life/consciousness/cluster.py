@@ -155,10 +155,10 @@ class ClusterPsyche:
         coherence = 1.0 - variance
 
         # Error de predicción (basado en sorpresa ya calculada arriba)
-        prediction_error = np.mean(surprises) if surprises else 0.0
+        prediction_error: float = float(np.mean(surprises)) if surprises else 0.0
 
         # Nivel de integración
-        integration_level = phi_cluster * (1 - prediction_error)
+        integration_level: float = phi_cluster * (1 - prediction_error)
 
         return cls(
             aggregate_state=aggregate,
@@ -221,7 +221,7 @@ class Cluster:
         """Energía promedio de células."""
         if not self.cells:
             return 0.0
-        return np.mean([c.energy for c in self.cells])
+        return float(np.mean([c.energy for c in self.cells]))
 
     @property
     def dominant_archetype(self) -> Archetype:
@@ -251,10 +251,10 @@ class Cluster:
 
         role_counts = [0, 0, 0]  # MASS, FORCE, CORRUPT
         for cell in self.cells:
-            role_idx = cell.role.argmax().item()
+            role_idx = int(cell.role.argmax().item())
             role_counts[role_idx] += 1
 
-        self.collective_role = CellRole(np.argmax(role_counts))
+        self.collective_role = CellRole(int(np.argmax(role_counts)))
 
     def add_cell(self, cell: ConsciousCell) -> None:
         """Agrega una célula al cluster."""
@@ -278,7 +278,7 @@ class Cluster:
         """Distancia del centroide a un punto."""
         dx = self.centroid[0] - point[0]
         dy = self.centroid[1] - point[1]
-        return np.sqrt(dx**2 + dy**2)
+        return float(np.sqrt(dx**2 + dy**2))
 
     def distance_to_cluster(self, other: 'Cluster') -> float:
         """Distancia entre centroides de clusters."""
@@ -313,13 +313,13 @@ class Cluster:
         if len(self.cells) < 2:
             return 1.0
 
-        similarities = []
+        similarities: List[float] = []
         for i, cell_a in enumerate(self.cells):
             for cell_b in self.cells[i+1:]:
                 sim = cell_a.psyche_similarity(cell_b)
                 similarities.append(sim)
 
-        return np.mean(similarities) if similarities else 1.0
+        return float(np.mean(similarities)) if similarities else 1.0
 
     def to_dict(self) -> dict:
         """Serializa a diccionario."""
@@ -421,7 +421,8 @@ def compute_inter_cluster_coherence(clusters: List[Cluster]) -> float:
     diversity_score = unique_specs / 4.0
 
     # Promedio de phi de clusters
-    avg_phi = np.mean([c.psyche.phi_cluster for c in clusters if c.psyche])
+    phi_values = [c.psyche.phi_cluster for c in clusters if c.psyche]
+    avg_phi = float(np.mean(phi_values)) if phi_values else 0.0
 
     return diversity_score * 0.5 + avg_phi * 0.5
 
@@ -510,17 +511,19 @@ if __name__ == "__main__":
 
     # ClusterPsyche
     print("\n3. Psique del cluster:")
-    print(f"   Especialización: {cluster.psyche.specialization.name}")
-    print(f"   Estado: {cluster.psyche.aggregate_state.tolist()}")
-    print(f"   Φ cluster: {cluster.psyche.phi_cluster:.3f}")
-    print(f"   Coherencia: {cluster.psyche.coherence:.3f}")
+    if cluster.psyche is not None:
+        print(f"   Especialización: {cluster.psyche.specialization.name}")
+        print(f"   Estado: {cluster.psyche.aggregate_state.tolist()}")
+        print(f"   Φ cluster: {cluster.psyche.phi_cluster:.3f}")
+        print(f"   Coherencia: {cluster.psyche.coherence:.3f}")
 
     # Crear segundo cluster
     print("\n4. Crear segundo cluster:")
     cells2 = [ConsciousCell.create_random(grid_size=64) for _ in range(8)]
     cluster2 = Cluster.create_from_cells(cluster_id=1, cells=cells2)
     print(f"   Cluster 1 centroid: {cluster2.centroid}")
-    print(f"   Especialización: {cluster2.psyche.specialization.name}")
+    if cluster2.psyche is not None:
+        print(f"   Especialización: {cluster2.psyche.specialization.name}")
 
     # Distancia entre clusters
     dist = cluster.distance_to_cluster(cluster2)

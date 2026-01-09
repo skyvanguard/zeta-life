@@ -18,7 +18,7 @@ from enum import Enum
 # Fix Windows console encoding
 if sys.platform == 'win32':
     try:
-        sys.stdout.reconfigure(encoding='utf-8', errors='replace')
+        sys.stdout.reconfigure(encoding='utf-8', errors='replace')  # type: ignore[union-attr]
     except (AttributeError, io.UnsupportedOperation):
         pass
 
@@ -551,8 +551,8 @@ class ArchetypalVoice:
         """Genera respuesta desde el Self (alta integracion)."""
         available = [r for r in self.self_templates if r not in self.last_responses]
         if available:
-            return random.choice(available)
-        return random.choice(self.self_templates) if self.self_templates else None
+            return str(random.choice(available))
+        return str(random.choice(self.self_templates)) if self.self_templates else None
 
     def _generate_dominant_response(self, archetype: Archetype, category: str) -> str:
         """Genera respuesta del arquetipo dominante."""
@@ -565,8 +565,8 @@ class ArchetypalVoice:
         # Evitar repetir respuestas recientes
         available = [r for r in category_templates if r not in self.last_responses]
         if available:
-            return random.choice(available)
-        return random.choice(category_templates)
+            return str(random.choice(available))
+        return str(random.choice(category_templates))
 
     def _generate_blend_response(self, arch1: Archetype, arch2: Archetype) -> Optional[str]:
         """Genera respuesta para mezcla de arquetipos."""
@@ -576,8 +576,8 @@ class ArchetypalVoice:
         if responses:
             available = [r for r in responses if r not in self.last_responses]
             if available:
-                return random.choice(available)
-            return random.choice(responses)
+                return str(random.choice(available))
+            return str(random.choice(responses))
         return None
 
     def _get_flavor_phrase(self, archetype: Archetype) -> Optional[str]:
@@ -585,7 +585,7 @@ class ArchetypalVoice:
         templates = self.templates.get(archetype, {})
         transitions = templates.get('transition', [])
         if transitions:
-            return random.choice(transitions)
+            return str(random.choice(transitions))
         return None
 
     def _blend_with_secondary(self, base: str, flavor: str, weight: float) -> str:
@@ -604,7 +604,7 @@ class ArchetypalVoice:
         if insights:
             available = [r for r in insights if r not in self.last_responses]
             if available:
-                return random.choice(available)
+                return str(random.choice(available))
         return None
 
     def _apply_consciousness_modulation(self, response: str, consciousness: float) -> str:
@@ -993,8 +993,8 @@ class OrganicVoice:
         # Evitar repeticiones recientes
         available = [t for t in category_templates if t not in self.last_descriptions]
         if available:
-            return random.choice(available)
-        return random.choice(category_templates)
+            return str(random.choice(available))
+        return str(random.choice(category_templates))
 
     def _get_secondary_archetype(
         self,
@@ -1029,7 +1029,7 @@ class ConversationalPsyche:
         self.voice = ArchetypalVoice()
         self.symbols = SymbolSystem()
         self.vocabulary = EXPANDED_VOCABULARY
-        self.conversation_history = []
+        self.conversation_history: List[Dict] = []
         self.processing_steps = 15  # Pasos por input (mas = mas respuesta)
 
     def _text_to_stimulus(self, text: str) -> torch.Tensor:
@@ -1118,7 +1118,7 @@ class ConversationalPsyche:
             'population': obs['population_distribution'].tolist(),
         }
 
-    def get_status_bar(self, obs: Dict = None) -> str:
+    def get_status_bar(self, obs: Optional[Dict] = None) -> str:
         """Genera barra de estado visual."""
         if obs is None:
             obs = self.psyche.observe_self()

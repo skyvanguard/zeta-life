@@ -87,15 +87,15 @@ class IntegratedConsciousnessMetrics:
 
         recent = self.consciousness_history[-self.window:]
         older = self.consciousness_history[-self.window*2:-self.window]
-        return np.mean(recent) - np.mean(older)
+        return float(np.mean(recent) - np.mean(older))
 
     def get_stability(self) -> float:
         """Estabilidad de consciencia (1 - varianza normalizada)"""
         if len(self.consciousness_history) < 10:
             return 0.5
 
-        variance = np.var(self.consciousness_history[-self.window:])
-        return 1.0 / (1.0 + variance * 10)
+        variance = float(np.var(self.consciousness_history[-self.window:]))
+        return float(1.0 / (1.0 + variance * 10))
 
     def get_correlation(self) -> float:
         """Correlacion entre atencion y prediccion"""
@@ -108,7 +108,7 @@ class IntegratedConsciousnessMetrics:
         if np.std(att) < 1e-6 or np.std(pred) < 1e-6:
             return 0.0
 
-        return np.corrcoef(att, pred)[0, 1]
+        return float(np.corrcoef(att, pred)[0, 1])
 
 
 # =============================================================================
@@ -249,7 +249,7 @@ class ZetaAttentivePredictive(nn.Module):
             'stability': 0.05
         }
 
-    def step(self, stimulus: torch.Tensor = None) -> Dict:
+    def step(self, stimulus: Optional[torch.Tensor] = None) -> Dict:
         """
         Ejecuta un paso completo del sistema integrado.
 
@@ -419,7 +419,7 @@ class ZetaAttentivePredictive(nn.Module):
             self.consciousness_weights['stability'] * stability
         )
 
-        return min(1.0, max(0.0, consciousness))
+        return float(min(1.0, max(0.0, consciousness)))
 
     def get_consciousness_index(self) -> float:
         """Retorna el indice de consciencia actual"""
@@ -493,7 +493,7 @@ def run_integrated_experiment(
     system = ZetaAttentivePredictive(n_cells=n_cells)
 
     # Historiales
-    history = {
+    history: Dict[str, List] = {
         'consciousness': [],
         'predictive_index': [],
         'attention_index': [],

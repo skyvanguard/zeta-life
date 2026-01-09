@@ -111,7 +111,7 @@ class OnlineLearner:
         # Perdida total
         total_loss = weighted_error + 0.2 * coherence_loss
 
-        return total_loss
+        return torch.tensor(total_loss, requires_grad=True)
 
     def learning_step(self, result: Dict) -> Dict:
         """
@@ -267,13 +267,13 @@ class HebbianLearner:
         entropy = -torch.sum(matrix * torch.log(matrix + eps), dim=1)
         return entropy.mean()
 
-    def get_learned_associations(self) -> Dict:
+    def get_learned_associations(self) -> Dict[str, Tuple[str, float]]:
         """Retorna las asociaciones aprendidas."""
-        result = {}
+        result: Dict[str, Tuple[str, float]] = {}
         for i, ctx in enumerate(self.context_names):
-            best_arch_idx = self.association_matrix[i].argmax().item()
+            best_arch_idx = int(self.association_matrix[i].argmax().item())
             best_arch = self.arch_names[best_arch_idx]
-            strength = self.association_matrix[i, best_arch_idx].item()
+            strength = float(self.association_matrix[i, best_arch_idx].item())
             result[ctx] = (best_arch, strength)
         return result
 

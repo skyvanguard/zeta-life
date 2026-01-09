@@ -179,7 +179,7 @@ class ZetaWeightedGoL:
         self.birth_range = birth_range
         self.survive_range = survive_range
         self.generation = 0
-        self.history = []
+        self.history: List[np.ndarray] = []
 
         # Inicialización
         if seed is not None:
@@ -207,8 +207,8 @@ class ZetaWeightedGoL:
                     phase = gamma * x + gamma_y * y + phases[k]
                     field[i, j] += w * np.exp(1j * phase)
 
-        real_field = np.real(field)
-        return (real_field > np.mean(real_field)).astype(float)
+        real_field: np.ndarray = np.real(field)
+        return (real_field > np.mean(real_field)).astype(float)  # type: ignore[return-value,no-any-return]
 
     def weighted_neighbors(self) -> np.ndarray:
         """
@@ -217,7 +217,8 @@ class ZetaWeightedGoL:
         En lugar de contar vecinos (entero 0-8),
         obtenemos un valor continuo basado en el kernel zeta.
         """
-        return convolve2d(self.grid, self.kernel, mode='same', boundary='wrap')
+        result: np.ndarray = convolve2d(self.grid, self.kernel, mode='same', boundary='wrap')
+        return result
 
     def step(self) -> np.ndarray:
         """

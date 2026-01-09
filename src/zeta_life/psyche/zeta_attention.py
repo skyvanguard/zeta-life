@@ -452,7 +452,7 @@ class ErrorAttention(nn.Module):
         variances = history.var(dim=0)             # [n_levels]
 
         # Precisión = 1 / varianza (con epsilon para estabilidad)
-        precisions = 1.0 / (variances + 1e-4)
+        precisions: torch.Tensor = 1.0 / (variances + 1e-4)
 
         # Normalizar para que sumen 1
         precisions = precisions / precisions.sum()
@@ -600,7 +600,8 @@ class AttentionIntegrator(nn.Module):
         eps = 1e-8
         entropy = -torch.sum(probs * torch.log(probs + eps))
         max_entropy = np.log(len(probs))
-        return (entropy / max_entropy).item()
+        normalized_entropy: float = (entropy / max_entropy).item()
+        return normalized_entropy
 
     def resolve_conflict(
         self,
@@ -789,7 +790,7 @@ class ZetaAttentionSystem(nn.Module):
             errors=errors.detach(),
             surprise=surprise,
             timestamp=self.current_time,
-            archetype_dominant=state.argmax().item()
+            archetype_dominant=int(state.argmax().item())
         )
         self.memory_buffer.add(memory_item)
         self.memory_buffer.decay()

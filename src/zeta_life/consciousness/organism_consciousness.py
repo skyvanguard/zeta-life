@@ -169,12 +169,14 @@ class OrganismConsciousness:
 
         # 1. Calcular pesos de cada cluster
         # Peso = phi_cluster × tamaño (proporcional, sin softmax para preservar ratios)
-        weights = []
+        weight_list: List[float] = []
         for cluster in valid_clusters:
+            # cluster.psyche is guaranteed to be non-None due to filtering above
+            assert cluster.psyche is not None
             weight = cluster.psyche.phi_cluster * cluster.size
-            weights.append(weight)
+            weight_list.append(weight)
 
-        weights = torch.tensor(weights)
+        weights = torch.tensor(weight_list)
         if weights.sum() > 0:
             # Normalización simple (no softmax) para preservar proporciones
             weights = weights / weights.sum()
@@ -182,7 +184,8 @@ class OrganismConsciousness:
             weights = torch.ones(len(valid_clusters)) / len(valid_clusters)
 
         # 2. Agregación de estados arquetipales
-        states = torch.stack([c.psyche.aggregate_state for c in valid_clusters])
+        # All clusters have non-None psyche due to filtering
+        states = torch.stack([c.psyche.aggregate_state for c in valid_clusters if c.psyche is not None])
         global_archetype = (weights.unsqueeze(1) * states).sum(dim=0)
         # NO aplicar softmax adicional - la agregación ya produce distribución válida
 
@@ -191,18 +194,19 @@ class OrganismConsciousness:
 
         # 4. Φ global (coherencia inter-cluster + diversidad)
         # Queremos: alta coherencia interna + diversidad de especializaciones
-        specializations = [c.psyche.specialization.value for c in valid_clusters]
+        specializations = [c.psyche.specialization.value for c in valid_clusters if c.psyche is not None]
         unique_specs = len(set(specializations))
         diversity_bonus = unique_specs / 4.0
 
-        avg_phi_cluster = np.mean([c.psyche.phi_cluster for c in valid_clusters])
-        phi_global = avg_phi_cluster * (0.5 + 0.5 * diversity_bonus)
+        phi_values = [c.psyche.phi_cluster for c in valid_clusters if c.psyche is not None]
+        avg_phi_cluster = float(np.mean(phi_values))
+        phi_global: float = avg_phi_cluster * (0.5 + 0.5 * diversity_bonus)
 
         # 5. Coherencia vertical (calculada externamente, usar placeholder)
-        vertical_coherence = avg_phi_cluster  # Placeholder
+        vertical_coherence: float = avg_phi_cluster  # Placeholder
 
         # 6. Etapa de individuación
-        integration = global_archetype.min().item()  # Arquetipo más débil
+        integration = float(global_archetype.min().item())  # Arquetipo más débil
         stage = _integration_to_stage(integration, phi_global)
 
         # 7. Self-model
@@ -285,19 +289,19 @@ def _compute_consciousness_index(
         Nuevo ConsciousnessIndex
     """
     # Predictive: inverso del error de predicción promedio
-    pred_errors = [c.psyche.prediction_error for c in clusters]
-    avg_error = np.mean(pred_errors) if pred_errors else 0.5
+    pred_errors = [c.psyche.prediction_error for c in clusters if c.psyche is not None]
+    avg_error = float(np.mean(pred_errors)) if pred_errors else 0.5
     predictive = 1.0 - avg_error
 
     # Attention: basado en coherencia de clusters
-    coherences = [c.psyche.coherence for c in clusters]
-    attention = np.mean(coherences) if coherences else 0.5
+    coherences = [c.psyche.coherence for c in clusters if c.psyche is not None]
+    attention = float(np.mean(coherences)) if coherences else 0.5
 
     # Integration: basado en phi_global
     integration = phi_global
 
     # Self luminosity: diversidad de especializaciones
-    specializations = [c.psyche.specialization.value for c in clusters]
+    specializations = [c.psyche.specialization.value for c in clusters if c.psyche is not None]
     unique_specs = len(set(specializations))
     self_luminosity = unique_specs / 4.0
 
@@ -414,26 +418,29 @@ class HierarchicalMetrics:
         arch_dist = {k: v / max(1, len(cells)) for k, v in arch_counts.items()}
 
         # Distribución de roles
-        role_counts = {'MASS': 0, 'FORCE': 0, 'CORRUPT': 0}
+        role_names = ['MASS', 'FORCE', 'CORRUPT']
+        role_counts: Dict[str, int] = {'MASS': 0, 'FORCE': 0, 'CORRUPT': 0}
         for cell in cells:
-            role_name = ['MASS', 'FORCE', 'CORRUPT'][cell.role.argmax().item()]
+            role_idx = int(cell.role.argmax().item())
+            role_name = role_names[role_idx]
             role_counts[role_name] += 1
         role_dist = {k: v / max(1, len(cells)) for k, v in role_counts.items()}
 
         # === NIVEL 1: CLUSTERS ===
-        valid_clusters = [c for c in clusters if c.psyche]
+        valid_clusters = [c for c in clusters if c.psyche is not None]
         cluster_sizes = [c.size for c in clusters]
-        avg_size = np.mean(cluster_sizes) if cluster_sizes else 0
+        avg_size = float(np.mean(cluster_sizes)) if cluster_sizes else 0.0
 
-        cluster_phis = [c.psyche.phi_cluster for c in valid_clusters]
-        avg_phi = np.mean(cluster_phis) if cluster_phis else 0
+        cluster_phis = [c.psyche.phi_cluster for c in valid_clusters if c.psyche is not None]
+        avg_phi = float(np.mean(cluster_phis)) if cluster_phis else 0.0
 
-        cluster_coherences = [c.psyche.coherence for c in valid_clusters]
-        avg_coherence = np.mean(cluster_coherences) if cluster_coherences else 0
+        cluster_coherences = [c.psyche.coherence for c in valid_clusters if c.psyche is not None]
+        avg_coherence = float(np.mean(cluster_coherences)) if cluster_coherences else 0.0
 
-        spec_counts = {a.name: 0 for a in Archetype}
+        spec_counts: Dict[str, int] = {a.name: 0 for a in Archetype}
         for cluster in valid_clusters:
-            spec_counts[cluster.psyche.specialization.name] += 1
+            if cluster.psyche is not None:
+                spec_counts[cluster.psyche.specialization.name] += 1
 
         # === FLUJOS ===
         # Bottom-up: qué tan bien clusters representan células
@@ -461,13 +468,13 @@ class HierarchicalMetrics:
 
         return cls(
             cell_count=len(cells),
-            avg_cell_energy=avg_energy,
-            avg_cell_phi_local=avg_phi_local,
+            avg_cell_energy=float(avg_energy),
+            avg_cell_phi_local=float(avg_phi_local),
             archetype_distribution=arch_dist,
             role_distribution=role_dist,
             cluster_count=len(clusters),
-            avg_cluster_size=avg_size,
-            avg_cluster_phi=avg_phi,
+            avg_cluster_size=float(avg_size),
+            avg_cluster_phi=float(avg_phi),
             avg_cluster_coherence=avg_coherence,
             cluster_specializations=spec_counts,
             consciousness_index=organism.consciousness_level,
@@ -510,7 +517,7 @@ def _compute_top_down_flow(cells: List[ConsciousCell], organism: OrganismConscio
         return 0.3
 
     alignments = [c.psyche.alignment_with(organism.global_archetype) for c in responsive]
-    return np.mean(alignments)
+    return float(np.mean(alignments))
 
 
 def _compute_horizontal_flow(clusters: List[Cluster]) -> float:
@@ -560,8 +567,9 @@ if __name__ == "__main__":
         cluster = Cluster.create_from_cells(cluster_id=cluster_id, cells=cells)
         clusters.append(cluster)
 
+        specialization_name = cluster.psyche.specialization.name if cluster.psyche else "None"
         print(f"   Cluster {cluster_id}: {cluster.size} células, "
-              f"especialización={cluster.psyche.specialization.name}")
+              f"especialización={specialization_name}")
 
     # Crear OrganismConsciousness
     print("\n2. Crear OrganismConsciousness:")

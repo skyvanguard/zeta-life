@@ -93,8 +93,8 @@ class ForceField(nn.Module):
 
         # Gradiente con Sobel
         padded = F.pad(field, (1, 1, 1, 1), mode='replicate')
-        grad_x = F.conv2d(padded, self.sobel_x)
-        grad_y = F.conv2d(padded, self.sobel_y)
+        grad_x = F.conv2d(padded, self.sobel_x)  # type: ignore[arg-type]
+        grad_y = F.conv2d(padded, self.sobel_y)  # type: ignore[arg-type]
 
         gradient = torch.cat([grad_x, grad_y], dim=1)
         return field, gradient

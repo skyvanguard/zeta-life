@@ -22,7 +22,7 @@ import json
 
 if sys.platform == 'win32':
     try:
-        sys.stdout.reconfigure(encoding='utf-8', errors='replace')
+        sys.stdout.reconfigure(encoding='utf-8', errors='replace')  # type: ignore[union-attr]
     except:
         pass
 
@@ -162,7 +162,7 @@ class ArchetypeVoices:
     def speak_as(cls, archetype: Archetype) -> str:
         """Genera una frase en la voz del arquetipo."""
         voice = cls.get_voice(archetype)
-        return np.random.choice(voice['phrases'])
+        return str(np.random.choice(voice['phrases']))
 
 
 class StateExplainer:
@@ -430,11 +430,11 @@ class TrajectoryNarrator:
         trajectory = self.get_recent_trajectory(20)
 
         # Contar frecuencia de arquetipos
-        counts = {}
+        counts: Dict[Archetype, int] = {}
         for arch in trajectory:
             counts[arch] = counts.get(arch, 0) + 1
 
-        most_common = max(counts, key=counts.get)
+        most_common = max(counts, key=lambda k: counts[k])
         if counts[most_common] / len(trajectory) > 0.5:
             patterns.append(
                 f"Tiendo a permanecer en {most_common.name} - "

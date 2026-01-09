@@ -156,7 +156,7 @@ class AttractorMemory:
         norm_b = torch.norm(b_flat)
         if norm_a < 1e-8 or norm_b < 1e-8:
             return 0.0
-        return (dot / (norm_a * norm_b)).item()
+        return float((dot / (norm_a * norm_b)).item())
 
     def find_similar(self, state: torch.Tensor) -> Optional[Tuple[int, float]]:
         """
@@ -174,7 +174,7 @@ class AttractorMemory:
                 best_sim = sim
                 best_idx = i
 
-        if best_sim >= self.similarity_threshold:
+        if best_sim >= self.similarity_threshold and best_idx is not None:
             return (best_idx, best_sim)
         return None
 
@@ -311,7 +311,7 @@ class AttractorMemory:
             return "Identidad aun no formada..."
 
         # Contar por arquetipo
-        arch_strength = {}
+        arch_strength: Dict[str, float] = {}
         for att in self.attractors:
             name = att.dominant.name
             arch_strength[name] = arch_strength.get(name, 0) + att.strength
@@ -528,7 +528,7 @@ class ZetaConsciousSelf(nn.Module):
         self.neglect_counters = {
             'PERSONA': 0, 'SOMBRA': 0, 'ANIMA': 0, 'ANIMUS': 0
         }
-        self.last_stimulus_dominant = None
+        self.last_stimulus_dominant: Optional[str] = None
 
         # Sistema base
         self.psyche = ZetaPsyche(n_cells=n_cells)
@@ -590,7 +590,7 @@ class ZetaConsciousSelf(nn.Module):
         for _ in range(20):
             self.psyche.step()
 
-    def step(self, stimulus: torch.Tensor = None, text: str = None) -> Dict:
+    def step(self, stimulus: Optional[torch.Tensor] = None, text: Optional[str] = None) -> Dict:
         """
         Ejecuta un paso completo del sistema.
 
@@ -825,9 +825,9 @@ class ZetaConsciousSelf(nn.Module):
 
         # Detectar arquetipo dominante del estímulo
         if stimulus is not None:
-            stim_idx = stimulus.argmax().item()
+            stim_idx = int(stimulus.argmax().item())
             stim_names = ['PERSONA', 'SOMBRA', 'ANIMA', 'ANIMUS']
-            current_dominant = stim_names[stim_idx]
+            current_dominant: Optional[str] = stim_names[stim_idx]
         else:
             current_dominant = self.last_stimulus_dominant
 
@@ -841,11 +841,11 @@ class ZetaConsciousSelf(nn.Module):
         self.last_stimulus_dominant = current_dominant
 
         # Detectar estrés (entropía alta o valores extremos)
-        is_stressed = False
+        is_stressed: bool = False
         if stimulus is not None:
             entropy = -(stimulus * torch.log(stimulus + 1e-8)).sum()
-            max_val = stimulus.max()
-            is_stressed = entropy > 1.2 or max_val > 0.9
+            max_val = stimulus.max().item()
+            is_stressed = float(entropy.item()) > 1.2 or max_val > 0.9
 
         # Calcular decay total
         decay = cfg['base_rate']
@@ -894,7 +894,7 @@ class ZetaConsciousSelf(nn.Module):
         # Estabilidad
         if len(self.consciousness_history) > 10:
             recent = self.consciousness_history[-10:]
-            self.consciousness.stability = 1.0 / (1.0 + np.var(recent) * 100)
+            self.consciousness.stability = 1.0 / (1.0 + float(np.var(recent)) * 100)
 
         # Meta-awareness (combinacion de prediccion de errores + atencion a atencion)
         error_attention = ap_result['attention']['error']
@@ -905,7 +905,7 @@ class ZetaConsciousSelf(nn.Module):
         total = self.consciousness.compute_total()
         self.consciousness_history.append(total)
 
-    def _self_reflection_cycle(self, stimulus_info: Dict = None) -> Dict:
+    def _self_reflection_cycle(self, stimulus_info: Optional[Dict] = None) -> Dict:
         """
         Ejecuta ciclo de auto-observación controlado (Strange Loop).
 
@@ -1047,7 +1047,7 @@ class ZetaConsciousSelf(nn.Module):
         # Actualizar etapa
         self.individuation.update_stage()
 
-    def do_integration_work(self, work_name: str = None) -> Dict:
+    def do_integration_work(self, work_name: Optional[str] = None) -> Dict:
         """Realiza trabajo de integracion con efectos reales en la psique."""
         if work_name is None:
             work_name = self.individuation.get_recommended_work()
@@ -1097,7 +1097,7 @@ class ZetaConsciousSelf(nn.Module):
 
         recent = self.consciousness_history[-window:]
         older = self.consciousness_history[-window*2:-window]
-        return np.mean(recent) - np.mean(older)
+        return float(np.mean(recent) - np.mean(older))
 
     def save(self, path: str = "conscious_self_state.json") -> None:
         """Guarda estado."""

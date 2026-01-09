@@ -24,11 +24,11 @@ class CellEntityLSTM:
     role: torch.Tensor
     energy: float = 0.0
     controlled_mass: float = 0.0
-    memory_info: dict = None
+    memory_info: Optional[dict] = None
 
     @property
     def role_idx(self) -> int:
-        return self.role.argmax().item()
+        return int(self.role.argmax().item())
 
 
 class ZetaOrganismLSTM(nn.Module):
@@ -73,7 +73,7 @@ class ZetaOrganismLSTM(nn.Module):
         self.cells: List[CellEntityLSTM] = []
         self.energy_grid = torch.zeros(1, 1, grid_size, grid_size)
         self.role_grid = torch.zeros(1, 1, grid_size, grid_size)
-        self.history = []
+        self.history: List[dict] = []
         self.next_cell_id = 0
 
     def _create_cell_id(self) -> int:
@@ -224,15 +224,15 @@ class ZetaOrganismLSTM(nn.Module):
 
         # Transferencia de energia
         for fi in [c for c in self.cells if c.role_idx == 1]:
-            followers = self._get_neighbors(fi, radius=5)
-            followers = [f for f in followers if f.role_idx == 0]
+            fi_neighbors = self._get_neighbors(fi, radius=5)
+            fi_followers = [f for f in fi_neighbors if f.role_idx == 0]
 
-            if followers:
+            if fi_followers:
                 total_transfer = min(0.1, fi.energy * 0.2)
-                per_follower = total_transfer / len(followers)
+                per_follower = total_transfer / len(fi_followers)
                 fi.energy -= total_transfer
 
-                for follower in followers:
+                for follower in fi_followers:
                     follower.energy = min(1.0, follower.energy + per_follower)
 
     def _move_cells(self, gradient: torch.Tensor) -> None:

@@ -21,6 +21,7 @@ from enum import Enum
 
 # Importar del sistema existente
 from ..psyche.zeta_psyche import Archetype
+from ..organism.cell_state import CellRole
 
 # Importar de módulos nuevos
 from .micro_psyche import ConsciousCell, MicroPsyche
@@ -107,7 +108,7 @@ class ClusterAssigner:
 
         # Normalizar por diagonal de la grilla (asumiendo 64x64)
         max_dist = np.sqrt(64**2 + 64**2)
-        return min(1.0, dist / max_dist)
+        return float(min(1.0, dist / max_dist))
 
     def compute_psyche_similarity(
         self,
@@ -209,7 +210,7 @@ class ClusterAssigner:
                 psyche=None,
                 centroid=centroid,
                 neighbors=[],
-                collective_role=None
+                collective_role=CellRole.MASS
             )
             clusters.append(cluster)
 
@@ -249,7 +250,7 @@ class ClusterAssigner:
                 psyche=None,
                 centroid=(32.0, 32.0),  # Se actualizará
                 neighbors=[],
-                collective_role=None
+                collective_role=CellRole.MASS
             )
             clusters.append(cluster)
 
@@ -489,7 +490,7 @@ class ClusterAssigner:
                 ).item()
                 sims.append((sim + 1) / 2)
 
-        return np.mean(sims) if sims else 1.0
+        return float(np.mean(sims)) if sims else 1.0
 
     def _compute_cluster_similarity(
         self,
@@ -558,7 +559,7 @@ class ClusterAssigner:
             return None
 
         # Encontrar los dos arquetipos más comunes
-        archetype_counts = {}
+        archetype_counts: Dict[Archetype, int] = {}
         for cell in cluster.cells:
             arch = cell.psyche.dominant
             archetype_counts[arch] = archetype_counts.get(arch, 0) + 1
@@ -623,7 +624,7 @@ class ClusterAssigner:
             psyche=None,
             centroid=cluster.centroid,
             neighbors=[],
-            collective_role=None
+            collective_role=CellRole.MASS
         )
         cluster1._update_centroid()
 
@@ -633,7 +634,7 @@ class ClusterAssigner:
             psyche=None,
             centroid=cluster.centroid,
             neighbors=[],
-            collective_role=None
+            collective_role=CellRole.MASS
         )
         cluster2._update_centroid()
 
@@ -702,7 +703,7 @@ class ClusterAssigner:
             psyche=None,  # Se recalculará
             centroid=cluster1.centroid,
             neighbors=list(set(cluster1.neighbors + cluster2.neighbors)),
-            collective_role=None
+            collective_role=CellRole.MASS
         )
         merged._update_centroid()
 
@@ -784,7 +785,7 @@ class ClusterAssigner:
                     break
 
         # 2. SPLIT: Dividir clusters heterogéneos
-        new_clusters = []
+        new_clusters: List[Cluster] = []
         for cluster in clusters:
             if self.should_split_cluster(cluster) and len(clusters) + len(new_clusters) < self.config.max_clusters:
                 result = self.split_cluster(cluster, clusters + new_clusters)
@@ -883,26 +884,26 @@ class ClusterAssigner:
                     sims.append((sim + 1) / 2)
 
             if sims:
-                coherences.append(np.mean(sims))
+                coherences.append(float(np.mean(sims)))
 
-        avg_coherence = np.mean(coherences) if coherences else 0.0
+        avg_coherence = float(np.mean(coherences)) if coherences else 0.0
 
         # Separación inter-cluster
-        separations = []
-        for i, c1 in enumerate(clusters):
-            for c2 in clusters[i+1:]:
-                if c1.psyche and c2.psyche:
+        separations: List[float] = []
+        for i, cluster_a in enumerate(clusters):
+            for cluster_b in clusters[i+1:]:
+                if cluster_a.psyche and cluster_b.psyche:
                     sep = F.cosine_similarity(
-                        c1.psyche.aggregate_state.unsqueeze(0),
-                        c2.psyche.aggregate_state.unsqueeze(0)
+                        cluster_a.psyche.aggregate_state.unsqueeze(0),
+                        cluster_b.psyche.aggregate_state.unsqueeze(0)
                     ).item()
                     separations.append(1 - (sep + 1) / 2)  # Invertir
 
-        avg_separation = np.mean(separations) if separations else 0.0
+        avg_separation = float(np.mean(separations)) if separations else 0.0
 
         # Balance de tamaño
         sizes = [len(c.cells) for c in clusters]
-        size_std = np.std(sizes) / (np.mean(sizes) + 1e-6)
+        size_std = float(np.std(sizes)) / (float(np.mean(sizes)) + 1e-6)
         balance = 1.0 / (1.0 + size_std)
 
         return {

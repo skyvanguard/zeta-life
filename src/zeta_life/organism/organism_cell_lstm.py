@@ -4,7 +4,7 @@
 Evolucion de OrganismCell: reemplaza ZetaMemoryGatedSimple por ZetaLSTMCell
 para capturar dependencias temporales mas complejas.
 """
-from typing import Iterator
+from typing import Dict, Iterator, Optional
 
 import torch
 import torch.nn as nn
@@ -53,9 +53,9 @@ class OrganismCellLSTM(nn.Module):
         )
 
         # Estado LSTM persistente (inicializado en reset())
-        self.h = None
-        self.c = None
-        self.t = 0  # timestep para ZetaLSTMCell
+        self.h: Optional[torch.Tensor] = None
+        self.c: Optional[torch.Tensor] = None
+        self.t: int = 0  # timestep para ZetaLSTMCell
 
         # Detector de rol: MASS (0), FORCE (1), CORRUPT (2)
         self.role_detector = nn.Sequential(
@@ -116,7 +116,8 @@ class OrganismCellLSTM(nn.Module):
         # Combinar todo
         combined = torch.cat([state, neighbors_agg, field_grad], dim=-1)
 
-        return self.perception_net(combined)
+        result: torch.Tensor = self.perception_net(combined)
+        return result
 
     def detect_role(self, hidden: torch.Tensor) -> torch.Tensor:
         """Detecta el rol basado en el hidden state del LSTM.
@@ -156,6 +157,8 @@ class OrganismCellLSTM(nn.Module):
         perception = self.perceive(state, neighbors, field, position)
 
         # 2. Pasar por ZetaLSTMCell (con memoria temporal)
+        # After reset_memory, h and c are guaranteed to be Tensor
+        assert self.h is not None and self.c is not None
         self.h, self.c = self.lstm_cell(perception, (self.h, self.c), t=self.t)
         self.t += 1
 
@@ -168,7 +171,8 @@ class OrganismCellLSTM(nn.Module):
         # 5. Detectar rol basado en hidden state
         role = self.detect_role(self.h)
 
-        # Info de memoria para debugging
+        # Info de memoria for debugging
+        # h and c are guaranteed to be Tensor after lstm_cell call
         memory_info = {
             'h_norm': self.h.norm().item(),
             'c_norm': self.c.norm().item(),
@@ -194,9 +198,9 @@ class OrganismCellLSTMPool:
         self.cell = OrganismCellLSTM(state_dim, hidden_dim, M, sigma, zeta_weight)
 
         # Estados LSTM individuales por celula
-        self.h_states = {}  # cell_id -> h tensor
-        self.c_states = {}  # cell_id -> c tensor
-        self.t = 0
+        self.h_states: Dict[int, torch.Tensor] = {}  # cell_id -> h tensor
+        self.c_states: Dict[int, torch.Tensor] = {}  # cell_id -> c tensor
+        self.t: int = 0
 
     def reset(self, device=None) -> None:
         """Resetea todos los estados."""
@@ -235,6 +239,8 @@ class OrganismCellLSTMPool:
         new_state, role, memory_info = self.cell(state, neighbors, field, position)
 
         # Guardar estado actualizado
+        # After forward, h and c are guaranteed to be Tensor
+        assert self.cell.h is not None and self.cell.c is not None
         self.set_state(cell_id, self.cell.h, self.cell.c)
 
         return new_state, role, memory_info

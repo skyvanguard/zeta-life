@@ -150,7 +150,7 @@ class PredictiveIndividuation:
         self.full_metrics = FullConsciousnessMetrics()
 
         # Historial
-        self.consciousness_history = []
+        self.consciousness_history: list[float] = []
         self.session_count = 0
 
     def process(self, text: str, n_steps: int = 10) -> Dict:

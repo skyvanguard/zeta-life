@@ -108,11 +108,11 @@ class MemorySelector:
             return []
 
         # Calcular scores de seleccion
-        scores = []
+        scores: List[float] = []
         for i, (mem, imp) in enumerate(zip(memory_buffer, importance)):
             # Combinar factores
             surprise_score = mem.surprise
-            error_score = mem.errors.norm().item()
+            error_score = float(mem.errors.norm().item())
             recency_score = 1.0 / (1.0 + len(memory_buffer) - i)
 
             total_score = (
@@ -124,8 +124,8 @@ class MemorySelector:
             scores.append(total_score)
 
         # Softmax con temperatura
-        scores = torch.tensor(scores)
-        probs = F.softmax(scores / self.temperature, dim=0).numpy()
+        scores_tensor = torch.tensor(scores)
+        probs = F.softmax(scores_tensor / self.temperature, dim=0).numpy()
 
         # Muestrear sin reemplazo
         n_select = min(n_select, len(memory_buffer))
@@ -209,7 +209,7 @@ class AttentiveDreamGenerator:
         if intensity > 0.7:
             base_narrative = "VIVIDO: " + base_narrative
 
-        return base_narrative
+        return str(base_narrative)
 
 
 # =============================================================================
@@ -515,7 +515,7 @@ class ConsciousSystemWithDreams:
         self.consciousness_history: List[float] = []
         self.dream_count = 0
 
-    def step(self, stimulus: torch.Tensor = None, auto_dream: bool = True) -> Dict:
+    def step(self, stimulus: Optional[torch.Tensor] = None, auto_dream: bool = True) -> Dict:
         """
         Ejecuta un paso del sistema.
 

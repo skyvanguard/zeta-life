@@ -32,7 +32,7 @@ from datetime import datetime
 
 if sys.platform == 'win32':
     try:
-        sys.stdout.reconfigure(encoding='utf-8', errors='replace')
+        sys.stdout.reconfigure(encoding='utf-8', errors='replace')  # type: ignore[union-attr]
     except:
         pass
 
@@ -246,8 +246,8 @@ class ZetaConsciousness:
         verbal_response = self.voice.generate(
             dominant=dominant,
             blend=blend,
-            context=context or text,
-            category=self._categorize_input(text)
+            input_text=text,
+            context=[context] if context else None
         )
 
         # 4. Actualizar memoria
@@ -329,7 +329,7 @@ class ZetaConsciousness:
 
     def _calculate_emotional_weight(self, text: str, dominant: Archetype) -> float:
         """Calcula el peso emocional de un texto."""
-        base_weight = 0.5
+        base_weight: float = 0.5
 
         # Palabras emocionales aumentan peso
         emotional_words = ['miedo', 'amor', 'odio', 'tristeza', 'alegria',
@@ -342,7 +342,7 @@ class ZetaConsciousness:
         if dominant in [Archetype.SOMBRA, Archetype.ANIMA]:
             base_weight += 0.15
 
-        return min(1.0, base_weight)
+        return float(min(1.0, base_weight))
 
     def _generate_insight(self,
                          dominant: Archetype,
@@ -684,7 +684,7 @@ class ZetaConsciousness:
                     self_coherence=m.get('self_coherence', 0)
                 )
             if 'resistance' in ind:
-                self.individuation.resistance.active_defenses = ind['resistance']
+                self.individuation.resistance.active_defenses = dict(ind['resistance'])
 
             # Historia del narrador
             self.narrator.history = []
@@ -757,7 +757,7 @@ class ConsciousnessSociety:
 
     def group_discussion(self, topic: str, rounds: int = 3) -> List[Dict]:
         """Discusión grupal sobre un tema."""
-        discussion = []
+        discussion: List[Dict] = []
 
         for round_num in range(rounds):
             for member_id, consciousness in self.members.items():
@@ -936,10 +936,10 @@ def interactive_session() -> None:
             print(f"\n  Arquetipo dominante: {dream['dominant'].name}")
 
         elif cmd == '/ultimo_sueno':
-            dream = consciousness.get_last_dream()
-            if dream:
-                print(f"\n  ═══ ÚLTIMO SUEÑO ({dream['type']}) ═══")
-                print(f"  {dream['narrative']}")
+            last_dream = consciousness.get_last_dream()
+            if last_dream:
+                print(f"\n  ═══ ÚLTIMO SUEÑO ({last_dream['type']}) ═══")
+                print(f"  {last_dream['narrative']}")
             else:
                 print("\n  No hay sueños registrados.")
 

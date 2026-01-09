@@ -403,7 +403,9 @@ class HierarchicalSimulation:
     def _apply_perturbation(self) -> None:
         """Aplica perturbación aleatoria al sistema."""
         n_affected = max(1, int(len(self.cells) * 0.2))
-        affected = list(np.random.choice(self.cells, n_affected, replace=False))
+        # Use indices to select random cells (np.random.choice doesn't work with object lists)
+        affected_indices = np.random.choice(len(self.cells), n_affected, replace=False)
+        affected = [self.cells[i] for i in affected_indices]
 
         for cell in affected:
             # Perturbar estado arquetípico (más suave con strength=0.2)
@@ -465,19 +467,19 @@ class HierarchicalSimulation:
                 for c in self.clusters
             ]
 
-            metrics.avg_phi_cluster = np.mean(phi_clusters)
-            metrics.avg_coherence = np.mean(coherences)
+            metrics.avg_phi_cluster = float(np.mean(phi_clusters))
+            metrics.avg_coherence = float(np.mean(coherences))
             metrics.cluster_sizes = [len(c.cells) for c in self.clusters]
 
         # Métricas de células
         if self.cells:
-            metrics.avg_phi_local = np.mean([c.psyche.phi_local for c in self.cells])
-            metrics.avg_energy = np.mean([c.energy for c in self.cells])
+            metrics.avg_phi_local = float(np.mean([c.psyche.phi_local for c in self.cells]))
+            metrics.avg_energy = float(np.mean([c.energy for c in self.cells]))
             metrics.n_fi_cells = sum(1 for c in self.cells if c.is_fi)
             metrics.n_mi_cells = sum(1 for c in self.cells if c.is_mass)
 
         # Métricas de modulación
-        if mod_results:
+        if mod_results and self.organism is not None:
             metrics.avg_surprise = mod_results.get('avg_surprise', 0.0)
             metrics.modulation_quality = self.modulator.compute_modulation_quality(
                 self.cells, self.organism

@@ -119,7 +119,7 @@ class StimulusPredictor(nn.Module):
             'error': error,
             'surprise': surprise,
             'error_by_archetype': error_by_archetype,
-            'mean_surprise': np.mean(self.error_history) if self.error_history else surprise,
+            'mean_surprise': np.mean(list(self.error_history)) if self.error_history else surprise,
         }
 
     def update_history(self, stimulus: torch.Tensor) -> None:
@@ -246,14 +246,14 @@ class StatePredictor(nn.Module):
     def apply_archetype_bias(self, pred: torch.Tensor, state: torch.Tensor) -> torch.Tensor:
         """Colorea la predicción según el arquetipo dominante."""
         # Determinar arquetipo dominante
-        dominant_idx = state.argmax().item()
-        dominant_weight = state[dominant_idx].item()
+        dominant_idx = int(state.argmax().item())
+        dominant_weight = float(state[dominant_idx].item())
 
         arch_names = ['persona', 'sombra', 'anima', 'animus']
         dominant_name = arch_names[dominant_idx]
 
         # Aplicar bias proporcional al peso del dominante
-        bias = self.archetype_biases[dominant_name]
+        bias: torch.Tensor = self.archetype_biases[dominant_name]
         return pred + bias * dominant_weight * 0.5
 
     def compute_error(self, predicted: torch.Tensor, real: torch.Tensor) -> Dict:
@@ -393,7 +393,7 @@ class MetaPredictor(nn.Module):
             'meta_error': meta_error,
             'meta_surprise': meta_surprise,
             'calibration': calibration,
-            'mean_calibration': np.mean(self.calibration_history),
+            'mean_calibration': float(np.mean(list(self.calibration_history))),
         }
 
     def update_history(self, error_L2: torch.Tensor, surprise: float) -> None:
@@ -458,7 +458,7 @@ class PredictiveConsciousnessMetrics:
             return 0.0
 
         corr = np.corrcoef(pred_arr, real_arr)[0, 1]
-        return max(0, corr)  # Solo correlación positiva cuenta
+        return float(max(0.0, corr))  # Solo correlación positiva cuenta
 
     @property
     def calibration(self) -> float:
@@ -479,7 +479,7 @@ class PredictiveConsciousnessMetrics:
 
         # Calibración: 1 - (confianza * sorpresa_normalizada)
         calibration_errors = conf_arr * norm_surprise
-        return 1.0 - np.mean(calibration_errors)
+        return float(1.0 - np.mean(calibration_errors))
 
     @property
     def uncertainty_awareness(self) -> float:
@@ -501,7 +501,7 @@ class PredictiveConsciousnessMetrics:
         entropy = -np.sum(hist * np.log(hist))
         max_entropy = np.log(10)
 
-        return entropy / max_entropy
+        return float(entropy / max_entropy)
 
     @property
     def predictive_depth(self) -> float:
@@ -512,9 +512,9 @@ class PredictiveConsciousnessMetrics:
         if len(self.meta_surprise_history) < 10:
             return 0.0
 
-        mean_surprise = np.mean(self.meta_surprise_history)
+        mean_surprise = float(np.mean(list(self.meta_surprise_history)))
         # Asumiendo que sorpresa máxima razonable es ~1.0
-        return max(0, 1.0 - mean_surprise)
+        return float(max(0.0, 1.0 - mean_surprise))
 
     def get_consciousness_index(self) -> float:
         """Índice compuesto de consciencia predictiva."""
@@ -637,15 +637,15 @@ class ArchetypeInfluenceComputer:
         if not any(len(q) > 0 for q in self.error_by_archetype.values()):
             return None
 
-        mean_errors = {}
+        mean_errors: Dict[Archetype, float] = {}
         for arch, errors in self.error_by_archetype.items():
             if len(errors) > 0:
-                mean_errors[arch] = np.mean(errors)
+                mean_errors[arch] = float(np.mean(list(errors)))
 
         if not mean_errors:
             return None
 
-        return min(mean_errors, key=mean_errors.get)
+        return min(mean_errors, key=lambda k: mean_errors[k])
 
     def update_archetype_errors(self, state: torch.Tensor, error: float) -> None:
         """Registra error asociado al arquetipo dominante."""
@@ -698,7 +698,7 @@ class ZetaPredictivePsyche(nn.Module):
         # Volatilidad (varianza de estados recientes)
         self.state_history: Deque[torch.Tensor] = deque(maxlen=20)
 
-    def step(self, stimulus: torch.Tensor = None) -> Dict:
+    def step(self, stimulus: Optional[torch.Tensor] = None) -> Dict:
         """
         Ejecuta un paso completo del sistema.
 
@@ -896,7 +896,7 @@ class ZetaPredictivePsyche(nn.Module):
         pred_consciousness = self.metrics.get_consciousness_index()
 
         # Combinar
-        return (
+        return float(
             0.35 * base_consciousness +
             0.65 * pred_consciousness
         )
@@ -921,7 +921,7 @@ class ZetaPredictivePsyche(nn.Module):
         recent = self.consciousness_history[-window:]
         older = self.consciousness_history[-window*2:-window]
 
-        return np.mean(recent) - np.mean(older)
+        return float(np.mean(recent) - np.mean(older))
 
 
 # =============================================================================
@@ -953,7 +953,7 @@ def run_predictive_experiment(
     system = ZetaPredictivePsyche(n_cells=n_cells)
 
     # Historiales
-    history = {
+    history: Dict[str, List] = {
         'consciousness': [],
         'awareness': [],
         'calibration': [],

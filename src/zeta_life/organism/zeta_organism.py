@@ -21,7 +21,7 @@ class CellEntity:
 
     @property
     def role_idx(self) -> int:
-        return self.role.argmax().item()
+        return int(self.role.argmax().item())
 
 
 class ZetaOrganism(nn.Module):
@@ -49,7 +49,7 @@ class ZetaOrganism(nn.Module):
         self.cells: List[CellEntity] = []
         self.energy_grid = torch.zeros(1, 1, grid_size, grid_size)
         self.role_grid = torch.zeros(1, 1, grid_size, grid_size)
-        self.history = []
+        self.history: List[Dict] = []
 
         # Crear células iniciales (sin Fi semilla)
         self._create_cells(seed_fi=False)
@@ -216,7 +216,7 @@ class ZetaOrganism(nn.Module):
 
             # ========== MOVIMIENTO ==========
             x, y = cell.position
-            new_role_idx = new_role.argmax().item()
+            new_role_idx = int(new_role.argmax().item())
 
             if new_role_idx == 0:  # MASS sigue gradiente hacia Fi
                 grad = gradient[0, :, y, x]

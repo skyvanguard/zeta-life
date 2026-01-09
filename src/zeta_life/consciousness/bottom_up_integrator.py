@@ -115,7 +115,7 @@ class BottomUpIntegrator(nn.Module):
         # Modular por energía y phi_local
         importance = base_importance * cell.energy * cell.psyche.phi_local
 
-        return max(0.01, min(1.0, importance))
+        return float(max(0.01, min(1.0, importance)))
 
     def aggregate_cells_to_cluster(
         self,
@@ -140,13 +140,13 @@ class BottomUpIntegrator(nn.Module):
             return ClusterPsyche.create_empty()
 
         # 1. Calcular pesos de células
-        weights = []
+        weight_list: List[float] = []
         for cell in cells:
             importance = self.compute_cell_importance(cell)
             weight = importance * cell.energy * cell.psyche.phi_local
-            weights.append(weight)
+            weight_list.append(weight)
 
-        weights = torch.tensor(weights, dtype=torch.float32)
+        weights = torch.tensor(weight_list, dtype=torch.float32)
 
         # Normalizar pesos (simple, no softmax para preservar proporciones)
         if weights.sum() > 0:
@@ -178,10 +178,10 @@ class BottomUpIntegrator(nn.Module):
 
         # 6. Error de predicción agregado (sorpresa promedio)
         surprises = [c.psyche.compute_surprise() for c in cells]
-        prediction_error = np.mean(surprises) if surprises else 0.0
+        prediction_error = float(np.mean(surprises)) if surprises else 0.0
 
         # 7. Nivel de integración
-        integration_level = phi_cluster * (1 - prediction_error)
+        integration_level = float(phi_cluster * (1 - prediction_error))
 
         return ClusterPsyche(
             aggregate_state=aggregate,
@@ -240,7 +240,7 @@ class BottomUpIntegrator(nn.Module):
         # Modular por phi
         importance = base_importance * cluster.psyche.phi_cluster
 
-        return max(0.01, min(1.0, importance))
+        return float(max(0.01, min(1.0, importance)))
 
     def aggregate_clusters_to_organism(
         self,
@@ -271,14 +271,14 @@ class BottomUpIntegrator(nn.Module):
             return OrganismConsciousness.create_initial()
 
         # 1. Calcular pesos de clusters (basado en importancia × tamaño)
-        weights = []
+        weight_list: List[float] = []
         for cluster in valid_clusters:
             importance = self.compute_cluster_importance(cluster)
             # Peso proporcional a tamaño para preservar distribución
             weight = importance * cluster.size
-            weights.append(weight)
+            weight_list.append(weight)
 
-        weights = torch.tensor(weights, dtype=torch.float32)
+        weights = torch.tensor(weight_list, dtype=torch.float32)
         # Normalización simple (no softmax) para preservar proporciones
         if weights.sum() > 0:
             weights = weights / weights.sum()
@@ -286,7 +286,8 @@ class BottomUpIntegrator(nn.Module):
             weights = torch.ones(len(valid_clusters)) / len(valid_clusters)
 
         # 2. Agregación de arquetipos (votación ponderada)
-        cluster_states = torch.stack([c.psyche.aggregate_state for c in valid_clusters])
+        # Note: valid_clusters already filtered to have non-None psyche
+        cluster_states = torch.stack([c.psyche.aggregate_state for c in valid_clusters if c.psyche is not None])
         global_archetype = (weights.unsqueeze(1) * cluster_states).sum(dim=0)
         # NO aplicar softmax - el agregado ya es distribución válida
 
@@ -359,7 +360,7 @@ class BottomUpIntegrator(nn.Module):
         if not similarities:
             return 0.7
 
-        avg_sim = np.mean(similarities)
+        avg_sim = float(np.mean(similarities))
 
         # Función de integración más suave:
         # - sim=0.0 (opuestos): integration=0.6 (conectados pero muy diferentes)
@@ -390,28 +391,28 @@ class BottomUpIntegrator(nn.Module):
         if not clusters:
             return 0.0
 
-        valid_clusters = [c for c in clusters if c.psyche]
+        valid_clusters = [c for c in clusters if c.psyche is not None]
         if not valid_clusters:
             return 0.0
 
         # 1. Coherencia intra-cluster promedio
-        intra_coherences = [c.psyche.phi_cluster for c in valid_clusters]
-        avg_intra = np.mean(intra_coherences) if intra_coherences else 0.0
+        intra_coherences = [c.psyche.phi_cluster for c in valid_clusters if c.psyche is not None]
+        avg_intra = float(np.mean(intra_coherences)) if intra_coherences else 0.0
 
         # 2. Integración inter-cluster (similitud real entre clusters)
         inter_integration = self._compute_inter_cluster_integration(valid_clusters)
 
         # 3. Diversidad de especializaciones
-        specializations = [c.psyche.specialization.value for c in valid_clusters]
+        specializations = [c.psyche.specialization.value for c in valid_clusters if c.psyche is not None]
         unique_specs = len(set(specializations))
         diversity_bonus = unique_specs / 4.0  # 1.0 si tiene los 4 arquetipos
 
         # Φ global = promedio geométrico de intra e inter, modulado por diversidad
         # Esto requiere que AMBOS sean altos para tener phi alto
-        phi_base = np.sqrt(avg_intra * inter_integration)
+        phi_base = float(np.sqrt(avg_intra * inter_integration))
         phi_global = phi_base * (0.6 + 0.4 * diversity_bonus)
 
-        return min(1.0, phi_global)
+        return float(min(1.0, phi_global))
 
     def _compute_vertical_coherence(
         self,
@@ -441,7 +442,7 @@ class BottomUpIntegrator(nn.Module):
         if not clusters:
             return 0.0
 
-        valid_clusters = [c for c in clusters if c.psyche and c.cells]
+        valid_clusters = [c for c in clusters if c.psyche is not None and c.cells]
         if not valid_clusters:
             return 0.0
 
@@ -449,8 +450,10 @@ class BottomUpIntegrator(nn.Module):
         # 1. CELL-TO-CLUSTER ALIGNMENT
         # ¿Las células se alinean con su cluster?
         # =====================================================================
-        cell_to_cluster_scores = []
+        cell_to_cluster_scores: List[float] = []
         for cluster in valid_clusters:
+            if cluster.psyche is None:
+                continue
             cluster_state = cluster.psyche.aggregate_state
             for cell in cluster.cells:
                 # Similitud coseno entre célula y su cluster
@@ -461,21 +464,23 @@ class BottomUpIntegrator(nn.Module):
                 # Normalizar a [0, 1]
                 cell_to_cluster_scores.append((sim + 1) / 2)
 
-        avg_cell_to_cluster = np.mean(cell_to_cluster_scores) if cell_to_cluster_scores else 0.5
+        avg_cell_to_cluster = float(np.mean(cell_to_cluster_scores)) if cell_to_cluster_scores else 0.5
 
         # =====================================================================
         # 2. CLUSTER-TO-ORGANISM ALIGNMENT
         # ¿Los clusters se alinean con el organismo?
         # =====================================================================
-        cluster_to_org_scores = []
+        cluster_to_org_scores: List[float] = []
         for cluster in valid_clusters:
+            if cluster.psyche is None:
+                continue
             sim = F.cosine_similarity(
                 cluster.psyche.aggregate_state.unsqueeze(0).float(),
                 organism_state.unsqueeze(0).float()
             ).item()
             cluster_to_org_scores.append((sim + 1) / 2)
 
-        avg_cluster_to_org = np.mean(cluster_to_org_scores) if cluster_to_org_scores else 0.5
+        avg_cluster_to_org = float(np.mean(cluster_to_org_scores)) if cluster_to_org_scores else 0.5
 
         # =====================================================================
         # 3. HIERARCHY CONSISTENCY
@@ -484,7 +489,7 @@ class BottomUpIntegrator(nn.Module):
         # Contar cuántos clusters comparten el dominante del organismo
         clusters_aligned = sum(
             1 for c in valid_clusters
-            if c.psyche.specialization == organism_dominant
+            if c.psyche is not None and c.psyche.specialization == organism_dominant
         )
         cluster_consistency = clusters_aligned / len(valid_clusters)
 
@@ -492,6 +497,8 @@ class BottomUpIntegrator(nn.Module):
         cells_aligned = 0
         total_cells = 0
         for cluster in valid_clusters:
+            if cluster.psyche is None:
+                continue
             cluster_dominant = cluster.psyche.specialization
             for cell in cluster.cells:
                 total_cells += 1
@@ -514,7 +521,7 @@ class BottomUpIntegrator(nn.Module):
             0.15 * cell_consistency
         )
 
-        return min(1.0, max(0.0, vertical_coherence))
+        return float(min(1.0, max(0.0, vertical_coherence)))
 
     def _integration_to_stage(self, integration: float, phi: float) -> IndividuationStage:
         """
@@ -554,20 +561,23 @@ class BottomUpIntegrator(nn.Module):
         """
         Calcula el índice de consciencia desde los clusters.
         """
+        # Filter valid clusters
+        valid_clusters = [c for c in clusters if c.psyche is not None]
+
         # Predictive: inverso del error de predicción promedio
-        pred_errors = [c.psyche.prediction_error for c in clusters]
-        avg_error = np.mean(pred_errors) if pred_errors else 0.5
+        pred_errors = [c.psyche.prediction_error for c in valid_clusters if c.psyche is not None]
+        avg_error = float(np.mean(pred_errors)) if pred_errors else 0.5
         predictive = 1.0 - avg_error
 
         # Attention: basado en coherencia de clusters
-        coherences = [c.psyche.coherence for c in clusters]
-        attention = np.mean(coherences) if coherences else 0.5
+        coherences = [c.psyche.coherence for c in valid_clusters if c.psyche is not None]
+        attention = float(np.mean(coherences)) if coherences else 0.5
 
         # Integration: basado en phi_global
         integration = phi_global
 
         # Self luminosity: diversidad de especializaciones
-        specializations = [c.psyche.specialization.value for c in clusters]
+        specializations = [c.psyche.specialization.value for c in valid_clusters if c.psyche is not None]
         unique_specs = len(set(specializations))
         self_luminosity = unique_specs / 4.0
 

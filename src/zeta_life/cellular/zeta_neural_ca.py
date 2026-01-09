@@ -97,7 +97,7 @@ if HAS_TORCH:
             """Aplica convolucion con kernel zeta."""
             # x: (batch, channels, height, width)
             padding = self.R
-            return F.conv2d(x, self.zeta_kernel, padding=padding, groups=self.in_channels)
+            return F.conv2d(x, self.zeta_kernel, padding=padding, groups=self.in_channels)  # type: ignore[arg-type]
 
 
     class SobelFilter(nn.Module):
@@ -116,8 +116,8 @@ if HAS_TORCH:
             self.in_channels = in_channels
 
         def forward(self, x: torch.Tensor) -> torch.Tensor:
-            gx = F.conv2d(x, self.sobel_x, padding=1, groups=self.in_channels)
-            gy = F.conv2d(x, self.sobel_y, padding=1, groups=self.in_channels)
+            gx = F.conv2d(x, self.sobel_x, padding=1, groups=self.in_channels)  # type: ignore[arg-type]
+            gy = F.conv2d(x, self.sobel_y, padding=1, groups=self.in_channels)  # type: ignore[arg-type]
             return torch.cat([gx, gy], dim=1)
 
 
@@ -278,7 +278,7 @@ if HAS_TORCH:
             self.target_padded = torch.cat([self.target, hidden_pad], dim=1)
 
             self.optimizer = Adam(model.parameters(), lr=lr)
-            self.losses = []
+            self.losses: List[float] = []
 
         def loss_fn(self, x: torch.Tensor) -> torch.Tensor:
             """
@@ -513,7 +513,7 @@ def demo_zeta_nca() -> Optional[Tuple["ZetaNCA", "ZetaNCATrainer"]]:
     if not HAS_TORCH:
         print("\nERROR: PyTorch no esta instalado.")
         print("Instalar con: pip install torch")
-        return
+        return None
 
     device = 'cuda' if torch.cuda.is_available() else 'cpu'
     print(f"\nDispositivo: {device}")

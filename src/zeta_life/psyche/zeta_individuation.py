@@ -21,12 +21,12 @@ import math
 import json
 from enum import Enum, auto
 from dataclasses import dataclass, field
-from typing import Dict, List, Optional, Tuple, Callable
+from typing import Any, Dict, List, Optional, Tuple, Callable, TypedDict
 from datetime import datetime
 
 if sys.platform == 'win32':
     try:
-        sys.stdout.reconfigure(encoding='utf-8', errors='replace')
+        sys.stdout.reconfigure(encoding='utf-8', errors='replace')  # type: ignore[union-attr]
     except:
         pass
 
@@ -36,6 +36,22 @@ import numpy as np
 
 # Importar sistema base
 from .zeta_psyche import ZetaPsyche, Archetype, TetrahedralSpace, PsycheInterface
+
+
+class DefenseMechanism(TypedDict):
+    """Type definition for defense mechanism entries."""
+    description: str
+    blocks: List[Archetype]
+    strength: float
+
+
+class IntegrationWorkEntry(TypedDict):
+    """Type definition for integration work entries."""
+    name: str
+    target: Optional[Archetype]
+    description: str
+    prompts: List[str]
+    integration_potential: float
 
 
 class IndividuationStage(Enum):
@@ -104,7 +120,7 @@ class ResistanceSystem:
     Las resistencias protegen al ego pero dificultan la individuación.
     """
 
-    DEFENSE_MECHANISMS = {
+    DEFENSE_MECHANISMS: Dict[str, DefenseMechanism] = {
         'negacion': {
             'description': 'Rechazar aspectos de la realidad',
             'blocks': [Archetype.SOMBRA],
@@ -184,7 +200,7 @@ class IntegrationWork:
     Basados en técnicas junguianas (imaginación activa, análisis de sueños, etc).
     """
 
-    WORKS = {
+    WORKS: Dict[str, IntegrationWorkEntry] = {
         'shadow_dialogue': {
             'name': 'Diálogo con la Sombra',
             'target': Archetype.SOMBRA,
@@ -330,8 +346,8 @@ class SelfSystem:
             metrics.anima_connection,
             metrics.animus_balance
         ]
-        variance = np.var(values)
-        balance_bonus = max(0, 0.2 - variance)
+        variance = float(np.var(values))
+        balance_bonus = max(0.0, 0.2 - variance)
 
         # Coherencia del Self amplifica
         coherence_factor = 1 + metrics.self_coherence
@@ -418,7 +434,7 @@ class SelfSystem:
         high_stab = stability > 0.5
         messages = messages_by_state[(high_lum, high_stab)]
 
-        return np.random.choice(messages)
+        return str(np.random.choice(messages))
 
 
 class IndividuationProcess:
@@ -498,7 +514,7 @@ class IndividuationProcess:
 
     def _total_resistance(self) -> float:
         """Resistencia total actual."""
-        total = 0
+        total: float = 0.0
         for arch in Archetype:
             total += self.resistance.get_resistance_to(arch)
         return total / len(Archetype)
@@ -589,11 +605,11 @@ class IndividuationProcess:
         if work_name not in IntegrationWork.WORKS:
             return {'error': f'Trabajo desconocido: {work_name}'}
 
-        work = IntegrationWork.WORKS[work_name]
-        target = work['target']
+        work: IntegrationWorkEntry = IntegrationWork.WORKS[work_name]
+        target: Optional[Archetype] = work['target']
 
         # Verificar resistencias
-        resistance = 0
+        resistance: float = 0.0
         if target:
             resistance = self.resistance.get_resistance_to(target)
             if resistance > 0.5:
@@ -634,7 +650,7 @@ class IndividuationProcess:
         self.update_stage()
 
         # Seleccionar prompt para reflexión
-        prompt = np.random.choice(work['prompts'])
+        prompt = str(np.random.choice(work['prompts']))
 
         return {
             'work_name': work['name'],
@@ -655,8 +671,8 @@ class IndividuationProcess:
         best_work = works[0]
 
         for work_name in works:
-            work = IntegrationWork.WORKS[work_name]
-            target = work['target']
+            work: IntegrationWorkEntry = IntegrationWork.WORKS[work_name]
+            target: Optional[Archetype] = work['target']
             if target:
                 res = self.resistance.get_resistance_to(target)
                 if res < min_resistance:
@@ -707,7 +723,7 @@ class IndividuationProcess:
 ║    - {defense}: {intensity:.0%}                                       ║"""[:62] + "║"
 
         recommended = self.get_recommended_work()
-        work = IntegrationWork.WORKS[recommended]
+        work: IntegrationWorkEntry = IntegrationWork.WORKS[recommended]
         report += f"""
 ╠══════════════════════════════════════════════════════════╣
 ║  Trabajo recomendado: {work['name'][:35]:35}   ║
@@ -955,9 +971,9 @@ def interactive_session() -> None:
         elif user_input.lower() == '/trabajos':
             print("\n  TRABAJOS DE INTEGRACIÓN DISPONIBLES:")
             print("  " + "-"*40)
-            for name, work in IntegrationWork.WORKS.items():
-                target = work['target'].name if work['target'] else 'Self'
-                print(f"  - {name}: {work['name']} ({target})")
+            for name, work_entry in IntegrationWork.WORKS.items():
+                target_name = work_entry['target'].name if work_entry['target'] else 'Self'
+                print(f"  - {name}: {work_entry['name']} ({target_name})")
 
         elif user_input.lower().startswith('/hacer '):
             work_name = user_input[7:].strip()

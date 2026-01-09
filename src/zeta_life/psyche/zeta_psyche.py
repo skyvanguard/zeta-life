@@ -31,7 +31,7 @@ import torch.nn as nn
 import torch.nn.functional as F
 import numpy as np
 from dataclasses import dataclass, field
-from typing import List, Dict, Tuple, Optional
+from typing import List, Dict, Tuple, Optional, Any
 from enum import Enum
 import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d import Axes3D
@@ -123,7 +123,8 @@ class TetrahedralSpace:
     def distance_to_center(self, weights: torch.Tensor) -> float:
         """Distancia al centro (Self integrado). Menor = mas integrado."""
         pos = self.barycentric_to_3d(weights)
-        return torch.norm(pos - self.center).item()
+        result: float = torch.norm(pos - self.center).item()
+        return result
 
     def integration_score(self, weights: torch.Tensor) -> float:
         """
@@ -135,7 +136,8 @@ class TetrahedralSpace:
         # Entropia normalizada - maxima cuando todos son iguales
         entropy = -torch.sum(weights * torch.log(weights + 1e-8))
         max_entropy = np.log(4)  # log(4) para 4 arquetipos
-        return (entropy / max_entropy).item()
+        result: float = (entropy / max_entropy).item()
+        return result
 
 
 # =============================================================================
@@ -174,7 +176,7 @@ class ZetaModulator(nn.Module):
 
         # Suma de osciladores
         oscillation = torch.sum(
-            self.phi * torch.cos(self.gammas * self.t * 0.1)
+            self.phi * torch.cos(self.gammas * self.t * 0.1)  # type: ignore[operator, arg-type]
         )
 
         # Modular suavemente
@@ -182,7 +184,7 @@ class ZetaModulator(nn.Module):
 
     def get_resonance(self) -> torch.Tensor:
         """Retorna el patron de resonancia actual."""
-        return self.phi * torch.cos(self.gammas * self.t * 0.1)
+        return self.phi * torch.cos(self.gammas * self.t * 0.1)  # type: ignore[operator, arg-type]
 
 
 # =============================================================================
@@ -194,12 +196,8 @@ class PsychicCell:
     """Una celula en el espacio psiquico."""
     position: torch.Tensor      # Coordenadas baricentricas [4]
     energy: float = 0.5
-    memory: torch.Tensor = None  # Memoria de posiciones anteriores
+    memory: torch.Tensor = field(default_factory=lambda: torch.zeros(10, 4))  # Memoria de posiciones anteriores
     age: int = 0
-
-    def __post_init__(self) -> None:
-        if self.memory is None:
-            self.memory = torch.zeros(10, 4)  # Ultimas 10 posiciones
 
     def update_memory(self) -> None:
         """Guarda posicion actual en memoria."""
@@ -269,7 +267,7 @@ class ZetaPsyche(nn.Module):
         # Estado interno
         self.cells: List[PsychicCell] = []
         self.global_state = torch.zeros(4)  # Estado colectivo
-        self.consciousness_history = []
+        self.consciousness_history: List[float] = []
         self.t = 0
 
         # Inicializar celulas
@@ -307,7 +305,7 @@ class ZetaPsyche(nn.Module):
         """
         counts = torch.zeros(4)
         for cell in self.cells:
-            dominant_idx = cell.position.argmax().item()
+            dominant_idx = int(cell.position.argmax().item())
             counts[dominant_idx] += 1
         return counts / len(self.cells)
 
@@ -465,7 +463,8 @@ class ZetaPsyche(nn.Module):
         recent = self.consciousness_history[-window:]
         older = self.consciousness_history[-2*window:-window] if len(self.consciousness_history) >= 2*window else recent
 
-        return np.mean(recent) - np.mean(older)
+        result: float = float(np.mean(recent) - np.mean(older))
+        return result
 
 
 # =============================================================================
@@ -527,9 +526,9 @@ class SymbolSystem:
 
         elif dominance > 0.05:  # Mezcla de dos
             # Encontrar los dos dominantes
-            idx1, idx2 = sorted_idx[0].item(), sorted_idx[1].item()
+            idx1, idx2 = int(sorted_idx[0].item()), int(sorted_idx[1].item())
             # Usar simbolos de mezcla
-            pair_symbols = {
+            pair_symbols: Dict[Tuple[int, int], str] = {
                 (0, 1): '◈', (1, 0): '◈',  # Persona-Sombra
                 (0, 2): '◇', (2, 0): '◇',  # Persona-Anima
                 (0, 3): '◆', (3, 0): '◆',  # Persona-Animus
@@ -588,7 +587,7 @@ def run_consciousness_experiment(
     symbols = SymbolSystem()
 
     # Historial
-    history = {
+    history: Dict[str, List] = {
         'consciousness': [],
         'integration': [],
         'dominant': [],
@@ -783,7 +782,7 @@ class PsycheInterface:
             'logica': [0.1, 0.1, 0.1, 0.7],
         }
 
-    def process_input(self, text: str, n_steps: int = 10) -> str:
+    def process_input(self, text: str, n_steps: int = 10) -> Dict[str, Any]:
         """
         Procesa input de texto y retorna respuesta simbolica.
 

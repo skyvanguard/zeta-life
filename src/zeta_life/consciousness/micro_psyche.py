@@ -47,10 +47,10 @@ def unbiased_argmax(tensor: torch.Tensor, tolerance: float = 0.01) -> int:
     candidates = (tensor >= max_val - tolerance).nonzero(as_tuple=True)[0]
 
     if len(candidates) == 1:
-        return candidates[0].item()
+        return int(candidates[0].item())
     else:
         # Selección aleatoria entre candidatos empatados
-        return candidates[np.random.randint(len(candidates))].item()
+        return int(candidates[np.random.randint(len(candidates))].item())
 
 
 # =============================================================================
@@ -278,19 +278,14 @@ class ConsciousCell:
     controlled_mass: float = 0.0
 
     # Atributos de consciencia (nuevos)
-    psyche: MicroPsyche = None
+    psyche: MicroPsyche = field(default_factory=MicroPsyche.create_random)
     cluster_id: int = -1
     cluster_weight: float = 1.0
-
-    def __post_init__(self) -> None:
-        """Inicializar psique si no se proporcionó."""
-        if self.psyche is None:
-            self.psyche = MicroPsyche.create_random()
 
     @property
     def role_idx(self) -> int:
         """Índice del rol dominante."""
-        return self.role.argmax().item()
+        return int(self.role.argmax().item())
 
     @property
     def role_name(self) -> str:
@@ -316,7 +311,7 @@ class ConsciousCell:
         """Calcula distancia euclidiana a otra célula."""
         dx = self.position[0] - other.position[0]
         dy = self.position[1] - other.position[1]
-        return np.sqrt(dx**2 + dy**2)
+        return float(np.sqrt(dx**2 + dy**2))
 
     def psyche_similarity(self, other: 'ConsciousCell') -> float:
         """Calcula similitud psíquica con otra célula."""
@@ -474,11 +469,11 @@ def apply_psyche_contagion(
         weights.append(weight)
         states.append(neighbor.psyche.archetype_state)
 
-    weights = torch.tensor(weights)
-    weights = weights / weights.sum()
+    weights_tensor = torch.tensor(weights)
+    weights_tensor = weights_tensor / weights_tensor.sum()
 
-    states = torch.stack(states)
-    weighted_avg = (weights.unsqueeze(1) * states).sum(dim=0)
+    states_tensor = torch.stack(states)
+    weighted_avg = (weights_tensor.unsqueeze(1) * states_tensor).sum(dim=0)
 
     # Calcular similitud actual con el promedio de vecinos
     current_similarity = cell.psyche.alignment_with(weighted_avg)
