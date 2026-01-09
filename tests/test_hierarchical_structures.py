@@ -17,20 +17,20 @@ import numpy as np
 from collections import deque
 
 # Importar módulos a probar
-from micro_psyche import (
+from zeta_life.consciousness import (
     MicroPsyche, ConsciousCell,
     compute_local_phi, apply_psyche_contagion
 )
-from cluster import (
+from zeta_life.consciousness import (
     Cluster, ClusterPsyche,
     find_cluster_neighbors, compute_inter_cluster_coherence
 )
-from organism_consciousness import (
+from zeta_life.consciousness import (
     OrganismConsciousness, HierarchicalMetrics,
     _integration_to_stage
 )
-from zeta_psyche import Archetype
-from zeta_individuation import IndividuationStage
+from zeta_life.psyche import Archetype
+from zeta_life.psyche import IndividuationStage
 
 
 # =============================================================================

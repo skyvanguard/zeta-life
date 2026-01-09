@@ -15,14 +15,14 @@ import numpy as np
 import sys
 sys.path.insert(0, 'C:\\Users\\admin\\Documents\\life')
 
-from zeta_psyche import Archetype
-from zeta_individuation import IndividuationStage
-from hierarchical_simulation import (
+from zeta_life.psyche import Archetype
+from zeta_life.psyche import IndividuationStage
+from zeta_life.consciousness import (
     HierarchicalSimulation,
     SimulationConfig,
     SimulationMetrics
 )
-from cluster_assigner import ClusteringStrategy
+from zeta_life.consciousness import ClusteringStrategy
 
 
 # =============================================================================

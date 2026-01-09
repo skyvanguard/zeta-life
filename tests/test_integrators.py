@@ -19,13 +19,14 @@ from typing import List
 import sys
 sys.path.insert(0, 'C:\\Users\\admin\\Documents\\life')
 
-from zeta_psyche import Archetype
-from micro_psyche import ConsciousCell, MicroPsyche
-from cluster import Cluster, ClusterPsyche
-from organism_consciousness import OrganismConsciousness, IndividuationStage
-from bottom_up_integrator import BottomUpIntegrator
-from top_down_modulator import TopDownModulator
-from cluster_assigner import ClusterAssigner, ClusteringConfig, ClusteringStrategy
+from zeta_life.psyche import Archetype
+from zeta_life.consciousness import ConsciousCell, MicroPsyche
+from zeta_life.consciousness import Cluster, ClusterPsyche
+from zeta_life.consciousness import OrganismConsciousness
+from zeta_life.psyche import IndividuationStage
+from zeta_life.consciousness import BottomUpIntegrator
+from zeta_life.consciousness import TopDownModulator
+from zeta_life.consciousness import ClusterAssigner, ClusteringConfig, ClusteringStrategy
 
 
 # =============================================================================

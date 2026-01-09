@@ -1,7 +1,7 @@
 # tests/test_cell_state.py
 import pytest
 import torch
-from cell_state import CellState, CellRole
+from zeta_life.organism import CellState, CellRole
 
 def test_cell_state_creation():
     """Celula se crea con estado inicial valido."""

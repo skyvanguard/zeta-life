@@ -2,7 +2,7 @@
 """Tests for OrganismCell with gated zeta memory."""
 import pytest
 import torch
-from organism_cell import OrganismCell
+from zeta_life.organism import OrganismCell
 
 
 def test_cell_creation():

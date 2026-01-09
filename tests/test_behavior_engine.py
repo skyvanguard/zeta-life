@@ -2,7 +2,7 @@
 """Tests for BehaviorEngine: A<->B transformation algorithm."""
 import pytest
 import torch
-from behavior_engine import BehaviorEngine
+from zeta_life.organism import BehaviorEngine
 
 
 def test_bidirectional_influence():

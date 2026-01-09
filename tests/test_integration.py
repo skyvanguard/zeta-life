@@ -3,7 +3,7 @@
 import pytest
 import torch
 import numpy as np
-from zeta_organism import ZetaOrganism
+from zeta_life.organism import ZetaOrganism
 
 class TestOrganismEmergence:
     """Tests para comportamientos emergentes."""
@@ -90,7 +90,7 @@ class TestBehaviorAlgorithm:
 
     def test_bidirectional_preserves_total_influence(self):
         """La influencia total se conserva aproximadamente."""
-        from behavior_engine import BehaviorEngine
+        from zeta_life.organism import BehaviorEngine
 
         engine = BehaviorEngine(state_dim=32)
 
@@ -105,7 +105,7 @@ class TestBehaviorAlgorithm:
 
     def test_transformation_continuity(self):
         """A^3+V->B^3+A mantiene continuidad."""
-        from behavior_engine import BehaviorEngine
+        from zeta_life.organism import BehaviorEngine
 
         engine = BehaviorEngine(state_dim=32)
 

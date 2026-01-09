@@ -1,7 +1,7 @@
 # tests/test_force_field.py
 import pytest
 import torch
-from force_field import ForceField
+from zeta_life.organism import ForceField
 
 def test_force_field_creation():
     """Campo de fuerzas se crea con kernel zeta."""

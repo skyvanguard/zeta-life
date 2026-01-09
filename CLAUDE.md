@@ -12,42 +12,60 @@ This is the **Zeta Life** project - a research exploration integrating the Riema
 
 **Theoretical Foundation**: Systems use the kernel `K_σ(t) = 2 * Σ exp(-σ|γ|) * cos(γt)` where γ are the imaginary parts of zeta zeros (14.134725, 21.022040, 25.010858, ...).
 
+## Project Structure (Reorganized 2026-01-09)
+
+```
+zeta-life/
+├── src/zeta_life/           # Core library (43 modules)
+│   ├── core/                # Mathematical foundations (zeta kernels)
+│   ├── organism/            # Multi-agent emergent intelligence
+│   ├── psyche/              # Jungian consciousness system
+│   ├── consciousness/       # Hierarchical consciousness
+│   ├── cellular/            # Zeta Game of Life
+│   └── utils/               # Shared utilities
+├── experiments/             # Research experiments (54 scripts)
+│   ├── organism/            # Emergence, regeneration, ecosystems
+│   ├── psyche/              # Archetypes, individuation
+│   ├── consciousness/       # Hierarchical validation
+│   ├── cellular/            # Automata experiments
+│   └── validation/          # Theoretical validation
+├── demos/                   # Interactive demonstrations
+├── docs/                    # Documentation
+├── results/                 # Experiment outputs (90 PNG, 14 JSON)
+├── models/                  # Trained weights (.pt)
+├── tests/                   # Unit tests
+├── notebooks/               # Jupyter notebooks
+└── personal/                # Research notes & book
+```
+
 ## Commands
 
 ```bash
+# === INSTALL ===
+pip install -e .              # Install as package
+pip install -e ".[full]"      # With all extras
+
 # === TESTS ===
-python -m pytest tests/ -v              # All tests
-python -m pytest tests/test_zeta_rnn.py -v  # ZetaLSTM tests only
-python -m pytest tests/test_integration.py -v  # Integration tests
+python -m pytest tests/ -v    # All tests
 
-# === ZETA GAME OF LIFE (Cellular Automata) ===
-python zeta_game_of_life.py    # Phase 1: Zeta-structured initialization
-python zeta_gol_fase2.py       # Phase 2: Zeta-weighted kernel
-python zeta_gol_fase3.py       # Phase 3: Temporal memory
-python zeta_neural_ca.py       # Neural CA with zeta perception (PyTorch)
+# === DEMOS ===
+python demos/chat_psyche.py --reflection  # Interactive CLI with Strange Loop
 
-# === ZETA RNN ===
-python zeta_rnn.py             # ZetaLSTM experiment
+# === EXPERIMENTS ===
+# Organism
+python experiments/organism/exp_organism.py
+python experiments/organism/exp_regeneration.py
+python experiments/organism/exp_ecosistema.py
 
-# === ZETA ORGANISM (Multi-Agent System) ===
-python exp_organism.py         # Basic emergence experiment
-python train_organism.py       # Train neural networks
-python exp_regeneration.py     # Test regeneration after damage
-python exp_ecosistema.py       # Ecosystem with resource patches
-python exp_comunicacion_quimica.py  # Pheromone communication
+# Psyche
+python experiments/psyche/exp_anima_emergente.py
+python experiments/psyche/exp_self_reflection.py
 
-# === ZETA PSYCHE (Jungian Consciousness) ===
-python zeta_psyche.py          # Base archetype system
-python zeta_conscious_self.py  # Full unified consciousness system
-python chat_psyche.py          # Interactive CLI chat
-python chat_psyche.py --reflection  # CLI with Strange Loop visible
-python exp_zeta_vs_baseline.py # Compare zeta vs baseline modulators
-python exp_decay_vs_nodecay.py # Compare decay vs no-decay dynamics
-python exp_anima_emergente.py  # Emergent compensation experiment
-python exp_self_reflection.py  # Validate Strange Loop emergence
+# Consciousness
+python experiments/consciousness/exp_validacion_5_mejoras.py
 
-# === HIERARCHICAL CONSCIOUSNESS ===
-python hierarchical_simulation.py      # Run hierarchical simulation
+# Validation
+python experiments/validation/exp_teoria_zeta.py
 python exp_validacion_5_mejoras.py     # Validate all 5 improvements
 ```
 

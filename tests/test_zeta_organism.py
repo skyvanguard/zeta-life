@@ -2,7 +2,7 @@
 import pytest
 import torch
 import numpy as np
-from zeta_organism import ZetaOrganism
+from zeta_life.organism import ZetaOrganism
 
 def test_organism_creation():
     """Organismo se crea con grid y células."""
