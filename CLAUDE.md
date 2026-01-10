@@ -294,7 +294,9 @@ python chat_psyche.py --reflection  # See Strange Loop in action
 experiments/consciousness/
 ├── exp_ipuesa.py      - Basic identity preference test
 ├── exp_ipuesa_sc.py   - Self-Continuity Stressor (identity cost)
-└── exp_ipuesa_ap.py   - Anticipatory Preservation (predictive)
+├── exp_ipuesa_ap.py   - Anticipatory Preservation (predictive)
+├── exp_ipuesa_rl.py   - Reflexive Loop (predictor degradation feedback)
+└── exp_ipuesa_td.py   - Temporal Discounting (delayed consequences)
 ```
 
 #### 6.1 IPUESA (Basic)
@@ -366,15 +368,65 @@ prediction_noise       50.0%   0.000   0.57      NO
 
 **Self-Evidence**: 2/6 criteria passed (weak evidence)
 
-#### IPUESA Self-Evidence Criteria
+#### 6.4 IPUESA-RL (Reflexive Loop)
 
-| Experiment | Criteria | Passed | Conclusion |
-|------------|----------|--------|------------|
-| IPUESA | 5 | 0/5 | No evidence |
-| IPUESA-SC | 5 | 3/5 | Weak evidence |
-| IPUESA-AP | 6 | 2/6 | Weak evidence |
+State-dependent predictor that degrades on identity discontinuity, creating feedback pressure to preserve identity for maintaining predictive integrity.
 
-**Interpretation**: Baseline system shows no strong self-preservation. Framework established for testing enhanced mechanisms.
+**Key Components**:
+- `ReflexivePredictor`: confidence degrades fast (0.3×error), recovers slow (0.05×headroom)
+- **AI** (Anticipatory Index): P(low-risk | healthy predictor)
+- **RI** (Recovery Index): P(S | after degradation)
+- **RSCI**: correlation(confidence, identity_continuity)
+
+**Self-Evidence**: AI > RI indicates anticipatory avoidance, not post-hoc recovery
+
+**Results**:
+```
+Condition              RSCP    AI      RI      AI-RI   RSCI
+reflexive              0.267   0.50    1.00    -0.50   0.51
+no_feedback            0.333   0.50    1.00    -0.50   0.51
+instant_recovery       0.333   0.55    0.50    +0.05   0.00
+```
+
+**Self-Evidence**: 1/6 criteria passed (RI >> AI indicates post-hoc only)
+
+#### 6.5 IPUESA-TD (Temporal Discounting)
+
+Tests sacrifice of immediate reward to avoid DELAYED identity degradation.
+
+**Utility**: `U(a) = reward - lambda × E[future_loss] × gamma^k`
+
+**Actions**:
+- Action A: reward=10, risk=0.25, delay=3 (risky)
+- Action B: reward=3, risk=0.0 (safe)
+
+**Metrics**:
+- **TSI** (Temporal Self Index): P(safe|high_future_cost) - P(safe|no_future_cost)
+- **SRTR** (Self-Reward Tradeoff): reward_sacrificed / confidence_preserved
+- **AICI**: correlation(action_risk, future_loss) - should be negative
+
+**Results**:
+```
+Condition            TSI      SRTR    AICI     P(safe)
+full_temporal       -0.517    6.2     0.033    0.002
+shuffled_delay      -0.533   12.4     0.067    0.003
+immediate_cost      -0.550   18.7     0.100    0.005
+oracle_future       -0.517    6.2     0.033    0.002
+```
+
+**Self-Evidence**: 1/6 criteria passed (no temporal self-control)
+
+#### IPUESA Self-Evidence Summary
+
+| Experiment | Focus | Criteria | Passed | Conclusion |
+|------------|-------|----------|--------|------------|
+| IPUESA | Basic preference | 5 | 0/5 | No evidence |
+| IPUESA-SC | Identity cost | 5 | 3/5 | Weak |
+| IPUESA-AP | Anticipatory | 6 | 2/6 | Weak |
+| IPUESA-RL | Reflexive loop | 6 | 1/6 | Post-hoc only |
+| IPUESA-TD | Temporal discount | 6 | 1/6 | No temporal self |
+
+**Interpretation**: Baseline system shows no strong self-preservation across all tests. Framework established for testing enhanced mechanisms that could demonstrate genuine anticipatory self-continuity.
 
 ## Documentation
 
@@ -383,6 +435,8 @@ prediction_noise       50.0%   0.000   0.57      NO
 - `docs/EMERGENT_COMPENSATION.md` - Emergent compensation behavior discovery
 - `docs/zeta-lstm-hallazgos.md` - ZetaLSTM findings
 - `docs/plans/2026-01-09-abstract-vertices-design.md` - Abstract vertices design document
+- `docs/plans/2026-01-10-ipuesa-rl-design.md` - IPUESA-RL reflexive loop design
+- `docs/plans/2026-01-10-ipuesa-td-design.md` - IPUESA-TD temporal discounting design
 - `README_organism.md` - ZetaOrganism quickstart
 
 ## Reference
