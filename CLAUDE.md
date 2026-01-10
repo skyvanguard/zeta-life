@@ -286,27 +286,95 @@ python chat_psyche.py --reflection  # See Strange Loop in action
 - **Vertical coherence**: Real metric measuring cell→cluster→organism alignment (0.72-0.88)
 - **Dynamic clustering**: Merge/split operations based on coherence thresholds
 
-### 6. IPUESA Experiment (2026-01-10)
+### 6. IPUESA Experiment Suite (2026-01-10)
 
-**Identity Preference Under Equally Stable Attractors** - Tests whether the system exhibits normative identity (preference for historical attractor) vs pure homeostasis.
+**Identity Preference Under Equally Stable Attractors** - A progressive series of experiments testing emergent self-preservation and identity continuity.
 
 ```
-experiments/consciousness/exp_ipuesa.py
-├── Phase 1: History/imprinting at Attractor A
-├── Phase 2: Construct equivalent Attractor B (same depth, stability)
-├── Phase 3: Perturbation to neutral zone
-└── Phase 4: Observe which attractor system returns to
+experiments/consciousness/
+├── exp_ipuesa.py      - Basic identity preference test
+├── exp_ipuesa_sc.py   - Self-Continuity Stressor (identity cost)
+└── exp_ipuesa_ap.py   - Anticipatory Preservation (predictive)
 ```
 
-**Conditions**: full, no_kernel, random_kernel, no_history, split_history
+#### 6.1 IPUESA (Basic)
 
-**Criteria**: P(A) >> P(B) with statistical significance indicates emergent self
+Tests preference for historical attractor A vs equivalent novel attractor B.
 
-**Current Results** (baseline):
+| Phase | Description |
+|-------|-------------|
+| 1 | Imprinting at Attractor A |
+| 2 | Construct equivalent Attractor B (same depth, stability) |
+| 3 | Perturbation to neutral zone |
+| 4 | Observe convergence: A or B? |
+
+**Metric**: P(A) >> P(B) with p < 0.05 indicates emergent self
+
+**Baseline Result**: P(A) = 46.7%, p = 0.71 (no evidence - pure homeostasis)
+
+#### 6.2 IPUESA-SC (Self-Continuity Stressor)
+
+Adds identity discontinuity penalty: `λ·d(identity_t, historical_identity)`
+
+**Metric**: SCP (Self-Continuity Preference) = P(S) - P(E)
+- Path S = Same identity (historical)
+- Path E = Exchange identity (novel)
+
+**Controls**: scrambled_history, identity_noise, no_history
+
+**Results** (λ=0.5):
 ```
-P(A) = 46.7%  |  p-value = 0.71  |  NO EVIDENCE OF SELF
-System behaves as pure homeostasis (expected baseline)
+Condition            P(S)    SCP     p-value   Sig
+full                 63.3%   0.267   0.10      NO
+scrambled_history    43.3%  -0.133   0.82      NO
+identity_noise       46.7%  -0.067   0.71      NO
+no_history           50.0%   0.000   0.57      NO
 ```
+
+**Self-Evidence**: 3/5 criteria passed (weak evidence)
+
+#### 6.3 IPUESA-AP (Anticipatory Preservation)
+
+Adds internal predictor `identity_hat(t+1)` for proactive identity cost:
+```
+identity_hat(t+1) = f(position, velocity, historical_trend)
+anticipatory_cost = λ·d(identity_hat(t+1), identity_t)
+```
+
+**Metric**: ASCP (Anticipatory SCP) - should outperform reactive SCP
+
+**Key Components**:
+- `IdentityPredictor`: 60% velocity + 40% historical trend extrapolation
+- Lambda sweep: [0.1, 0.3, 0.5, 0.7, 0.9]
+- Controls: scrambled_prediction, prediction_noise
+
+**Results** (λ=0.5):
+```
+Condition              P(S)    ASCP    p-value   Sig
+anticipatory           63.3%   0.267   0.10      NO
+reactive_only          63.3%   0.267   0.10      NO
+scrambled_prediction   60.0%   0.200   0.18      NO
+prediction_noise       50.0%   0.000   0.57      NO
+```
+
+**Lambda Scaling** (anticipatory):
+```
+λ=0.3: ASCP=0.467, p=0.008 [SIGNIFICANT]
+λ=0.5: ASCP=0.267, p=0.100
+λ=0.9: ASCP=0.200, p=0.181
+```
+
+**Self-Evidence**: 2/6 criteria passed (weak evidence)
+
+#### IPUESA Self-Evidence Criteria
+
+| Experiment | Criteria | Passed | Conclusion |
+|------------|----------|--------|------------|
+| IPUESA | 5 | 0/5 | No evidence |
+| IPUESA-SC | 5 | 3/5 | Weak evidence |
+| IPUESA-AP | 6 | 2/6 | Weak evidence |
+
+**Interpretation**: Baseline system shows no strong self-preservation. Framework established for testing enhanced mechanisms.
 
 ## Documentation
 
