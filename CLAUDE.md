@@ -305,7 +305,8 @@ experiments/consciousness/
 ├── exp_ipuesa_ce.py   - Co-Evolution (multi-agent social dynamics)
 ├── exp_ipuesa_sh.py   - Self-Hierarchy (three-level identity)
 ├── exp_ipuesa_hg.py   - Holographic Self (cascading storm resilience)
-└── exp_ipuesa_hg_plus.py - Holographic Self Stress Test (enhanced)
+├── exp_ipuesa_hg_plus.py - Holographic Self Stress Test (enhanced)
+└── exp_ipuesa_hg_cal.py - Holographic Self Calibrated (Goldilocks zone)
 ```
 
 #### 6.1 IPUESA (Basic)
@@ -707,6 +708,33 @@ high_stress     0.000    0.193    0.800    -
 - Reveals parameter space: HG too easy, HG+ too hard
 - Optimal parameters lie between (1.3-1.5× damage multiplier)
 
+#### 6.15 IPUESA-HG-Cal (Holographic Self Calibrated)
+
+**THE GOLDILOCKS ZONE**: Binary search to find optimal stress parameters where embeddings show survival differentiation.
+
+**Calibration Discovery:**
+```
+Damage   full_hg   no_emb   Diff
+2.2×     100%      100%     0%
+2.3×       4%        0%     4%
+2.4×      14%        0%    14%  ← OPTIMAL
+2.6×       0%        0%     0%
+```
+
+**Results at 2.4×:**
+```
+Condition       HS       EI       CE       Gradient
+full_hg         0.141    0.898    0.972    ✓
+partial_hg      0.016    0.221    -        ✓
+no_emb          0.000    0.000    -        ✓
+```
+
+**Self-Evidence**: 3/8 criteria passed - Partial evidence
+- Differentiation achieved: 14.1% vs 0% survival
+- Gradient verified: no_emb < partial < full
+- High CE (0.972): actions correlate with survival
+- Sharp cliff: transition happens between 2.2× and 2.3×
+
 #### IPUESA Self-Evidence Summary
 
 | Experiment | Focus | Criteria | Passed | Conclusion |
@@ -725,8 +753,9 @@ high_stress     0.000    0.193    0.800    -
 | IPUESA-SH | Self-hierarchy | 8 | 3/8 | Two levels may be optimal |
 | IPUESA-HG | Holographic self | 8 | 2/8 | Embedding works, needs harder test |
 | IPUESA-HG+ | Stress test | 8 | 0/8 | Too severe, optimal params between HG/HG+ |
+| IPUESA-HG-Cal | Calibrated | 8 | 3/8 | Goldilocks found: 14% vs 0% at 2.4× |
 
-**Interpretation**: Baseline system shows no strong self-preservation across individual tests. IPUESA-EI shows agency loss matters; IPUESA-MI/AE show correct adaptation directions; IPUESA-X shows emergent modules; IPUESA-CE shows cooperation is essential for social self; IPUESA-SH reveals 2-level hierarchy outperforms 3-level; IPUESA-HG/HG+ bracket the parameter space (HG too easy, HG+ too hard). Complete framework (14 experiments) from individual to social to hierarchical to holographic self.
+**Interpretation**: Baseline system shows no strong self-preservation across individual tests. IPUESA-EI shows agency loss matters; IPUESA-MI/AE show correct adaptation directions; IPUESA-X shows emergent modules; IPUESA-CE shows cooperation is essential for social self; IPUESA-SH reveals 2-level hierarchy outperforms 3-level; IPUESA-HG-Cal finds the Goldilocks zone (2.4×) where holographic embeddings provide survival advantage (14% vs 0%). Complete framework (15 experiments) from individual to social to hierarchical to holographic self.
 
 ## Documentation
 
@@ -746,6 +775,7 @@ high_stress     0.000    0.193    0.800    -
 - `docs/plans/2026-01-10-ipuesa-sh-design.md` - IPUESA-SH self-hierarchy design
 - `docs/plans/2026-01-10-ipuesa-hg-design.md` - IPUESA-HG holographic self design
 - `docs/plans/2026-01-10-ipuesa-hg-plus-design.md` - IPUESA-HG+ stress test design
+- `docs/plans/2026-01-10-ipuesa-hg-cal-design.md` - IPUESA-HG-Cal calibrated design
 - `README_organism.md` - ZetaOrganism quickstart
 
 ## Reference
