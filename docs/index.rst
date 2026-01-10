@@ -241,10 +241,10 @@ If you use Zeta-Life in your research, please cite:
 
 .. code-block:: bibtex
 
-   @article{ipuesa2026zetalife,
+   @article{ruiz2026zetalife,
      title={Zeta-Life: A Unified Framework Connecting Riemann Zeta Mathematics,
             Multi-Agent Dynamics, and Computational Functional Identity},
-     author={IPUESA Research},
+     author={Ruiz, Francisco},
      journal={arXiv preprint},
      year={2026}
    }

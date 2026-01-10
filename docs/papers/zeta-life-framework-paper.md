@@ -1,6 +1,6 @@
 # Zeta-Life: Un Framework Unificado que Conecta Matemáticas de la Función Zeta de Riemann, Dinámica Multi-Agente e Identidad Computacional
 
-**Autores:** IPUESA Research
+**Autor:** Francisco Ruiz
 
 **Fecha:** Enero 2026
 

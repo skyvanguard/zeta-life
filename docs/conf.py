@@ -8,8 +8,8 @@ sys.path.insert(0, os.path.abspath('../src'))
 
 # -- Project information -----------------------------------------------------
 project = 'Zeta-Life'
-copyright = '2026, IPUESA Research'
-author = 'IPUESA Research'
+copyright = '2026, Francisco Ruiz'
+author = 'Francisco Ruiz'
 release = '0.1.0'
 version = '0.1'
 
