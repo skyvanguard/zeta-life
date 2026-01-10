@@ -401,7 +401,8 @@ class TestClusterIntegration:
 
         # Serialize
         data = cluster.to_dict()
-        assert data['psyche']['specialization'] == 'PERSONA'
+        # V0 is the abstract name (was PERSONA in Jungian system)
+        assert data['psyche']['specialization'] == 'V0'
 
     def test_cluster_dynamics(self):
         """Test cluster behavior over multiple updates."""

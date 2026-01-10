@@ -19,8 +19,12 @@ from collections import deque
 from enum import Enum
 
 # Importar del sistema existente
-from ..psyche.zeta_psyche import Archetype
+from ..core.vertex import Vertex, VertexBehaviors, BehaviorVector
+from ..core.tetrahedral_space import TetrahedralSpace, get_tetrahedral_space
 from ..organism.cell_state import CellRole
+
+# Backwards compatibility alias
+Archetype = Vertex
 
 
 # =============================================================================
@@ -188,20 +192,21 @@ class MicroPsyche:
         ).item()
         return (sim + 1) / 2  # Normalizar de [-1,1] a [0,1]
 
-    def get_complementary_archetype(self) -> Archetype:
+    def get_complementary_archetype(self) -> Vertex:
         """
-        Retorna el arquetipo complementario (opuesto en el tetraedro).
+        Retorna el vertice complementario (opuesto geometrico en el tetraedro).
 
-        PERSONA <-> SOMBRA
-        ANIMA <-> ANIMUS
+        Derivado de la geometria del tetraedro:
+            V0 <-> V1 (comparten signo en x)
+            V2 <-> V3 (comparten signo en x)
         """
-        complements = {
-            Archetype.PERSONA: Archetype.SOMBRA,
-            Archetype.SOMBRA: Archetype.PERSONA,
-            Archetype.ANIMA: Archetype.ANIMUS,
-            Archetype.ANIMUS: Archetype.ANIMA,
-        }
-        return complements[self.dominant]
+        space = get_tetrahedral_space()
+        return space.get_complement(self.dominant)
+
+    # Alias for new naming convention
+    def get_complementary_vertex(self) -> Vertex:
+        """Alias for get_complementary_archetype using new naming."""
+        return self.get_complementary_archetype()
 
     def to_dict(self) -> dict:
         """Serializa a diccionario."""
@@ -282,6 +287,9 @@ class ConsciousCell:
     cluster_id: int = -1
     cluster_weight: float = 1.0
 
+    # Parametric behaviors (new abstract system)
+    behaviors: VertexBehaviors = field(default_factory=VertexBehaviors.default)
+
     @property
     def role_idx(self) -> int:
         """Índice del rol dominante."""
@@ -333,31 +341,27 @@ class ConsciousCell:
 
     def get_movement_bias(self) -> Tuple[float, float]:
         """
-        Calcula sesgo de movimiento basado en arquetipo dominante.
+        Calcula sesgo de movimiento basado en el vector de comportamiento parametrico.
+
+        El comportamiento se deriva del BehaviorVector asociado al vertice
+        dominante, eliminando el switch hardcodeado por arquetipo.
 
         Returns:
             (dx_bias, dy_bias) multiplicadores para movimiento
         """
-        dominant = self.psyche.dominant
+        # Get behavior vector for dominant vertex
+        b = self.behaviors.get(self.psyche.dominant)
 
-        if dominant == Archetype.PERSONA:
-            # Persona: sigue al grupo (mayor respuesta al campo)
-            return (1.3, 1.3)
-        elif dominant == Archetype.SOMBRA:
-            # Sombra: errático, puede ir contra el campo
-            if np.random.random() < 0.3:
-                return (-1.0, -1.0)
-            return (1.0, 1.0)
-        elif dominant == Archetype.ANIMA:
-            # Anima: busca cercanía (atracción extra)
-            return (1.1, 1.1)
-        elif dominant == Archetype.ANIMUS:
-            # Animus: explorador (movimiento ocasional aleatorio)
-            if np.random.random() < 0.2:
-                return (np.random.uniform(-1, 1), np.random.uniform(-1, 1))
-            return (1.0, 1.0)
+        # Check opposition first (disruptor behavior)
+        if np.random.random() < b.opposition:
+            return (-1.0, -1.0)
 
-        return (1.0, 1.0)
+        # Check exploration (explorer behavior)
+        if np.random.random() < b.exploration:
+            return (np.random.uniform(-1, 1), np.random.uniform(-1, 1))
+
+        # Default: use field_response and attraction
+        return (b.field_response, b.attraction)
 
     def to_dict(self) -> dict:
         """Serializa a diccionario."""

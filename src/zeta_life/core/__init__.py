@@ -1,10 +1,16 @@
-"""
-Core mathematical foundations using Riemann zeta zeros.
+"""Core abstractions for Zeta Life.
 
-The fundamental kernel: K_σ(t) = 2 * Σ exp(-σ|γ|) * cos(γt)
-where γ are the imaginary parts of zeta zeros (14.134725, 21.022040, 25.010858, ...)
+This module contains the abstract vertex system that replaces
+Jungian archetypes with semantically-neutral geometric vertices.
 """
 
-from .zeta_rnn import ZetaLSTMCell, ZetaLSTM, ZetaMemoryLayer, ZetaSequenceGenerator, ZetaLSTMExperiment, get_zeta_zeros
-from .zeta_resonance import ZetaSpectrumAnalyzer, ZetaMemoryGated
-from .zeta_memory import ZetaMemorySystem, EpisodicMemory, SemanticMemory, MemoryAwarePsyche
+from .vertex import Vertex, BehaviorVector, VertexBehaviors
+from .tetrahedral_space import TetrahedralSpace, get_tetrahedral_space
+
+__all__ = [
+    'Vertex',
+    'BehaviorVector',
+    'VertexBehaviors',
+    'TetrahedralSpace',
+    'get_tetrahedral_space',
+]

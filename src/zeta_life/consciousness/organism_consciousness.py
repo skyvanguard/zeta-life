@@ -18,9 +18,13 @@ from enum import Enum
 from datetime import datetime
 
 # Importar del sistema existente
-from ..psyche.zeta_psyche import Archetype
+from ..core.vertex import Vertex
+from ..core.tetrahedral_space import get_tetrahedral_space
 from ..psyche.zeta_individuation import IndividuationStage, IntegrationMetrics
 from ..psyche.zeta_conscious_self import ConsciousnessIndex
+
+# Backwards compatibility alias
+Archetype = Vertex
 
 # Importar de módulos nuevos
 from .micro_psyche import ConsciousCell, MicroPsyche, unbiased_argmax
@@ -86,19 +90,14 @@ class OrganismConsciousness:
         """Balance arquetipal (0=dominante único, 1=equilibrio perfecto)."""
         return self.global_archetype.min().item() * 4
 
-    def get_complementary_need(self) -> Archetype:
+    def get_complementary_need(self) -> Vertex:
         """
-        Retorna el arquetipo que más necesita atención.
+        Retorna el vertice que mas necesita atencion.
 
-        Es el opuesto del dominante, para promover equilibrio.
+        Es el opuesto geometrico del dominante, para promover equilibrio.
         """
-        complements = {
-            Archetype.PERSONA: Archetype.SOMBRA,
-            Archetype.SOMBRA: Archetype.PERSONA,
-            Archetype.ANIMA: Archetype.ANIMUS,
-            Archetype.ANIMUS: Archetype.ANIMA,
-        }
-        return complements[self.dominant_archetype]
+        space = get_tetrahedral_space()
+        return space.get_complement(self.dominant_archetype)
 
     def get_weakest_archetype(self) -> Archetype:
         """Retorna el arquetipo con menor peso."""

@@ -38,29 +38,33 @@ from mpl_toolkits.mplot3d import Axes3D
 
 
 # =============================================================================
-# ARQUETIPOS DE JUNG
+# VERTICES ABSTRACTOS (antes Arquetipos de Jung)
 # =============================================================================
+# NOTA: Para nuevos desarrollos, usar zeta_life.core.vertex.Vertex
+# y zeta_life.narrative.NarrativeMapper para visualizacion.
+# Los siguientes son aliases de compatibilidad.
 
-class Archetype(Enum):
-    """Los 4 arquetipos fundamentales de Jung."""
-    PERSONA = 0   # Mascara social - Rojo
-    SOMBRA = 1    # Inconsciente oscuro - Negro/Morado
-    ANIMA = 2     # Lado receptivo/emocional - Azul
-    ANIMUS = 3    # Lado activo/racional - Naranja
+from ..core.vertex import Vertex
 
+# Backwards compatibility: Archetype es ahora alias de Vertex
+Archetype = Vertex
 
+# Colores por vertice (para visualizacion legacy)
+# Nuevos desarrollos deben usar NarrativeMapper.get_color()
 ARCHETYPE_COLORS = {
-    Archetype.PERSONA: '#E53E3E',   # Rojo
-    Archetype.SOMBRA: '#553C9A',    # Morado oscuro
-    Archetype.ANIMA: '#3182CE',     # Azul
-    Archetype.ANIMUS: '#DD6B20',    # Naranja
+    Vertex.V0: '#E53E3E',   # Rojo (was PERSONA)
+    Vertex.V1: '#553C9A',   # Morado oscuro (was SOMBRA)
+    Vertex.V2: '#3182CE',   # Azul (was ANIMA)
+    Vertex.V3: '#DD6B20',   # Naranja (was ANIMUS)
 }
 
+# Descripciones por vertice (para visualizacion legacy)
+# Nuevos desarrollos deben usar NarrativeMapper.get_description()
 ARCHETYPE_DESCRIPTIONS = {
-    Archetype.PERSONA: "La mascara que mostramos al mundo",
-    Archetype.SOMBRA: "Lo reprimido, el lado oscuro",
-    Archetype.ANIMA: "El lado emocional, receptivo, interno",
-    Archetype.ANIMUS: "El lado racional, activo, logos",
+    Vertex.V0: "La mascara que mostramos al mundo",
+    Vertex.V1: "Lo reprimido, el lado oscuro",
+    Vertex.V2: "El lado emocional, receptivo, interno",
+    Vertex.V3: "El lado racional, activo, logos",
 }
 
 

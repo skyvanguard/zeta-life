@@ -19,7 +19,11 @@ from typing import List, Dict, Optional, Tuple
 from dataclasses import dataclass
 
 # Importar del sistema existente
-from ..psyche.zeta_psyche import Archetype
+from ..core.vertex import Vertex
+from ..core.tetrahedral_space import get_tetrahedral_space
+
+# Backwards compatibility alias
+Archetype = Vertex
 
 # Importar de módulos nuevos
 from .micro_psyche import ConsciousCell, MicroPsyche, unbiased_argmax
@@ -140,15 +144,10 @@ class TopDownModulator(nn.Module):
 
         return float(min(1.0, base_attention))
 
-    def _get_complement_idx(self, archetype: Archetype) -> int:
-        """Retorna índice del arquetipo complementario."""
-        complements = {
-            Archetype.PERSONA: 1,   # SOMBRA
-            Archetype.SOMBRA: 0,    # PERSONA
-            Archetype.ANIMA: 3,     # ANIMUS
-            Archetype.ANIMUS: 2,    # ANIMA
-        }
-        return complements[archetype]
+    def _get_complement_idx(self, vertex: Vertex) -> int:
+        """Retorna indice del vertice complementario (geometrico)."""
+        space = get_tetrahedral_space()
+        return space.get_complement(vertex).value
 
     def distribute_attention(
         self,
