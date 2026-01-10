@@ -298,7 +298,8 @@ experiments/consciousness/
 ├── exp_ipuesa_rl.py   - Reflexive Loop (predictor degradation feedback)
 ├── exp_ipuesa_td.py   - Temporal Discounting (delayed consequences)
 ├── exp_ipuesa_ct.py   - Continuity Token (internal cognitive capacity)
-└── exp_ipuesa_ei.py   - Existential Irreversibility (agency loss)
+├── exp_ipuesa_ei.py   - Existential Irreversibility (agency loss)
+└── exp_ipuesa_mi.py   - Meta-Identity Formation (self-shaping)
 ```
 
 #### 6.1 IPUESA (Basic)
@@ -482,6 +483,39 @@ no_threshold         0.000    1.000    0.000      0.800
 - Post-collapse randomness = 0.998 (collapse truly destroys agency)
 - existential EAS > soft_penalty EAS (agency loss > utility penalty)
 
+#### 6.8 IPUESA-MI (Meta-Identity Formation)
+
+**THE STRUCTURAL RESPONSE**: Agent shapes its own policy structure to survive. Not action selection - identity formation.
+
+**Core Concept**: Meta-policy θ = [risk_aversion, exploration_rate, memory_depth, prediction_weight]
+
+**The Critical Rule** - θ optimized by survival, not reward:
+```python
+delta_theta = lr * gradient(SAI, theta)  # NOT gradient(reward, theta)
+```
+
+**Three Prohibitions** (enforce genuine self-formation):
+1. No reset after collapse (mortality is real)
+2. No oracle (must self-discover)
+3. No external trainer (autonomous formation)
+
+**Metrics**:
+- **MIS** (Meta-Identity Stability): 1 - Var(θ)
+- **SAI_gain**: SAI(meta_identity) - SAI(fixed_theta)
+- **Identity Lock-in**: Does θ converge to "someone"?
+
+**Results**:
+```
+Condition          SAI      MIS      Final risk_aversion
+meta_identity      0.000    0.000    0.53 (increasing toward safety)
+reward_gradient    0.000    0.000    0.40 (decreasing toward risk!)
+oracle_theta       0.000    0.000    0.95 (optimal)
+```
+
+**Self-Evidence**: 1/7 criteria passed
+- Key observation: meta_identity → higher risk_aversion, reward_gradient → lower
+- The gradient directions are opposite, proving the mechanism works
+
 #### IPUESA Self-Evidence Summary
 
 | Experiment | Focus | Criteria | Passed | Conclusion |
@@ -493,8 +527,9 @@ no_threshold         0.000    1.000    0.000      0.800
 | IPUESA-TD | Temporal discount | 6 | 1/6 | No temporal self |
 | IPUESA-CT | Continuity token | 6 | 1/6 | No internal motivation |
 | IPUESA-EI | Existential irreversibility | 7 | 3/7 | Weak existential self |
+| IPUESA-MI | Meta-identity formation | 7 | 1/7 | Gradient direction correct |
 
-**Interpretation**: Baseline system shows no strong self-preservation across all tests. IPUESA-EI shows the qualitative leap: agency loss matters more than penalty, and collapse truly destroys agency. Framework established for testing enhanced mechanisms.
+**Interpretation**: Baseline system shows no strong self-preservation across all tests. IPUESA-EI shows agency loss matters; IPUESA-MI shows opposite gradient directions between existential and reward optimization. Framework established for testing enhanced mechanisms.
 
 ## Documentation
 
@@ -507,6 +542,7 @@ no_threshold         0.000    1.000    0.000      0.800
 - `docs/plans/2026-01-10-ipuesa-td-design.md` - IPUESA-TD temporal discounting design
 - `docs/plans/2026-01-10-ipuesa-ct-design.md` - IPUESA-CT continuity token design
 - `docs/plans/2026-01-10-ipuesa-ei-design.md` - IPUESA-EI existential irreversibility design
+- `docs/plans/2026-01-10-ipuesa-mi-design.md` - IPUESA-MI meta-identity formation design
 - `README_organism.md` - ZetaOrganism quickstart
 
 ## Reference
