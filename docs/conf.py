@@ -1,5 +1,11 @@
 # Configuration file for the Sphinx documentation builder.
 
+import os
+import sys
+
+# Add source directory to path for autodoc
+sys.path.insert(0, os.path.abspath('../src'))
+
 # -- Project information -----------------------------------------------------
 project = 'Zeta-Life'
 copyright = '2026, IPUESA Research'
@@ -8,8 +14,6 @@ release = '0.1.0'
 
 # -- General configuration ---------------------------------------------------
 extensions = [
-    'sphinx.ext.autodoc',
-    'sphinx.ext.autosummary',
     'sphinx.ext.napoleon',
     'sphinx.ext.viewcode',
     'sphinx.ext.intersphinx',
@@ -29,6 +33,26 @@ autodoc_default_options = {
 }
 
 autosummary_generate = True
+
+# Mock imports that may cause issues during doc generation
+autodoc_mock_imports = [
+    'torch',
+    'torch.nn',
+    'torch.optim',
+    'torch.nn.functional',
+    'mpmath',
+    'scipy',
+    'scipy.stats',
+    'scipy.signal',
+    'PIL',
+    'cv2',
+]
+
+# Suppress specific warnings
+suppress_warnings = ['autosummary']
+
+# Don't fail on missing references
+nitpicky = False
 
 # -- Options for Napoleon (Google/NumPy docstrings) --------------------------
 napoleon_google_docstring = True
