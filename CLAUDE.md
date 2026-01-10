@@ -8,7 +8,7 @@ This is the **Zeta Life** project - a research exploration integrating the Riema
 
 1. **Zeta Game of Life**: Cellular automata with zeta-derived kernels
 2. **ZetaOrganism**: Multi-agent emergent intelligence system
-3. **ZetaPsyche/ZetaConsciousness**: Jungian archetype-based AI consciousness
+3. **ZetaPsyche/ZetaConsciousness**: Abstract vertex-based AI consciousness (formerly Jungian archetypes)
 
 **Theoretical Foundation**: Systems use the kernel `K_σ(t) = 2 * Σ exp(-σ|γ|) * cos(γt)` where γ are the imaginary parts of zeta zeros (14.134725, 21.022040, 25.010858, ...).
 
@@ -16,10 +16,11 @@ This is the **Zeta Life** project - a research exploration integrating the Riema
 
 ```
 zeta-life/
-├── src/zeta_life/           # Core library (43 modules)
-│   ├── core/                # Mathematical foundations (zeta kernels)
+├── src/zeta_life/           # Core library (45+ modules)
+│   ├── core/                # Abstract vertices, behaviors, tetrahedral space
+│   ├── narrative/           # Optional display mappings (Jung, functional)
 │   ├── organism/            # Multi-agent emergent intelligence
-│   ├── psyche/              # Jungian consciousness system
+│   ├── psyche/              # Consciousness system
 │   ├── consciousness/       # Hierarchical consciousness
 │   ├── cellular/            # Zeta Game of Life
 │   └── utils/               # Shared utilities
@@ -111,31 +112,55 @@ zeta_organism.py (main system)
 - Competitive exclusion, Niche partition
 - Collective panic, Coordinated escape, Collective foraging
 
-### 3. ZetaPsyche/ZetaConsciousness (Jungian AI)
+### 3. ZetaPsyche/ZetaConsciousness (Abstract Vertices)
 
-Consciousness emergence through navigation in a tetrahedral archetype space.
+Consciousness emergence through navigation in a tetrahedral state space with **abstract vertices** (V0-V3).
+
+**IMPORTANT (2026-01-10)**: The system was refactored to use semantically-neutral vertices instead of Jungian archetypes. This eliminates human psychological bias from calculations while preserving all emergent dynamics.
 
 ```
-zeta_conscious_self.py (unified system)
-├── zeta_psyche.py          - 4 Jungian archetypes in tetrahedral space
-├── zeta_individuation.py   - Self integration process (8 stages)
-├── zeta_attention.py       - 3-level attention system
-├── zeta_predictive.py      - Hierarchical prediction (L1, L2, L3)
-├── zeta_dream_consolidation.py - Dream processing
-├── zeta_online_learning.py - Hebbian + gradient learning
-└── enable_decay=True       - Emergent compensation mode
+src/zeta_life/core/           # Abstract system (NEW)
+├── vertex.py                 - Vertex enum (V0-V3), BehaviorVector, VertexBehaviors
+└── tetrahedral_space.py      - Geometric complements, barycentric coordinates
+
+src/zeta_life/narrative/      # Optional display layer (NEW)
+├── mapper.py                 - NarrativeMapper for visualization
+└── configs/                  - jungian.json, functional.json, neutral.json
+
+src/zeta_life/psyche/         # Consciousness system
+├── zeta_psyche.py            - Archetype is now alias for Vertex
+├── zeta_individuation.py     - Self integration process (8 stages)
+└── zeta_conscious_self.py    - Strange Loop, AttractorMemory
 ```
 
-**Archetipos** (vertices of tetrahedron):
-- PERSONA: Social mask (red)
-- SOMBRA: Shadow/unconscious (purple)
-- ANIMA: Receptive/emotional (blue)
-- ANIMUS: Active/rational (orange)
-- Center = Self (full integration)
+**Abstract Vertices** (tetrahedral geometry):
+
+| Vertex | Functional | Jungian (narrative) | Behavior Vector | Complement |
+|--------|------------|---------------------|-----------------|------------|
+| V0 | LEADER | PERSONA | [1.3, 1.0, 0.0, 0.0] | V1 |
+| V1 | DISRUPTOR | SOMBRA | [1.0, 1.0, 0.0, 0.3] | V0 |
+| V2 | FOLLOWER | ANIMA | [1.0, 1.1, 0.0, 0.0] | V3 |
+| V3 | EXPLORER | ANIMUS | [1.0, 1.0, 0.2, 0.0] | V2 |
+
+**Behavior Vector**: `[field_response, attraction, exploration, opposition]`
+
+**Usage**:
+```python
+# Core (bias-free calculations)
+from zeta_life.core import Vertex, VertexBehaviors, TetrahedralSpace
+behaviors = VertexBehaviors.default()  # or .uniform() for control
+space = TetrahedralSpace()
+complement = space.get_complement(Vertex.V0)  # → V1
+
+# Narrative (visualization only)
+from zeta_life.narrative import NarrativeMapper
+mapper = NarrativeMapper.jungian()
+name = mapper.get_name(Vertex.V0, layer='narrative')  # → "PERSONA"
+```
 
 **Consciousness Index**:
 ```
-consciousness = 0.3*integration + 0.3*stability + 0.2*(1-dist_to_self) + 0.2*|self_reference|
+consciousness = 0.3*integration + 0.3*stability + 0.2*(1-dist_to_center) + 0.2*|self_reference|
 ```
 
 ### 4. Hierarchical Consciousness System (2026-01-03)
@@ -261,12 +286,35 @@ python chat_psyche.py --reflection  # See Strange Loop in action
 - **Vertical coherence**: Real metric measuring cell→cluster→organism alignment (0.72-0.88)
 - **Dynamic clustering**: Merge/split operations based on coherence thresholds
 
+### 6. IPUESA Experiment (2026-01-10)
+
+**Identity Preference Under Equally Stable Attractors** - Tests whether the system exhibits normative identity (preference for historical attractor) vs pure homeostasis.
+
+```
+experiments/consciousness/exp_ipuesa.py
+├── Phase 1: History/imprinting at Attractor A
+├── Phase 2: Construct equivalent Attractor B (same depth, stability)
+├── Phase 3: Perturbation to neutral zone
+└── Phase 4: Observe which attractor system returns to
+```
+
+**Conditions**: full, no_kernel, random_kernel, no_history, split_history
+
+**Criteria**: P(A) >> P(B) with statistical significance indicates emergent self
+
+**Current Results** (baseline):
+```
+P(A) = 46.7%  |  p-value = 0.71  |  NO EVIDENCE OF SELF
+System behaves as pure homeostasis (expected baseline)
+```
+
 ## Documentation
 
 - `docs/REPORTE_ZETA_ORGANISM.md` - Full research report with all experiments
 - `docs/ZETA_PSYCHE.md` - ZetaPsyche system documentation
 - `docs/EMERGENT_COMPENSATION.md` - Emergent compensation behavior discovery
 - `docs/zeta-lstm-hallazgos.md` - ZetaLSTM findings
+- `docs/plans/2026-01-09-abstract-vertices-design.md` - Abstract vertices design document
 - `README_organism.md` - ZetaOrganism quickstart
 
 ## Reference
