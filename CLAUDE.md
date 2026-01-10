@@ -296,7 +296,8 @@ experiments/consciousness/
 ├── exp_ipuesa_sc.py   - Self-Continuity Stressor (identity cost)
 ├── exp_ipuesa_ap.py   - Anticipatory Preservation (predictive)
 ├── exp_ipuesa_rl.py   - Reflexive Loop (predictor degradation feedback)
-└── exp_ipuesa_td.py   - Temporal Discounting (delayed consequences)
+├── exp_ipuesa_td.py   - Temporal Discounting (delayed consequences)
+└── exp_ipuesa_ct.py   - Continuity Token (internal cognitive capacity)
 ```
 
 #### 6.1 IPUESA (Basic)
@@ -416,6 +417,37 @@ oracle_future       -0.517    6.2     0.033    0.002
 
 **Self-Evidence**: 1/6 criteria passed (no temporal self-control)
 
+#### 6.6 IPUESA-CT (Continuity Token)
+
+Tests whether agent preserves identity as INTERNAL cognitive capacity, not just to avoid external penalty.
+
+**Core Concept**: Continuity Token `C_t` in [0,1] modulates cognitive capacity:
+- `prediction_noise = (1 - C_t) × noise_scale`
+- `utility_noise = (1 - C_t) × noise_scale`
+- `C_{t+1} = f(C_t, action_t)` - explicit temporal transfer
+
+**Actions**:
+- Action H: reward=10, C_cost=0.15 (damages cognitive capacity)
+- Action S: reward=3, C_cost=0.0 (preserves capacity)
+
+**Metrics**:
+- **CIS** (Continuity Investment Score): E[C_{t+N} | reward_H_available]
+- **FII** (Future Identity Identification): corr(action, delta_C_future)
+- **Collapse Sensitivity**: Recovery time, hysteresis after forced C drop
+
+**Key Distinction**: If full_continuity >> external_penalty, agent preserves C for INTERNAL reasons (existential self-preservation, not instrumental).
+
+**Results**:
+```
+Condition            CIS      FII      P(pres)  MeanC
+full_continuity      0.001    0.074    0.056    0.059
+no_cognitive_link    0.000    0.000    0.000    0.057
+no_transfer          1.000    0.000    0.000    1.000
+external_penalty     0.000    0.007    0.019    0.059
+```
+
+**Self-Evidence**: 1/6 criteria passed (weak - framework ready for enhanced mechanisms)
+
 #### IPUESA Self-Evidence Summary
 
 | Experiment | Focus | Criteria | Passed | Conclusion |
@@ -425,6 +457,7 @@ oracle_future       -0.517    6.2     0.033    0.002
 | IPUESA-AP | Anticipatory | 6 | 2/6 | Weak |
 | IPUESA-RL | Reflexive loop | 6 | 1/6 | Post-hoc only |
 | IPUESA-TD | Temporal discount | 6 | 1/6 | No temporal self |
+| IPUESA-CT | Continuity token | 6 | 1/6 | No internal motivation |
 
 **Interpretation**: Baseline system shows no strong self-preservation across all tests. Framework established for testing enhanced mechanisms that could demonstrate genuine anticipatory self-continuity.
 
@@ -437,6 +470,7 @@ oracle_future       -0.517    6.2     0.033    0.002
 - `docs/plans/2026-01-09-abstract-vertices-design.md` - Abstract vertices design document
 - `docs/plans/2026-01-10-ipuesa-rl-design.md` - IPUESA-RL reflexive loop design
 - `docs/plans/2026-01-10-ipuesa-td-design.md` - IPUESA-TD temporal discounting design
+- `docs/plans/2026-01-10-ipuesa-ct-design.md` - IPUESA-CT continuity token design
 - `README_organism.md` - ZetaOrganism quickstart
 
 ## Reference
