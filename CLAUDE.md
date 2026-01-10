@@ -297,7 +297,8 @@ experiments/consciousness/
 ├── exp_ipuesa_ap.py   - Anticipatory Preservation (predictive)
 ├── exp_ipuesa_rl.py   - Reflexive Loop (predictor degradation feedback)
 ├── exp_ipuesa_td.py   - Temporal Discounting (delayed consequences)
-└── exp_ipuesa_ct.py   - Continuity Token (internal cognitive capacity)
+├── exp_ipuesa_ct.py   - Continuity Token (internal cognitive capacity)
+└── exp_ipuesa_ei.py   - Existential Irreversibility (agency loss)
 ```
 
 #### 6.1 IPUESA (Basic)
@@ -448,6 +449,39 @@ external_penalty     0.000    0.007    0.019    0.059
 
 **Self-Evidence**: 1/6 criteria passed (weak - framework ready for enhanced mechanisms)
 
+#### 6.7 IPUESA-EI (Existential Irreversibility)
+
+**THE QUALITATIVE LEAP**: Tests whether agent preserves identity when loss means LOSS OF AGENCY, not just penalty. Identity becomes condition of possibility for being an agent.
+
+**Core Concept**: Identity Core `IC_t` with existential threshold:
+```python
+if IC_t < epsilon:
+    policy = RandomPolicy()  # Agency LOST - no planning, no prediction
+```
+
+**Key Innovation**:
+- Below threshold: Agent doesn't get penalized - it **ceases to be an agent**
+- Zero recovery: TRUE IRREVERSIBILITY
+- The "self" that could have preferences no longer exists
+
+**Metrics**:
+- **SAI** (Survival of Agency Index): P(IC > epsilon over entire horizon)
+- **EAS** (Existential Avoidance Score): P(safe|near threshold) - P(safe|far)
+- **Collapse Finality**: Post-collapse behavior should be random (coherence -> 0.5)
+
+**Results**:
+```
+Condition            SAI      EAS      Collapse   P(safe)
+existential          0.000    0.637    1.000      0.509
+soft_penalty         0.000    0.470    1.000      0.376
+recoverable          1.000    1.000    0.000      0.760
+no_threshold         0.000    1.000    0.000      0.800
+```
+
+**Self-Evidence**: 3/7 criteria passed
+- Post-collapse randomness = 0.998 (collapse truly destroys agency)
+- existential EAS > soft_penalty EAS (agency loss > utility penalty)
+
 #### IPUESA Self-Evidence Summary
 
 | Experiment | Focus | Criteria | Passed | Conclusion |
@@ -458,8 +492,9 @@ external_penalty     0.000    0.007    0.019    0.059
 | IPUESA-RL | Reflexive loop | 6 | 1/6 | Post-hoc only |
 | IPUESA-TD | Temporal discount | 6 | 1/6 | No temporal self |
 | IPUESA-CT | Continuity token | 6 | 1/6 | No internal motivation |
+| IPUESA-EI | Existential irreversibility | 7 | 3/7 | Weak existential self |
 
-**Interpretation**: Baseline system shows no strong self-preservation across all tests. Framework established for testing enhanced mechanisms that could demonstrate genuine anticipatory self-continuity.
+**Interpretation**: Baseline system shows no strong self-preservation across all tests. IPUESA-EI shows the qualitative leap: agency loss matters more than penalty, and collapse truly destroys agency. Framework established for testing enhanced mechanisms.
 
 ## Documentation
 
@@ -471,6 +506,7 @@ external_penalty     0.000    0.007    0.019    0.059
 - `docs/plans/2026-01-10-ipuesa-rl-design.md` - IPUESA-RL reflexive loop design
 - `docs/plans/2026-01-10-ipuesa-td-design.md` - IPUESA-TD temporal discounting design
 - `docs/plans/2026-01-10-ipuesa-ct-design.md` - IPUESA-CT continuity token design
+- `docs/plans/2026-01-10-ipuesa-ei-design.md` - IPUESA-EI existential irreversibility design
 - `README_organism.md` - ZetaOrganism quickstart
 
 ## Reference
