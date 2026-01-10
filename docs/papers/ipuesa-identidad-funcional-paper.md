@@ -113,6 +113,9 @@ Proporción que sobrevive. Debe estar en zona Goldilocks—ni trivial (todos viv
 
 Esta sección documenta qué falló. Consideramos esto la contribución más importante, ya que revela qué es realmente necesario para la identidad funcional.
 
+![Figura 2: Línea temporal de falsación progresiva](figures/fig2_falsification.png)
+*Figura 2: Evolución de experimentos mostrando fallas sistemáticas y correcciones requeridas.*
+
 ### 4.1 IPUESA-TD: El Aprendizaje Temporal se Invierte
 
 **Hipótesis**: Agentes que anticipan costo futuro reducirán comportamiento riesgoso.
@@ -163,11 +166,17 @@ Esta sección documenta qué falló. Consideramos esto la contribución más imp
 
 **El patrón**: Cada expectativa "natural" o "emergente" falló. El éxito requirió implementación explícita de cada propiedad.
 
+![Figura 7: De problema a solución](figures/fig7_mechanisms.png)
+*Figura 7: Mapeo directo entre cada falla y el mecanismo específico que la corrigió.*
+
 ---
 
 ## 5. SYNTH-v2: La Configuración Mínima Funcional
 
 ### 5.1 Arquitectura
+
+![Figura 1: Arquitectura SYNTH-v2](figures/fig1_architecture.png)
+*Figura 1: Arquitectura de dos niveles (Agente y Cluster) con tormenta calibrada.*
 
 ```
 Nivel Agente
@@ -215,6 +224,9 @@ degradación += daño * tasa_base * factor_individual * modificador_cluster + ru
 
 ### 5.3 La Zona Goldilocks
 
+![Figura 3: Zona Goldilocks](figures/fig3_goldilocks.png)
+*Figura 3: Supervivencia vs. multiplicador de daño. El régimen funcional (zona verde) es extremadamente estrecho.*
+
 El sistema logra todos los criterios solo a **3.9× multiplicador de daño**.
 
 | Daño | HS | Resultado |
@@ -236,6 +248,9 @@ Esto es paralelo a observaciones biológicas: los organismos mantienen homeostas
 ## 6. Validación
 
 ### 6.1 Estudio de Ablación
+
+![Figura 4: Estudio de ablación](figures/fig4_ablation.png)
+*Figura 4: Matriz de ablación mostrando el impacto de remover cada componente. Verde = pasa, rojo = falla.*
 
 Removimos cada componente de deg_var individualmente:
 
@@ -261,6 +276,9 @@ Removimos cada componente de deg_var individualmente:
 **Hallazgo**: El sistema es robusto a variación de ruido y recuperación pero frágil a variación de daño. La zona Goldilocks es real y estrecha.
 
 ### 6.3 Repetibilidad
+
+![Figura 5: Distribución de repetibilidad](figures/fig5_repeatability.png)
+*Figura 5: Distribución de cada métrica sobre 16 semillas aleatorias. Líneas punteadas = umbrales.*
 
 16 semillas aleatorias, todos los otros parámetros fijos:
 
@@ -292,6 +310,9 @@ Removimos cada componente de deg_var individualmente:
 4. **Las transiciones suaves requieren varianza**: Sin ruido ingenierado, los sistemas son bistables (v1).
 
 5. **La zona Goldilocks es estrecha**: La identidad funcional existe solo bajo estrés calibrado.
+
+![Figura 6: Comparación radar de condiciones](figures/fig6_radar.png)
+*Figura 6: Perfil de métricas comparando SYNTH-v2 completo vs. ablaciones. Solo la configuración completa cubre todas las áreas.*
 
 ### 7.2 Qué NO Demuestra Esto
 
