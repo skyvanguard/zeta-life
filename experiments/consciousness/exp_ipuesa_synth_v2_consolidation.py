@@ -21,6 +21,7 @@ import json
 from pathlib import Path
 import sys
 from datetime import datetime
+from scipy import stats
 
 # Import from main experiment (reuse core structures)
 from exp_ipuesa_synth_v2 import (
@@ -30,6 +31,45 @@ from exp_ipuesa_synth_v2 import (
     sync_agent_embedding, consolidate_modules, spread_modules_in_cluster,
     to_native
 )
+
+# Statistical utilities
+try:
+    from zeta_life.utils.statistics import (
+        compute_confidence_interval,
+        summarize_distribution,
+        compare_conditions,
+        format_ci
+    )
+except ImportError:
+    # Fallback if package not installed
+    def compute_confidence_interval(data, confidence=0.95):
+        if len(data) < 2:
+            m = data[0] if data else 0.0
+            return m, m, m
+        arr = np.array(data)
+        mean = np.mean(arr)
+        se = stats.sem(arr)
+        t_crit = stats.t.ppf(1 - (1-confidence)/2, df=len(arr)-1)
+        margin = t_crit * se
+        return float(mean), float(mean - margin), float(mean + margin)
+
+    def summarize_distribution(data):
+        arr = np.array(data)
+        mean, ci_lo, ci_hi = compute_confidence_interval(data)
+        return {
+            'n': len(data), 'mean': float(np.mean(arr)),
+            'std': float(np.std(arr, ddof=1)) if len(arr) > 1 else 0.0,
+            'ci_95_lower': ci_lo, 'ci_95_upper': ci_hi,
+        }
+
+    def format_ci(mean, lower, upper, decimals=3):
+        return f"{mean:.{decimals}f} [{lower:.{decimals}f}, {upper:.{decimals}f}]"
+
+    def compare_conditions(c1, c2, test='mann_whitney'):
+        if len(c1) < 3 or len(c2) < 3:
+            return {'p_value': None}
+        stat, p = stats.mannwhitneyu(c1, c2, alternative='two-sided')
+        return {'p_value': float(p), 'statistic': float(stat)}
 
 
 # =============================================================================
@@ -904,44 +944,80 @@ def main():
 
     all_output = {}
 
-    # Test 1: Extreme Ablation
-    ablation_results = run_extreme_ablation(n_runs=8)
+    # Test 1: Extreme Ablation (N=20 for statistical power)
+    ablation_results = run_extreme_ablation(n_runs=20)
     all_output['ablation'] = to_native(ablation_results)
 
-    # Test 2: Parametric Robustness
-    robustness_results = run_parametric_robustness(n_runs=6)
+    # Test 2: Parametric Robustness (N=12 per condition)
+    robustness_results = run_parametric_robustness(n_runs=12)
     all_output['robustness'] = to_native(robustness_results)
 
-    # Test 3: Repeatability
-    repeatability_results = run_repeatability(n_seeds=16)
+    # Test 3: Repeatability (N=20 seeds for confidence)
+    repeatability_results = run_repeatability(n_seeds=20)
+    n_seeds = 20
+
+    # Compute confidence intervals for key metrics
+    metrics_by_name = {}
+    for r in repeatability_results['results']:
+        for metric, val in r.items():
+            if isinstance(val, (int, float)) and metric not in ['seed', 'criteria_passed']:
+                if metric not in metrics_by_name:
+                    metrics_by_name[metric] = []
+                metrics_by_name[metric].append(val)
+
+    metrics_with_ci = {}
+    for metric, values in metrics_by_name.items():
+        mean, ci_lo, ci_hi = compute_confidence_interval(values)
+        metrics_with_ci[metric] = {
+            'mean': mean,
+            'ci_95_lower': ci_lo,
+            'ci_95_upper': ci_hi,
+            'std': float(np.std(values, ddof=1)) if len(values) > 1 else 0.0,
+            'n': len(values)
+        }
+
+    criteria_passed = [r['criteria_passed'] for r in repeatability_results['results']]
+    cp_mean, cp_lo, cp_hi = compute_confidence_interval(criteria_passed)
+
     all_output['repeatability'] = {
         'distributions': to_native(repeatability_results['distributions']),
+        'metrics_with_ci': metrics_with_ci,
         'summary': {
-            'n_seeds': 16,
-            'mean_criteria_passed': np.mean([r['criteria_passed'] for r in repeatability_results['results']]),
-            'pass_rate_5_of_6': sum(1 for r in repeatability_results['results'] if r['criteria_passed'] >= 5) / 16
+            'n_seeds': n_seeds,
+            'mean_criteria_passed': cp_mean,
+            'ci_criteria_passed': [cp_lo, cp_hi],
+            'pass_rate_5_of_6': sum(1 for r in repeatability_results['results'] if r['criteria_passed'] >= 5) / n_seeds,
+            'pass_rate_6_of_6': sum(1 for r in repeatability_results['results'] if r['criteria_passed'] >= 6) / n_seeds
         }
     }
 
-    # Final Summary
+    # Final Summary with Confidence Intervals
     print("\n" + "=" * 70)
-    print("CONSOLIDATION SUMMARY")
+    print("CONSOLIDATION SUMMARY (with 95% Confidence Intervals)")
     print("=" * 70)
 
-    print("\n1. EXTREME ABLATION:")
+    print("\n1. EXTREME ABLATION (N=20 runs per condition):")
     print("   - Full system: 6/6 criteria")
     for name, res in ablation_results.items():
         if name != 'full':
             print(f"   - {name}: {res['criteria_passed']}/6 criteria "
                   f"(deg_var={res['degradation_variance']:.4f})")
 
-    print("\n2. PARAMETRIC ROBUSTNESS:")
+    print("\n2. PARAMETRIC ROBUSTNESS (N=12 runs per condition):")
     robust_count = sum(1 for r in robustness_results.values() if r['criteria_passed'] >= 5)
     print(f"   - {robust_count}/{len(robustness_results)} variations pass >=5/6")
 
-    print("\n3. REPEATABILITY:")
-    print(f"   - Mean criteria passed: {all_output['repeatability']['summary']['mean_criteria_passed']:.2f}/6")
+    print("\n3. REPEATABILITY (N=20 seeds):")
+    print(f"   - Criteria passed: {format_ci(cp_mean, cp_lo, cp_hi)}/6")
     print(f"   - Pass rate (>=5/6): {100*all_output['repeatability']['summary']['pass_rate_5_of_6']:.1f}%")
+    print(f"   - Pass rate (6/6): {100*all_output['repeatability']['summary']['pass_rate_6_of_6']:.1f}%")
+
+    print("\n4. KEY METRICS (mean [95% CI]):")
+    key_metrics = ['HS', 'TAE', 'MSR', 'ED', 'deg_var', 'EI']
+    for m in key_metrics:
+        if m in metrics_with_ci:
+            ci = metrics_with_ci[m]
+            print(f"   - {m}: {format_ci(ci['mean'], ci['ci_95_lower'], ci['ci_95_upper'])}")
 
     # Save
     results_path = Path(__file__).parent.parent.parent / 'results' / 'ipuesa_synth_v2_consolidation.json'

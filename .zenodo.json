@@ -1,0 +1,31 @@
+{
+  "title": "Zeta-Life: Functional Identity Attractors in Multi-Agent Systems",
+  "description": "Research framework investigating functional identity attractors in multi-agent systems using Riemann zeta function mathematics. Implements IPUESA methodology for operationalizing self-like behavior through progressive falsification.",
+  "creators": [
+    {
+      "name": "IPUESA Research",
+      "affiliation": "Independent Research"
+    }
+  ],
+  "upload_type": "software",
+  "access_right": "open",
+  "license": "MIT",
+  "keywords": [
+    "artificial life",
+    "consciousness",
+    "riemann zeta function",
+    "emergent intelligence",
+    "multi-agent systems",
+    "jungian psychology",
+    "functional identity",
+    "self-organization"
+  ],
+  "related_identifiers": [
+    {
+      "identifier": "https://github.com/fruiz/zeta-life",
+      "relation": "isSupplementTo",
+      "scheme": "url"
+    }
+  ],
+  "notes": "This software implements the SYNTH-v2 configuration that achieves 6/6 self-evidence criteria within a narrow stress regime (3.9× damage multiplier ± 5%). Key contribution: demonstrates that self-like functional identity is achievable in artificial systems, but requires specific mechanisms and calibrated conditions."
+}

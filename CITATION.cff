@@ -1,0 +1,40 @@
+cff-version: 1.2.0
+title: "Zeta-Life: Functional Identity Attractors in Multi-Agent Systems"
+message: "If you use this software, please cite it as below."
+type: software
+authors:
+  - family-names: "IPUESA"
+    given-names: "Research"
+    affiliation: "Independent Research"
+repository-code: "https://github.com/fruiz/zeta-life"
+url: "https://zeta-life.readthedocs.io"
+abstract: >-
+  Zeta-Life is a research framework investigating functional identity
+  attractors in multi-agent systems. Through progressive falsification,
+  we operationalize "self" as a measurable attractor characterized by
+  anticipation, differentiation, and social propagation. The SYNTH-v2
+  configuration achieves 6/6 self-evidence criteria within a narrow
+  stress regime (3.9× ± 5%), demonstrating that self-like functional
+  identity is achievable, but not free.
+keywords:
+  - artificial-life
+  - consciousness
+  - riemann-zeta
+  - emergent-intelligence
+  - multi-agent-systems
+  - jungian-psychology
+license: MIT
+version: 0.1.0
+date-released: "2026-01-10"
+preferred-citation:
+  type: article
+  authors:
+    - family-names: "IPUESA"
+      given-names: "Research"
+  title: "Functional Identity Attractors in Multi-Agent Systems: What Works, What Fails, and Why It Matters"
+  year: 2026
+  abstract: >-
+    We investigate whether multi-agent systems can exhibit self-maintaining
+    functional identity under stress. Rather than claiming consciousness or
+    spontaneous emergence, we operationalize "self" as a measurable attractor
+    characterized by anticipation, differentiation, and social propagation.

@@ -1,0 +1,65 @@
+# Zeta-Life Docker Compose
+# =========================
+# Services for development and experimentation
+
+version: '3.8'
+
+services:
+  # Main development container
+  zeta-life:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: zeta-life:latest
+    container_name: zeta-life
+    volumes:
+      - ./results:/home/zeta/app/results
+      - ./expected_outputs:/home/zeta/app/expected_outputs
+    environment:
+      - PYTHONPATH=/home/zeta/app/src
+    command: python demos/quickstart.py
+
+  # Run all tests
+  test:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: zeta-life:latest
+    container_name: zeta-life-test
+    command: pytest tests/ -v --tb=short
+
+  # Run IPUESA consolidation
+  consolidation:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: zeta-life:latest
+    container_name: zeta-life-consolidation
+    volumes:
+      - ./results:/home/zeta/app/results
+    command: python experiments/consciousness/exp_ipuesa_synth_v2_consolidation.py
+
+  # Generate paper figures
+  figures:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: zeta-life:latest
+    container_name: zeta-life-figures
+    volumes:
+      - ./docs/papers/figures:/home/zeta/app/docs/papers/figures
+    command: python scripts/generate_paper_figures.py
+
+  # Interactive Jupyter notebook server
+  notebook:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: zeta-life:latest
+    container_name: zeta-life-notebook
+    ports:
+      - "8888:8888"
+    volumes:
+      - ./notebooks:/home/zeta/app/notebooks
+      - ./results:/home/zeta/app/results
+    command: jupyter notebook --ip=0.0.0.0 --port=8888 --no-browser --allow-root

@@ -1,0 +1,74 @@
+{
+  "description": "Expected results for SYNTH-v2 ablation studies",
+  "version": "2026-01-10",
+  "n_runs_per_condition": 20,
+  "conditions": {
+    "full": {
+      "description": "Complete SYNTH-v2 configuration",
+      "criteria_passed": 6,
+      "deg_var_expected": {
+        "min": 0.025,
+        "typical": 0.028,
+        "max": 0.035
+      },
+      "should_pass": true
+    },
+    "no_individual_factor": {
+      "description": "Remove individual degradation variance",
+      "criteria_passed": 5,
+      "deg_var_expected": {
+        "typical": 0.027,
+        "note": "Slight reduction but usually still passes"
+      },
+      "should_pass": "usually"
+    },
+    "no_noise": {
+      "description": "Remove random noise injection",
+      "criteria_passed": 5,
+      "deg_var_expected": {
+        "typical": 0.006,
+        "note": "CRITICAL: drops below 0.02 threshold"
+      },
+      "should_pass": false,
+      "critical": true
+    },
+    "no_cluster_variation": {
+      "description": "Remove cluster-based variation",
+      "criteria_passed": 5,
+      "deg_var_expected": {
+        "typical": 0.020,
+        "note": "On threshold boundary"
+      },
+      "should_pass": "marginal"
+    },
+    "no_slow_recovery": {
+      "description": "Remove slow recovery dynamics",
+      "criteria_passed": 5,
+      "deg_var_expected": {
+        "typical": 0.018,
+        "note": "Below threshold"
+      },
+      "should_pass": false
+    },
+    "none": {
+      "description": "Remove all variance components",
+      "criteria_passed": 5,
+      "deg_var_expected": {
+        "typical": 0.010,
+        "note": "Well below threshold, nearly bistable"
+      },
+      "should_pass": false
+    }
+  },
+  "key_findings": [
+    "Only 'full' configuration consistently passes 6/6 criteria",
+    "Noise is the most critical component (removing it causes biggest deg_var drop)",
+    "All components contribute; none are redundant",
+    "System is bistable without variance engineering"
+  ],
+  "statistical_notes": {
+    "test": "Mann-Whitney U",
+    "comparison": "full vs each ablation",
+    "expected_significance": "p < 0.05 for deg_var difference from full"
+  }
+}
