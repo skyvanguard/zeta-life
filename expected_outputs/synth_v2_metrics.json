@@ -10,40 +10,40 @@
     "embedding_dim": 8
   },
   "thresholds": {
-    "HS": {"min": 0.30, "max": 0.70, "description": "Holographic Survival (Goldilocks zone)"},
-    "TAE": {"min": 0.15, "max": 1.0, "description": "Temporal Anticipation Effectiveness"},
-    "MSR": {"min": 0.15, "max": 1.0, "description": "Module Spreading Rate"},
-    "EI": {"min": 0.30, "max": 1.0, "description": "Embedding Integrity"},
-    "ED": {"min": 0.10, "max": 1.0, "description": "Emergent Differentiation"},
-    "deg_var": {"min": 0.02, "max": 1.0, "description": "Degradation Variance (smoothness)"}
+    "holographic_survival": {"min": 0.30, "max": 0.70, "description": "Holographic Survival (Goldilocks zone)"},
+    "temporal_anticipation_effectiveness": {"min": 0.15, "max": 1.0, "description": "Temporal Anticipation Effectiveness"},
+    "module_spreading_rate": {"min": 0.15, "max": 1.0, "description": "Module Spreading Rate"},
+    "embedding_integrity": {"min": 0.30, "max": 1.0, "description": "Embedding Integrity"},
+    "emergent_differentiation": {"min": 0.10, "max": 1.0, "description": "Emergent Differentiation"},
+    "degradation_variance": {"min": 0.02, "max": 1.0, "description": "Degradation Variance (smoothness)"}
   },
   "expected_values": {
-    "HS": {
+    "holographic_survival": {
       "mean": 0.40,
       "acceptable_range": [0.30, 0.70],
       "typical_std": 0.08
     },
-    "TAE": {
+    "temporal_anticipation_effectiveness": {
       "mean": 0.22,
       "acceptable_range": [0.15, 0.40],
       "typical_std": 0.03
     },
-    "MSR": {
+    "module_spreading_rate": {
       "mean": 0.50,
       "acceptable_range": [0.30, 0.70],
       "typical_std": 0.05
     },
-    "EI": {
+    "embedding_integrity": {
       "mean": 1.0,
       "acceptable_range": [0.80, 1.0],
       "typical_std": 0.02
     },
-    "ED": {
+    "emergent_differentiation": {
       "mean": 0.36,
       "acceptable_range": [0.20, 0.50],
       "typical_std": 0.06
     },
-    "deg_var": {
+    "degradation_variance": {
       "mean": 0.028,
       "acceptable_range": [0.02, 0.05],
       "typical_std": 0.005
@@ -55,8 +55,8 @@
   },
   "notes": [
     "Values based on N=20 seeds at seed base 42",
-    "Damage multiplier 3.9× is optimal (Goldilocks center)",
-    "±20% variation in damage causes complete failure",
+    "Damage multiplier 3.9x is optimal (Goldilocks center)",
+    "+-20% variation in damage causes complete failure",
     "Noise component is critical for deg_var > 0.02"
   ]
 }

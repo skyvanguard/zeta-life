@@ -14,6 +14,19 @@ import json
 from pathlib import Path
 import sys
 
+# Fix Windows console encoding
+if sys.platform == 'win32':
+    try:
+        sys.stdout.reconfigure(encoding='utf-8', errors='replace')
+    except (AttributeError, Exception):
+        pass
+
+# ASCII-safe symbols for cross-platform compatibility
+PASS = "[PASS]"
+FAIL = "[FAIL]"
+WARN = "[WARN]"
+APPROX = "[~]"
+
 
 def load_json(path: Path) -> dict:
     """Load JSON file."""
@@ -53,9 +66,9 @@ def validate_synth_v2(results_path: Path, expected_path: Path) -> tuple:
         lo, hi = exp['acceptable_range']
 
         if lo <= actual <= hi:
-            passes.append(f"{metric}: {actual:.3f} ✓ (expected {lo}-{hi})")
+            passes.append(f"{metric}: {actual:.3f} {PASS} (expected {lo}-{hi})")
         else:
-            issues.append(f"{metric}: {actual:.3f} ✗ (expected {lo}-{hi})")
+            issues.append(f"{metric}: {actual:.3f} {FAIL} (expected {lo}-{hi})")
 
     # Check pass rates
     if 'repeatability' in results and 'summary' in results['repeatability']:
@@ -67,12 +80,12 @@ def validate_synth_v2(results_path: Path, expected_path: Path) -> tuple:
         exp_pass_6 = expected['expected_pass_rates']['pass_6_of_6']['min']
 
         if pass_5 >= exp_pass_5:
-            passes.append(f"Pass rate (5/6): {100*pass_5:.0f}% ✓")
+            passes.append(f"Pass rate (5/6): {100*pass_5:.0f}% {PASS}")
         else:
             issues.append(f"Pass rate (5/6): {100*pass_5:.0f}% < {100*exp_pass_5:.0f}%")
 
         if pass_6 >= exp_pass_6:
-            passes.append(f"Pass rate (6/6): {100*pass_6:.0f}% ✓")
+            passes.append(f"Pass rate (6/6): {100*pass_6:.0f}% {PASS}")
         else:
             issues.append(f"Pass rate (6/6): {100*pass_6:.0f}% < {100*exp_pass_6:.0f}%")
 
@@ -109,7 +122,7 @@ def validate_ablation(results_path: Path, expected_path: Path) -> tuple:
 
         # Check criteria passed
         if actual_passed == exp_passed:
-            passes.append(f"{condition}: {actual_passed}/6 criteria ✓")
+            passes.append(f"{condition}: {actual_passed}/6 criteria {PASS}")
         elif abs(actual_passed - exp_passed) <= 1:
             passes.append(f"{condition}: {actual_passed}/6 criteria ~ (expected {exp_passed})")
         else:
@@ -123,7 +136,7 @@ def validate_ablation(results_path: Path, expected_path: Path) -> tuple:
             for c in ablation if c != 'full'
         ]
         if full_passed >= max(all_others):
-            passes.append("Full config is best or tied ✓")
+            passes.append(f"Full config is best or tied {PASS}")
         else:
             issues.append("Full config is NOT best")
 
@@ -161,9 +174,9 @@ def main():
 
         if not passed:
             all_passed = False
-            print("\n   ⚠ SYNTH-v2 validation FAILED")
+            print(f"\n   {WARN} SYNTH-v2 validation FAILED")
         else:
-            print("\n   ✓ SYNTH-v2 validation PASSED")
+            print(f"\n   {PASS} SYNTH-v2 validation PASSED")
 
     # Validate Ablation
     print("\n2. Ablation Study Validation")
@@ -184,17 +197,17 @@ def main():
 
         if not passed:
             all_passed = False
-            print("\n   ⚠ Ablation validation FAILED")
+            print(f"\n   {WARN} Ablation validation FAILED")
         else:
-            print("\n   ✓ Ablation validation PASSED")
+            print(f"\n   {PASS} Ablation validation PASSED")
 
     # Final summary
     print("\n" + "=" * 60)
     if all_passed:
-        print("OVERALL: ✓ ALL VALIDATIONS PASSED")
+        print(f"OVERALL: {PASS} ALL VALIDATIONS PASSED")
         return 0
     else:
-        print("OVERALL: ⚠ SOME VALIDATIONS FAILED")
+        print(f"OVERALL: {WARN} SOME VALIDATIONS FAILED")
         return 1
 
 
