@@ -98,3 +98,6 @@ nul
 !results/data/
 !models/
 !personal/
+
+# Sphinx build output
+docs/_build/
