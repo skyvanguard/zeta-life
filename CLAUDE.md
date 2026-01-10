@@ -299,7 +299,8 @@ experiments/consciousness/
 ├── exp_ipuesa_td.py   - Temporal Discounting (delayed consequences)
 ├── exp_ipuesa_ct.py   - Continuity Token (internal cognitive capacity)
 ├── exp_ipuesa_ei.py   - Existential Irreversibility (agency loss)
-└── exp_ipuesa_mi.py   - Meta-Identity Formation (self-shaping)
+├── exp_ipuesa_mi.py   - Meta-Identity Formation (self-shaping)
+└── exp_ipuesa_ae.py   - Adaptive Emergence (dual adaptation)
 ```
 
 #### 6.1 IPUESA (Basic)
@@ -516,6 +517,35 @@ oracle_theta       0.000    0.000    0.95 (optimal)
 - Key observation: meta_identity → higher risk_aversion, reward_gradient → lower
 - The gradient directions are opposite, proving the mechanism works
 
+#### 6.9 IPUESA-AE (Adaptive Emergence)
+
+**THE INTEGRATION**: Agent adapts BOTH policy (θ) AND cognitive architecture (α) to survive perturbations.
+
+**Dual Systems:**
+- **θ (WHO)**: risk_aversion, exploration, memory, prediction
+- **α (HOW)**: attention_weights, memory_update_rate, perceptual_gain
+
+**Perturbation Types:** history (scramble), prediction (noise), identity (damage)
+
+**Update Rule:**
+```python
+delta_theta = 0.8 * grad_SAI - 0.2 * grad_reward  # Existential priority
+delta_alpha = 0.8 * grad_SAI - 0.2 * grad_reward
+```
+
+**Results:**
+```
+Condition        SAI_dyn    risk_aversion    attn_prediction
+full_adaptive    0.000      0.78 (+56%)      0.38 (+15%)
+meta_only        0.000      0.73 (+46%)      0.33 (unchanged)
+cognitive_only   0.000      0.50 (unchanged) 0.37 (+12%)
+no_adaptation    0.000      0.50 (unchanged) 0.33 (unchanged)
+```
+
+**Self-Evidence**: 1/8 criteria passed
+- Both θ and α adapt in correct survival-oriented directions
+- full_adaptive shows most plasticity (0.100)
+
 #### IPUESA Self-Evidence Summary
 
 | Experiment | Focus | Criteria | Passed | Conclusion |
@@ -528,8 +558,9 @@ oracle_theta       0.000    0.000    0.95 (optimal)
 | IPUESA-CT | Continuity token | 6 | 1/6 | No internal motivation |
 | IPUESA-EI | Existential irreversibility | 7 | 3/7 | Weak existential self |
 | IPUESA-MI | Meta-identity formation | 7 | 1/7 | Gradient direction correct |
+| IPUESA-AE | Adaptive emergence | 8 | 1/8 | Dual adaptation works |
 
-**Interpretation**: Baseline system shows no strong self-preservation across all tests. IPUESA-EI shows agency loss matters; IPUESA-MI shows opposite gradient directions between existential and reward optimization. Framework established for testing enhanced mechanisms.
+**Interpretation**: Baseline system shows no strong self-preservation across all tests. IPUESA-EI shows agency loss matters; IPUESA-MI/AE show correct adaptation directions. Complete framework (9 experiments) established for testing enhanced mechanisms.
 
 ## Documentation
 
@@ -543,6 +574,7 @@ oracle_theta       0.000    0.000    0.95 (optimal)
 - `docs/plans/2026-01-10-ipuesa-ct-design.md` - IPUESA-CT continuity token design
 - `docs/plans/2026-01-10-ipuesa-ei-design.md` - IPUESA-EI existential irreversibility design
 - `docs/plans/2026-01-10-ipuesa-mi-design.md` - IPUESA-MI meta-identity formation design
+- `docs/plans/2026-01-10-ipuesa-ae-design.md` - IPUESA-AE adaptive emergence design
 - `README_organism.md` - ZetaOrganism quickstart
 
 ## Reference
