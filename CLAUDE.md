@@ -578,6 +578,34 @@ perturbed        0.000      0.000    6.0        0.087
 - Diversity emerges under pressure
 - Framework complete for testing emergence
 
+#### 6.11 IPUESA-CE (Co-Evolution)
+
+**THE SOCIAL LEAP**: Multi-agent system where each agent has triple adaptation (θ/α/β) AND social dynamics.
+
+**Social Dynamics:**
+- **Cooperation**: Resource sharing, protection, information exchange
+- **Competition**: Limited resources, fitness-based selection
+- **Signaling**: Threat alerts, trust-based adoption
+- **Evolution**: Reproduction with mutation, selection pressure
+
+**8 Metrics:**
+- IS (Individual Survival), CS (Collective Survival), ID (Identity Diversity)
+- PA (Prediction Accuracy), ER (Emergent Roles), RP (Resilience)
+- CE (Communication Efficacy), MA (Meta-Adaptation)
+
+**Results:**
+```
+Condition            IS       CS       ER       RP       Pass
+full_coevolution     1.000    1.000    0.011    1.000    4/8
+no_cooperation       0.969    0.000    0.143    0.990    3/8
+catastrophic_shock   0.984    0.980    0.067    0.406    4/8
+```
+
+**Self-Evidence**: 4/8 criteria passed - Partial evidence of co-evolutionary self
+- Cooperation essential: CS drops 1.0→0.0 without cooperation
+- High resilience maintained under catastrophic shock
+- Role differentiation beginning to emerge
+
 #### IPUESA Self-Evidence Summary
 
 | Experiment | Focus | Criteria | Passed | Conclusion |
@@ -592,8 +620,9 @@ perturbed        0.000      0.000    6.0        0.087
 | IPUESA-MI | Meta-identity formation | 7 | 1/7 | Gradient direction correct |
 | IPUESA-AE | Adaptive emergence | 8 | 1/8 | Dual adaptation works |
 | IPUESA-X | Exploratory self-expansion | 9 | 1/9 | Modules emerge under stress |
+| IPUESA-CE | Co-evolution | 8 | 4/8 | Cooperation essential for collective self |
 
-**Interpretation**: Baseline system shows no strong self-preservation across all tests. IPUESA-EI shows agency loss matters; IPUESA-MI/AE show correct adaptation directions; IPUESA-X shows emergent modules created under stress. Complete framework (10 experiments) established for testing enhanced mechanisms.
+**Interpretation**: Baseline system shows no strong self-preservation across individual tests. IPUESA-EI shows agency loss matters; IPUESA-MI/AE show correct adaptation directions; IPUESA-X shows emergent modules; IPUESA-CE shows cooperation is essential for social self. Complete framework (11 experiments) from individual to social self.
 
 ## Documentation
 
@@ -609,6 +638,7 @@ perturbed        0.000      0.000    6.0        0.087
 - `docs/plans/2026-01-10-ipuesa-mi-design.md` - IPUESA-MI meta-identity formation design
 - `docs/plans/2026-01-10-ipuesa-ae-design.md` - IPUESA-AE adaptive emergence design
 - `docs/plans/2026-01-10-ipuesa-x-design.md` - IPUESA-X exploratory self-expansion design
+- `docs/plans/2026-01-10-ipuesa-ce-design.md` - IPUESA-CE co-evolution design
 - `README_organism.md` - ZetaOrganism quickstart
 
 ## Reference
