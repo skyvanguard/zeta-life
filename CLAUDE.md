@@ -303,7 +303,8 @@ experiments/consciousness/
 ├── exp_ipuesa_ae.py   - Adaptive Emergence (dual adaptation)
 ├── exp_ipuesa_x.py    - Exploratory Self-Expansion (emergent modules)
 ├── exp_ipuesa_ce.py   - Co-Evolution (multi-agent social dynamics)
-└── exp_ipuesa_sh.py   - Self-Hierarchy (three-level identity)
+├── exp_ipuesa_sh.py   - Self-Hierarchy (three-level identity)
+└── exp_ipuesa_hg.py   - Holographic Self (cascading storm resilience)
 ```
 
 #### 6.1 IPUESA (Basic)
@@ -646,6 +647,34 @@ catastrophic_multi   0.960    0.016    0.273    0.935    3/8
 - Surprising: no_collective (5/8) outperforms full_hierarchy (3/8)
 - Suggests optimal hierarchy depth may be 2 levels, not 3
 
+#### 6.13 IPUESA-HG (Holographic Self)
+
+**THE SYNTHESIS**: Holographic embeddings where each agent carries compressed representation of cluster/collective, enabling proactive self-maintenance under cascading storms.
+
+**Key Innovations:**
+- **Hybrid embedding**: 8-dim vector encoding θ/α + threat + cohesion
+- **Cascading storm**: 5-wave sequence (history→prediction→social→identity→catastrophic)
+- **Proactive actions**: harden, sync, isolate, emergency_module
+- **Graceful degradation**: optimal→stressed→impaired→critical→collapsed
+
+**8 Metrics:**
+- HS (Holographic Survival), PI (Preemptive Index)
+- DS (Degradation Smoothness), EI (Embedding Integrity)
+- HS_gain, PI_gain, Recovery_ratio, Waves_gain
+
+**Results:**
+```
+Condition            HS       PI       DS       EI       Pass
+full_holographic     1.000    0.000    0.472    0.895    2/8
+no_embedding         1.000    0.064    0.395    0.374    -
+extreme_storm        1.000    0.000    0.000    0.887    -
+```
+
+**Self-Evidence**: 2/8 criteria passed - No evidence yet
+- Embedding integrity preserved (0.895 vs 0.374) - mechanism works
+- All conditions survive (storm too weak for differentiation)
+- Need harder test: increase damage, reduce recovery interval
+
 #### IPUESA Self-Evidence Summary
 
 | Experiment | Focus | Criteria | Passed | Conclusion |
@@ -662,8 +691,9 @@ catastrophic_multi   0.960    0.016    0.273    0.935    3/8
 | IPUESA-X | Exploratory self-expansion | 9 | 1/9 | Modules emerge under stress |
 | IPUESA-CE | Co-evolution | 8 | 4/8 | Cooperation essential for collective self |
 | IPUESA-SH | Self-hierarchy | 8 | 3/8 | Two levels may be optimal |
+| IPUESA-HG | Holographic self | 8 | 2/8 | Embedding works, needs harder test |
 
-**Interpretation**: Baseline system shows no strong self-preservation across individual tests. IPUESA-EI shows agency loss matters; IPUESA-MI/AE show correct adaptation directions; IPUESA-X shows emergent modules; IPUESA-CE shows cooperation is essential for social self; IPUESA-SH reveals surprising finding that 2-level hierarchy outperforms 3-level. Complete framework (12 experiments) from individual to social to hierarchical self.
+**Interpretation**: Baseline system shows no strong self-preservation across individual tests. IPUESA-EI shows agency loss matters; IPUESA-MI/AE show correct adaptation directions; IPUESA-X shows emergent modules; IPUESA-CE shows cooperation is essential for social self; IPUESA-SH reveals 2-level hierarchy outperforms 3-level; IPUESA-HG shows holographic embedding preserves integrity but needs more stressful conditions. Complete framework (13 experiments) from individual to social to hierarchical to holographic self.
 
 ## Documentation
 
@@ -681,6 +711,7 @@ catastrophic_multi   0.960    0.016    0.273    0.935    3/8
 - `docs/plans/2026-01-10-ipuesa-x-design.md` - IPUESA-X exploratory self-expansion design
 - `docs/plans/2026-01-10-ipuesa-ce-design.md` - IPUESA-CE co-evolution design
 - `docs/plans/2026-01-10-ipuesa-sh-design.md` - IPUESA-SH self-hierarchy design
+- `docs/plans/2026-01-10-ipuesa-hg-design.md` - IPUESA-HG holographic self design
 - `README_organism.md` - ZetaOrganism quickstart
 
 ## Reference
