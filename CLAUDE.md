@@ -304,7 +304,8 @@ experiments/consciousness/
 ├── exp_ipuesa_x.py    - Exploratory Self-Expansion (emergent modules)
 ├── exp_ipuesa_ce.py   - Co-Evolution (multi-agent social dynamics)
 ├── exp_ipuesa_sh.py   - Self-Hierarchy (three-level identity)
-└── exp_ipuesa_hg.py   - Holographic Self (cascading storm resilience)
+├── exp_ipuesa_hg.py   - Holographic Self (cascading storm resilience)
+└── exp_ipuesa_hg_plus.py - Holographic Self Stress Test (enhanced)
 ```
 
 #### 6.1 IPUESA (Basic)
@@ -675,6 +676,37 @@ extreme_storm        1.000    0.000    0.000    0.887    -
 - All conditions survive (storm too weak for differentiation)
 - Need harder test: increase damage, reduce recovery interval
 
+#### 6.14 IPUESA-HG+ (Holographic Self Stress Test)
+
+**THE CALIBRATION**: Enhanced stress test to find optimal parameters for holographic self differentiation.
+
+**Enhancements from HG:**
+- 2× damage multiplier (3× for high_stress)
+- Reduced wave interval: 15→10 steps (8 for high_stress)
+- Cumulative residual damage (doesn't fully recover)
+- New perturbation type: structural (embedding corruption)
+- Partial embedding condition (4-dim vs 8-dim)
+
+**6 New Metrics:**
+- HS, PI, DS, EI (from HG)
+- RS (Recovery Score), CE (Correlation Emergence)
+- HS_diff (survival differentiation), Gradient (partial ordering)
+
+**Results:**
+```
+Condition       HS       RS       Resid    Pass
+full_hg         0.000    0.211    0.800    0/8
+no_emb          0.000    0.235    0.800    -
+partial_hg      0.000    0.212    0.800    -
+high_stress     0.000    0.193    0.800    -
+```
+
+**Self-Evidence**: 0/8 criteria passed - Stress too severe
+- Total extinction across all conditions
+- Residual damage saturates at cap (0.8)
+- Reveals parameter space: HG too easy, HG+ too hard
+- Optimal parameters lie between (1.3-1.5× damage multiplier)
+
 #### IPUESA Self-Evidence Summary
 
 | Experiment | Focus | Criteria | Passed | Conclusion |
@@ -692,8 +724,9 @@ extreme_storm        1.000    0.000    0.000    0.887    -
 | IPUESA-CE | Co-evolution | 8 | 4/8 | Cooperation essential for collective self |
 | IPUESA-SH | Self-hierarchy | 8 | 3/8 | Two levels may be optimal |
 | IPUESA-HG | Holographic self | 8 | 2/8 | Embedding works, needs harder test |
+| IPUESA-HG+ | Stress test | 8 | 0/8 | Too severe, optimal params between HG/HG+ |
 
-**Interpretation**: Baseline system shows no strong self-preservation across individual tests. IPUESA-EI shows agency loss matters; IPUESA-MI/AE show correct adaptation directions; IPUESA-X shows emergent modules; IPUESA-CE shows cooperation is essential for social self; IPUESA-SH reveals 2-level hierarchy outperforms 3-level; IPUESA-HG shows holographic embedding preserves integrity but needs more stressful conditions. Complete framework (13 experiments) from individual to social to hierarchical to holographic self.
+**Interpretation**: Baseline system shows no strong self-preservation across individual tests. IPUESA-EI shows agency loss matters; IPUESA-MI/AE show correct adaptation directions; IPUESA-X shows emergent modules; IPUESA-CE shows cooperation is essential for social self; IPUESA-SH reveals 2-level hierarchy outperforms 3-level; IPUESA-HG/HG+ bracket the parameter space (HG too easy, HG+ too hard). Complete framework (14 experiments) from individual to social to hierarchical to holographic self.
 
 ## Documentation
 
@@ -712,6 +745,7 @@ extreme_storm        1.000    0.000    0.000    0.887    -
 - `docs/plans/2026-01-10-ipuesa-ce-design.md` - IPUESA-CE co-evolution design
 - `docs/plans/2026-01-10-ipuesa-sh-design.md` - IPUESA-SH self-hierarchy design
 - `docs/plans/2026-01-10-ipuesa-hg-design.md` - IPUESA-HG holographic self design
+- `docs/plans/2026-01-10-ipuesa-hg-plus-design.md` - IPUESA-HG+ stress test design
 - `README_organism.md` - ZetaOrganism quickstart
 
 ## Reference
