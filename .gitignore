@@ -101,3 +101,4 @@ nul
 
 # Sphinx build output
 docs/_build/
+docs/_build_new/

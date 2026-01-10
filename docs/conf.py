@@ -11,6 +11,7 @@ project = 'Zeta-Life'
 copyright = '2026, IPUESA Research'
 author = 'IPUESA Research'
 release = '0.1.0'
+version = '0.1'
 
 # -- General configuration ---------------------------------------------------
 extensions = [
@@ -18,6 +19,7 @@ extensions = [
     'sphinx.ext.viewcode',
     'sphinx.ext.intersphinx',
     'sphinx.ext.mathjax',
+    'sphinx.ext.githubpages',
     'myst_parser',
 ]
 
@@ -49,7 +51,7 @@ autodoc_mock_imports = [
 ]
 
 # Suppress specific warnings
-suppress_warnings = ['autosummary']
+suppress_warnings = ['autosummary', 'myst.xref_missing']
 
 # Don't fail on missing references
 nitpicky = False
@@ -60,8 +62,49 @@ napoleon_numpy_docstring = True
 napoleon_include_init_with_doc = True
 
 # -- Options for HTML output -------------------------------------------------
-html_theme = 'sphinx_rtd_theme'
+html_theme = 'pydata_sphinx_theme'
 html_static_path = ['_static']
+html_title = "Zeta-Life"
+
+# PyData theme options
+html_theme_options = {
+    "icon_links": [
+        {
+            "name": "GitHub",
+            "url": "https://github.com/ipuesa/zeta-life",
+            "icon": "fa-brands fa-github",
+            "type": "fontawesome",
+        },
+    ],
+    "show_toc_level": 2,
+    "navigation_depth": 3,
+    "show_nav_level": 2,
+    "navbar_align": "left",
+    "navbar_center": ["navbar-nav"],
+    "navbar_end": ["theme-switcher", "navbar-icon-links"],
+    "primary_sidebar_end": ["sidebar-ethical-ads"],
+    "secondary_sidebar_items": ["page-toc", "edit-this-page"],
+    "footer_start": ["copyright"],
+    "footer_end": ["sphinx-version"],
+    "pygments_light_style": "default",
+    "pygments_dark_style": "monokai",
+    "logo": {
+        "text": "Zeta-Life",
+    },
+    "announcement": "Research framework connecting Riemann zeta mathematics with emergent intelligence",
+}
+
+html_context = {
+    "github_user": "ipuesa",
+    "github_repo": "zeta-life",
+    "github_version": "master",
+    "doc_path": "docs",
+}
+
+# Custom CSS
+html_css_files = [
+    'custom.css',
+]
 
 # -- Options for intersphinx -------------------------------------------------
 intersphinx_mapping = {
@@ -74,7 +117,11 @@ intersphinx_mapping = {
 myst_enable_extensions = [
     'colon_fence',
     'deflist',
+    'dollarmath',
+    'amsmath',
 ]
+
+myst_heading_anchors = 3
 
 # -- Source suffix -----------------------------------------------------------
 source_suffix = {
