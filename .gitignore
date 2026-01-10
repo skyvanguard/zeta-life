@@ -103,3 +103,9 @@ nul
 docs/_build/
 docs/_build_new/
 docs/_build_v2/
+
+# Additional build directories
+docs/_build_clean/
+docs/_build_v3/
+docs/_build*/
+docs/serve_docs.bat
