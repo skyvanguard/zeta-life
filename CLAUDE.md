@@ -300,7 +300,10 @@ experiments/consciousness/
 ├── exp_ipuesa_ct.py   - Continuity Token (internal cognitive capacity)
 ├── exp_ipuesa_ei.py   - Existential Irreversibility (agency loss)
 ├── exp_ipuesa_mi.py   - Meta-Identity Formation (self-shaping)
-└── exp_ipuesa_ae.py   - Adaptive Emergence (dual adaptation)
+├── exp_ipuesa_ae.py   - Adaptive Emergence (dual adaptation)
+├── exp_ipuesa_x.py    - Exploratory Self-Expansion (emergent modules)
+├── exp_ipuesa_ce.py   - Co-Evolution (multi-agent social dynamics)
+└── exp_ipuesa_sh.py   - Self-Hierarchy (three-level identity)
 ```
 
 #### 6.1 IPUESA (Basic)
@@ -606,6 +609,43 @@ catastrophic_shock   0.984    0.980    0.067    0.406    4/8
 - High resilience maintained under catastrophic shock
 - Role differentiation beginning to emerge
 
+#### 6.12 IPUESA-SH (Self-Hierarchy)
+
+**THE VERTICAL DIMENSION**: Three-level hierarchical identity (Individual → Cluster → Collective) with bi-directional influence.
+
+**Three Levels:**
+- **Individual**: θ/α per agent + IC_t
+- **Cluster**: Aggregated θ/α + cohesion + specialization
+- **Collective**: Global θ/α + coherence + purpose
+
+**Bi-Directional Influence:**
+- **Bottom-up**: Weighted aggregation (IC_t weight for cluster, cohesion×size for collective)
+- **Top-down**: Modulation strength × coherence blending θ toward higher level
+
+**Dynamic Clustering:** Migration (dissonance-based), Split (low cohesion), Merge (small+similar)
+
+**Dissonance Types:** local (agent-cluster), systemic (cluster-collective), crisis (both)
+
+**8 Metrics:**
+- VC (Vertical Coherence), HR (Hierarchical Resilience)
+- ED (Emergent Diversity), AD (Alignment)
+- full >> no_cluster, full >> no_collective
+- catastrophic HR > 0.2, Cluster stability > 0.5
+
+**Results:**
+```
+Condition            VC       HR       ED       AD       Pass
+full_hierarchy       0.962    0.021    0.275    0.930    3/8
+no_cluster           0.886    0.079    0.000    0.500    1/8
+no_collective        0.950    0.527    0.276    0.714    5/8
+catastrophic_multi   0.960    0.016    0.273    0.935    3/8
+```
+
+**Self-Evidence**: 3/8 criteria passed - No evidence of hierarchical self
+- High vertical coherence (0.96) but low resilience (0.02)
+- Surprising: no_collective (5/8) outperforms full_hierarchy (3/8)
+- Suggests optimal hierarchy depth may be 2 levels, not 3
+
 #### IPUESA Self-Evidence Summary
 
 | Experiment | Focus | Criteria | Passed | Conclusion |
@@ -621,8 +661,9 @@ catastrophic_shock   0.984    0.980    0.067    0.406    4/8
 | IPUESA-AE | Adaptive emergence | 8 | 1/8 | Dual adaptation works |
 | IPUESA-X | Exploratory self-expansion | 9 | 1/9 | Modules emerge under stress |
 | IPUESA-CE | Co-evolution | 8 | 4/8 | Cooperation essential for collective self |
+| IPUESA-SH | Self-hierarchy | 8 | 3/8 | Two levels may be optimal |
 
-**Interpretation**: Baseline system shows no strong self-preservation across individual tests. IPUESA-EI shows agency loss matters; IPUESA-MI/AE show correct adaptation directions; IPUESA-X shows emergent modules; IPUESA-CE shows cooperation is essential for social self. Complete framework (11 experiments) from individual to social self.
+**Interpretation**: Baseline system shows no strong self-preservation across individual tests. IPUESA-EI shows agency loss matters; IPUESA-MI/AE show correct adaptation directions; IPUESA-X shows emergent modules; IPUESA-CE shows cooperation is essential for social self; IPUESA-SH reveals surprising finding that 2-level hierarchy outperforms 3-level. Complete framework (12 experiments) from individual to social to hierarchical self.
 
 ## Documentation
 
@@ -639,6 +680,7 @@ catastrophic_shock   0.984    0.980    0.067    0.406    4/8
 - `docs/plans/2026-01-10-ipuesa-ae-design.md` - IPUESA-AE adaptive emergence design
 - `docs/plans/2026-01-10-ipuesa-x-design.md` - IPUESA-X exploratory self-expansion design
 - `docs/plans/2026-01-10-ipuesa-ce-design.md` - IPUESA-CE co-evolution design
+- `docs/plans/2026-01-10-ipuesa-sh-design.md` - IPUESA-SH self-hierarchy design
 - `README_organism.md` - ZetaOrganism quickstart
 
 ## Reference
