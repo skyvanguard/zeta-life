@@ -735,6 +735,35 @@ no_emb          0.000    0.000    -        ✓
 - High CE (0.972): actions correlate with survival
 - Sharp cliff: transition happens between 2.2× and 2.3×
 
+#### 6.16 IPUESA-SYNTH (Synthesis)
+
+Combines successful elements from previous experiments while fixing TD (temporal) and CE (co-evolution) failures.
+
+**Components**:
+- 2-level hierarchy (agents + clusters, no organism level)
+- Embodied temporal anticipation (threat_buffer → behavior change)
+- Social module spreading (survivors share modules with cluster)
+- Learnable holographic embeddings
+- Calibrated storm (2.13× optimal)
+
+**Results (2.13× damage)**:
+```
+Condition         HS       EI       TAE      MSR
+-------------------------------------------------
+full_synth        1.000    1.000    0.117    0.000
+no_embeddings     0.484    0.000    0.172    0.000
+baseline          0.000    0.000    0.000    0.000
+```
+
+**Passed: 3/8 criteria** - Partial evidence of synthesized self
+
+**Key Findings**:
+- Critical phase transition at 2.13-2.14× (100% → 0% survival)
+- Strong embedding advantage: full_synth (100%) > no_embeddings (48.4%) > baseline (0%)
+- TAE = 0.117-0.172: Temporal anticipation approaching threshold
+- MSR = 0: Module spreading still needs work (modules not created under moderate stress)
+- System has bistable dynamics: embeddings protect completely or fail completely
+
 #### IPUESA Self-Evidence Summary
 
 | Experiment | Focus | Criteria | Passed | Conclusion |
@@ -754,8 +783,9 @@ no_emb          0.000    0.000    -        ✓
 | IPUESA-HG | Holographic self | 8 | 2/8 | Embedding works, needs harder test |
 | IPUESA-HG+ | Stress test | 8 | 0/8 | Too severe, optimal params between HG/HG+ |
 | IPUESA-HG-Cal | Calibrated | 8 | 3/8 | Goldilocks found: 14% vs 0% at 2.4× |
+| IPUESA-SYNTH | Synthesis | 8 | 3/8 | Critical transition, strong embedding advantage |
 
-**Interpretation**: Baseline system shows no strong self-preservation across individual tests. IPUESA-EI shows agency loss matters; IPUESA-MI/AE show correct adaptation directions; IPUESA-X shows emergent modules; IPUESA-CE shows cooperation is essential for social self; IPUESA-SH reveals 2-level hierarchy outperforms 3-level; IPUESA-HG-Cal finds the Goldilocks zone (2.4×) where holographic embeddings provide survival advantage (14% vs 0%). Complete framework (15 experiments) from individual to social to hierarchical to holographic self.
+**Interpretation**: Baseline system shows no strong self-preservation across individual tests. IPUESA-EI shows agency loss matters; IPUESA-MI/AE show correct adaptation directions; IPUESA-X shows emergent modules; IPUESA-CE shows cooperation is essential for social self; IPUESA-SH reveals 2-level hierarchy outperforms 3-level; IPUESA-HG-Cal finds the Goldilocks zone (2.4×) where holographic embeddings provide survival advantage (14% vs 0%); IPUESA-SYNTH reveals critical phase transition at 2.13× with bistable dynamics. Complete framework (16 experiments) from individual to social to hierarchical to holographic to synthesized self.
 
 ## Documentation
 
@@ -776,6 +806,7 @@ no_emb          0.000    0.000    -        ✓
 - `docs/plans/2026-01-10-ipuesa-hg-design.md` - IPUESA-HG holographic self design
 - `docs/plans/2026-01-10-ipuesa-hg-plus-design.md` - IPUESA-HG+ stress test design
 - `docs/plans/2026-01-10-ipuesa-hg-cal-design.md` - IPUESA-HG-Cal calibrated design
+- `docs/plans/2026-01-10-ipuesa-synth-design.md` - IPUESA-SYNTH synthesis design
 - `README_organism.md` - ZetaOrganism quickstart
 
 ## Reference
