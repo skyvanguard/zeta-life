@@ -1,101 +1,231 @@
-/* Custom styles for Zeta-Life documentation */
+/* Zeta-Life Documentation - Custom Styles */
+/* Inspired by NumPy/scikit-learn documentation */
 
-/* Hero section styling */
-.hero-title {
-    font-size: 2.5rem;
-    font-weight: 700;
-    margin-bottom: 1rem;
+/* ============================================
+   CSS VARIABLES
+   ============================================ */
+:root {
+    --zeta-primary: #667eea;
+    --zeta-secondary: #764ba2;
+    --zeta-success: #48bb78;
+    --zeta-accent: #63b3ed;
+    --zeta-text: #64748b;
+    --zeta-bg-light: #f8fafc;
+    --zeta-border: #e2e8f0;
+    --radius: 8px;
+    --transition: 0.2s ease;
 }
 
-/* Feature cards */
-.sd-card {
-    border-radius: 8px;
-    transition: transform 0.2s, box-shadow 0.2s;
+/* ============================================
+   NAVBAR - Compact & Professional
+   ============================================ */
+.bd-header.navbar {
+    padding: 0.4rem 0;
+    border-bottom: 1px solid var(--zeta-border);
 }
 
-.sd-card:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+html[data-theme="dark"] .bd-header.navbar {
+    border-bottom-color: #334155;
 }
 
-/* Code blocks */
+/* Nav links - compact */
+.bd-navbar-elements .nav-link {
+    padding: 0.4rem 0.75rem;
+    font-size: 0.9rem;
+    font-weight: 500;
+}
+
+.bd-navbar-elements .nav-link:hover {
+    color: var(--zeta-primary);
+}
+
+/* Logo */
+.navbar-brand.logo .logo__image {
+    height: 28px;
+    width: auto;
+}
+
+.navbar-brand.logo .logo__title {
+    font-size: 1.1rem;
+    font-weight: 600;
+    margin-left: 0.4rem;
+}
+
+/* Version switcher */
+.version-switcher__button {
+    font-size: 0.8rem;
+    padding: 0.2rem 0.5rem;
+}
+
+/* ============================================
+   SIDEBAR
+   ============================================ */
+.bd-sidebar .nav-link {
+    padding: 0.4rem 0.75rem;
+    border-radius: 4px;
+    font-size: 0.9rem;
+}
+
+.bd-sidebar .nav-link:hover {
+    background: rgba(102, 126, 234, 0.08);
+}
+
+.bd-sidebar .nav-link.active {
+    background: rgba(102, 126, 234, 0.12);
+    color: var(--zeta-primary);
+    font-weight: 500;
+}
+
+/* ============================================
+   CONTENT
+   ============================================ */
+
+/* Headings */
+h1, h2, h3 {
+    font-weight: 600;
+}
+
+h1 { font-size: 1.8rem; }
+h2 { font-size: 1.4rem; margin-top: 2rem; }
+h3 { font-size: 1.15rem; margin-top: 1.5rem; }
+
+/* Links */
+a {
+    color: var(--zeta-primary);
+    transition: var(--transition);
+}
+
+a:hover {
+    color: var(--zeta-secondary);
+}
+
+/* Code */
+code.literal {
+    background: var(--zeta-bg-light);
+    padding: 0.15em 0.4em;
+    border-radius: 3px;
+    font-size: 0.88em;
+}
+
+html[data-theme="dark"] code.literal {
+    background: #334155;
+}
+
 .highlight {
-    border-radius: 6px;
+    border-radius: var(--radius);
+    margin: 1rem 0;
 }
 
-/* Admonitions */
-.admonition {
-    border-radius: 6px;
-}
-
-/* Math equations */
-.math {
-    overflow-x: auto;
+.highlight pre {
+    padding: 1rem;
+    font-size: 0.88rem;
+    line-height: 1.5;
 }
 
 /* Tables */
 table {
-    border-radius: 6px;
-    overflow: hidden;
+    width: 100%;
+    margin: 1.5rem 0;
+    border-collapse: collapse;
 }
 
-/* Metrics badge styling */
-.metric-badge {
-    display: inline-block;
-    padding: 0.25em 0.6em;
-    font-size: 0.85em;
+table th {
+    background: var(--zeta-bg-light);
     font-weight: 600;
-    border-radius: 4px;
-    margin: 0.1em;
+    padding: 0.6rem 1rem;
+    text-align: left;
+    border-bottom: 2px solid var(--zeta-border);
 }
 
-.metric-pass {
-    background-color: #28a745;
-    color: white;
+html[data-theme="dark"] table th {
+    background: #1e293b;
+    border-bottom-color: #475569;
 }
 
-.metric-fail {
-    background-color: #dc3545;
-    color: white;
+table td {
+    padding: 0.6rem 1rem;
+    border-bottom: 1px solid var(--zeta-border);
 }
 
-/* Results highlight */
-.result-highlight {
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    color: white;
-    padding: 1.5rem;
-    border-radius: 8px;
-    margin: 1rem 0;
+html[data-theme="dark"] table td {
+    border-bottom-color: #334155;
 }
 
-/* Navbar customization */
-.navbar-brand-box {
-    font-weight: 700;
+/* Admonitions */
+.admonition {
+    border-radius: var(--radius);
+    border-left: 4px solid var(--zeta-primary);
+    margin: 1.5rem 0;
+    padding: 1rem;
+    background: var(--zeta-bg-light);
 }
 
-/* Footer */
+html[data-theme="dark"] .admonition {
+    background: #1e293b;
+}
+
+.admonition-title {
+    font-weight: 600;
+    margin-bottom: 0.5rem;
+}
+
+/* Math */
+.math {
+    overflow-x: auto;
+    padding: 0.5rem 0;
+}
+
+/* Images */
+img {
+    max-width: 100%;
+    height: auto;
+    border-radius: var(--radius);
+}
+
+/* ============================================
+   FOOTER
+   ============================================ */
 footer {
-    margin-top: 2rem;
+    margin-top: 3rem;
+    padding: 1.5rem 0;
+    border-top: 1px solid var(--zeta-border);
+    font-size: 0.85rem;
+    color: var(--zeta-text);
 }
 
-/* Sidebar improvements */
-.bd-sidebar .nav-link {
-    padding: 0.4rem 0.8rem;
-    border-radius: 4px;
+html[data-theme="dark"] footer {
+    border-top-color: #334155;
 }
 
-.bd-sidebar .nav-link:hover {
-    background-color: rgba(0, 0, 0, 0.05);
+/* ============================================
+   BREADCRUMBS
+   ============================================ */
+.bd-breadcrumbs {
+    font-size: 0.85rem;
+    margin-bottom: 1rem;
 }
 
-/* Dark mode adjustments */
-html[data-theme="dark"] .result-highlight {
-    background: linear-gradient(135deg, #4a5568 0%, #2d3748 100%);
-}
-
-/* Responsive adjustments */
+/* ============================================
+   RESPONSIVE
+   ============================================ */
 @media (max-width: 768px) {
-    .hero-title {
-        font-size: 1.8rem;
+    h1 { font-size: 1.5rem; }
+    h2 { font-size: 1.25rem; }
+
+    .bd-header.navbar {
+        padding: 0.3rem 0;
+    }
+
+    .navbar-brand.logo .logo__image {
+        height: 24px;
+    }
+}
+
+/* ============================================
+   PRINT
+   ============================================ */
+@media print {
+    .bd-header, .bd-sidebar, footer {
+        display: none;
     }
 }

@@ -24,7 +24,7 @@ extensions = [
 ]
 
 templates_path = ['_templates']
-exclude_patterns = ['_build', 'Thumbs.db', '.DS_Store']
+exclude_patterns = ['_build', '_build_*', 'Thumbs.db', '.DS_Store']
 
 # -- Options for autodoc -----------------------------------------------------
 autodoc_default_options = {
@@ -38,22 +38,12 @@ autosummary_generate = True
 
 # Mock imports that may cause issues during doc generation
 autodoc_mock_imports = [
-    'torch',
-    'torch.nn',
-    'torch.optim',
-    'torch.nn.functional',
-    'mpmath',
-    'scipy',
-    'scipy.stats',
-    'scipy.signal',
-    'PIL',
-    'cv2',
+    'torch', 'torch.nn', 'torch.optim', 'torch.nn.functional',
+    'mpmath', 'scipy', 'scipy.stats', 'scipy.signal', 'PIL', 'cv2',
 ]
 
 # Suppress specific warnings
 suppress_warnings = ['autosummary', 'myst.xref_missing']
-
-# Don't fail on missing references
 nitpicky = False
 
 # -- Options for Napoleon (Google/NumPy docstrings) --------------------------
@@ -65,45 +55,81 @@ napoleon_include_init_with_doc = True
 html_theme = 'pydata_sphinx_theme'
 html_static_path = ['_static']
 html_title = "Zeta-Life"
+html_favicon = "_static/logo.svg"
 
-# PyData theme options
+# PyData theme options - Professional navbar configuration (inspired by NumPy/sklearn)
 html_theme_options = {
-    "icon_links": [
-        {
-            "name": "GitHub",
-            "url": "https://github.com/ipuesa/zeta-life",
-            "icon": "fa-brands fa-github",
-            "type": "fontawesome",
-        },
-    ],
-    "show_toc_level": 2,
-    "navigation_depth": 3,
-    "show_nav_level": 2,
-    "navbar_align": "left",
+    # Header/Navbar - Clean and minimal
+    "navbar_start": ["navbar-logo", "version-switcher"],
     "navbar_center": ["navbar-nav"],
     "navbar_end": ["theme-switcher", "navbar-icon-links"],
-    "primary_sidebar_end": ["sidebar-ethical-ads"],
-    "secondary_sidebar_items": ["page-toc", "edit-this-page"],
+    "navbar_persistent": ["search-button"],
+    "navbar_align": "content",
+
+    # Navigation
+    "navigation_with_keys": True,
+    "show_toc_level": 2,
+    "navigation_depth": 3,
+    "show_nav_level": 1,
+    "collapse_navigation": True,
+
+    # Sidebar - Clean
+    "primary_sidebar_end": [],
+    "secondary_sidebar_items": ["page-toc"],
+
+    # Footer
     "footer_start": ["copyright"],
+    "footer_center": [],
     "footer_end": ["sphinx-version"],
-    "pygments_light_style": "default",
+
+    # Appearance
+    "pygments_light_style": "friendly",
     "pygments_dark_style": "monokai",
+
+    # Logo
     "logo": {
         "image_light": "_static/logo.svg",
         "image_dark": "_static/logo.svg",
         "text": "Zeta-Life",
+        "alt_text": "Zeta-Life - Home",
     },
-    "announcement": "Research framework connecting Riemann zeta mathematics with emergent intelligence",
+
+    # Version switcher
+    "switcher": {
+        "json_url": "https://fruizvillar.github.io/zeta-life/_static/switcher.json",
+        "version_match": version,
+    },
+
+    # Icon links (top right) - Only GitHub
+    "icon_links": [
+        {
+            "name": "GitHub",
+            "url": "https://github.com/fruizvillar/zeta-life",
+            "icon": "fa-brands fa-github",
+            "type": "fontawesome",
+        },
+    ],
+
+    # Header links - Maximum 5 visible items before dropdown
+    "header_links_before_dropdown": 5,
+
+    # Clean UI
+    "use_edit_page_button": False,
+    "show_version_warning_banner": False,
+    "article_header_start": ["breadcrumbs"],
+    "article_header_end": [],
 }
 
+# Context for templates
 html_context = {
-    "github_user": "ipuesa",
+    "github_user": "fruizvillar",
     "github_repo": "zeta-life",
     "github_version": "master",
     "doc_path": "docs",
+    "default_mode": "auto",
 }
 
-# Custom CSS
+# Custom CSS files
 html_css_files = [
     'custom.css',
 ]
@@ -121,6 +147,7 @@ myst_enable_extensions = [
     'deflist',
     'dollarmath',
     'amsmath',
+    'substitution',
 ]
 
 myst_heading_anchors = 3
