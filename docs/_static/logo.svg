@@ -1,0 +1,38 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" width="200" height="200">
+  <defs>
+    <linearGradient id="zetaGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#667eea;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#764ba2;stop-opacity:1" />
+    </linearGradient>
+    <linearGradient id="lifeGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#48bb78;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#38a169;stop-opacity:1" />
+    </linearGradient>
+  </defs>
+
+  <!-- Background circle -->
+  <circle cx="100" cy="100" r="95" fill="none" stroke="url(#zetaGrad)" stroke-width="3"/>
+
+  <!-- Inner circle representing the critical line -->
+  <circle cx="100" cy="100" r="70" fill="none" stroke="url(#zetaGrad)" stroke-width="1.5" stroke-dasharray="8,4" opacity="0.6"/>
+
+  <!-- Zeta symbol (ζ) -->
+  <text x="100" y="125" font-family="Times New Roman, serif" font-size="90" font-style="italic"
+        fill="url(#zetaGrad)" text-anchor="middle" font-weight="bold">ζ</text>
+
+  <!-- Life dots representing emergent agents -->
+  <circle cx="50" cy="60" r="6" fill="url(#lifeGrad)" opacity="0.9"/>
+  <circle cx="150" cy="60" r="6" fill="url(#lifeGrad)" opacity="0.9"/>
+  <circle cx="45" cy="140" r="5" fill="url(#lifeGrad)" opacity="0.7"/>
+  <circle cx="155" cy="140" r="5" fill="url(#lifeGrad)" opacity="0.7"/>
+  <circle cx="70" cy="45" r="4" fill="url(#lifeGrad)" opacity="0.5"/>
+  <circle cx="130" cy="45" r="4" fill="url(#lifeGrad)" opacity="0.5"/>
+  <circle cx="60" cy="155" r="4" fill="url(#lifeGrad)" opacity="0.5"/>
+  <circle cx="140" cy="155" r="4" fill="url(#lifeGrad)" opacity="0.5"/>
+
+  <!-- Connection lines representing emergence -->
+  <line x1="50" y1="60" x2="70" y2="45" stroke="url(#lifeGrad)" stroke-width="1" opacity="0.4"/>
+  <line x1="150" y1="60" x2="130" y2="45" stroke="url(#lifeGrad)" stroke-width="1" opacity="0.4"/>
+  <line x1="45" y1="140" x2="60" y2="155" stroke="url(#lifeGrad)" stroke-width="1" opacity="0.4"/>
+  <line x1="155" y1="140" x2="140" y2="155" stroke="url(#lifeGrad)" stroke-width="1" opacity="0.4"/>
+</svg>

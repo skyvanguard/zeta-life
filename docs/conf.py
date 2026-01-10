@@ -89,6 +89,8 @@ html_theme_options = {
     "pygments_light_style": "default",
     "pygments_dark_style": "monokai",
     "logo": {
+        "image_light": "_static/logo.svg",
+        "image_dark": "_static/logo.svg",
         "text": "Zeta-Life",
     },
     "announcement": "Research framework connecting Riemann zeta mathematics with emergent intelligence",

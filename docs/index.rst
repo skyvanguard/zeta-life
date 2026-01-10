@@ -133,6 +133,25 @@ where :math:`\gamma_n` are the imaginary parts of zeta zeros (14.134725, 21.0220
 
 This kernel provides a natural parameterization of the **"edge of chaos"** - the region where complex adaptive systems exhibit maximum computational capacity.
 
+.. image:: _static/zeta_overview.png
+   :alt: Zeta Kernel Overview
+   :align: center
+   :width: 100%
+
+*The zeta kernel function, zeros distribution, kernel comparison, and Goldilocks zone visualization.*
+
+Framework Architecture
+----------------------
+
+Zeta-Life is organized in three hierarchical layers:
+
+.. image:: _static/fig1_architecture.png
+   :alt: Zeta-Life Architecture
+   :align: center
+   :width: 90%
+
+*Three-layer architecture: Cellular (Zeta GoL) → Organism (ZetaOrganism) → Identity (Abstract Vertices)*
+
 Quick Start
 -----------
 
