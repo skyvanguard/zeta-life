@@ -241,6 +241,45 @@ python chat_psyche.py --reflection  # See Strange Loop in action
 /reflexion                          # Force reflection cycle
 ```
 
+### 6. IPUESA Experiments (2026-01-10)
+
+Identity Preservation Under Existential Stress Assessment - exploring how hierarchical consciousness maintains identity under stress.
+
+**Experiment Series:**
+- IPUESA-BASE: Baseline without protection mechanisms
+- IPUESA-TD: Temporal discounting (failed: TSI = -0.517)
+- IPUESA-CE: Cooperative emergence (failed: MA = 0.0)
+- IPUESA-HG: Holographic embeddings (14% vs 0% survival at 2.4x)
+- IPUESA-SH: Social hierarchy (2-level better than 3-level)
+- IPUESA-AL: Agency loss metric (clear self-evidence)
+- IPUESA-SYNTH: Synthesis of successful components
+- **IPUESA-SYNTH-v2**: Enhanced synthesis with proactive modules (6/8 criteria)
+
+**SYNTH-v2 Results (4.1x damage):**
+
+| Condition | HS | MSR | TAE | EI | ED |
+|-----------|-----|-----|-----|-----|-----|
+| full_v2 | 0.495 | 0.329 | 0.103 | 1.000 | 0.400 |
+| baseline | 0.000 | 0.000 | 0.000 | 0.000 | 0.000 |
+
+**Key Findings:**
+- **MSR fixed**: 0.329 (was 0.000) - proactive module creation works
+- **Smooth transitions**: ED = 0.400 (was bistable 100%/0%)
+- **Goldilocks zone**: 4.1x damage for optimal differentiation
+- All components (embeddings, proactive, TAE, gradual) required together
+
+**Self-Evidence Criteria (6/8 passed):**
+- HS in [0.30, 0.70]: PASS (0.495)
+- MSR > 0.15: PASS (0.329)
+- TAE > 0.15: FAIL (0.103)
+- EI > 0.3: PASS (1.000)
+- ED > 0.10: PASS (0.400)
+- full > baseline: PASS
+
+**Files:**
+- `experiments/consciousness/exp_ipuesa_synth_v2.py` - Latest synthesis
+- `docs/plans/2026-01-10-ipuesa-synth-v2-design.md` - Design document
+
 ### Key Parameters (across systems)
 
 | Parameter | Typical | Description |
