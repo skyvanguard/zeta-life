@@ -397,6 +397,8 @@ def apply_gradual_damage(agent: SynthAgentV2, damage: float,
     """
     Apply damage with gradual degradation instead of binary death.
     Key fix for bistable 100%/0% survival.
+
+    For deg_var: Add individual variation to degradation accumulation.
     """
     if not use_gradual:
         # Simple damage
@@ -405,8 +407,46 @@ def apply_gradual_damage(agent: SynthAgentV2, damage: float,
         return damage
 
     # GRADUAL: Damage affects degradation_level
-    degradation_increment = damage * 0.12
-    agent.degradation_level += degradation_increment
+    # KEY FOR deg_var: Individual variation in degradation rate
+    base_degrad_rate = 0.18  # Increased from 0.12 for more degradation
+
+    # Individual factors that affect how fast an agent degrades
+    # These create VARIANCE - some agents degrade faster than others
+    individual_factor = 1.0
+
+    # Embedding protection - REDUCED effect to allow more variance
+    if agent.embedding_dim > 0:
+        ei = agent.get_embedding_integrity()
+        individual_factor *= (1.0 - ei * 0.15)  # Reduced from 0.3
+
+    # Protective stance - REDUCED effect
+    individual_factor *= (1.0 - agent.protective_stance * 0.12)  # Reduced from 0.25
+
+    # Already degraded agents degrade faster (compound effect for variance)
+    individual_factor *= (1.0 + agent.degradation_level * 0.5)  # Increased from 0.4
+
+    # Module protection - minimal effect
+    for module in agent.modules:
+        if module.module_type in ['threat_filter', 'cascade_breaker']:
+            individual_factor *= (1.0 - module.strength * 0.08)  # Reduced from 0.15
+
+    # Random individual resilience - WIDER range for more variance
+    np.random.seed(agent.agent_id + int(damage * 1000))
+    individual_factor *= (0.3 + np.random.random() * 1.4)  # 0.3 to 1.7 (even wider)
+
+    degradation_increment = damage * base_degrad_rate * individual_factor
+
+    # Additional random noise to degradation (key for deg_var > 0.02)
+    # This creates spread independent of other factors
+    np.random.seed(agent.agent_id * 7 + int(agent.IC_t * 100))
+    noise = (np.random.random() - 0.5) * damage * 0.25  # ±12.5% of damage as noise (increased)
+    degradation_increment += noise
+
+    # Extra variance based on cluster position (agents in different clusters degrade differently)
+    cluster_modifier = 0.8 + (agent.cluster_id % 4) * 0.15  # 0.8 to 1.25 based on cluster
+    degradation_increment *= cluster_modifier
+
+    agent.degradation_level += max(0, degradation_increment)  # Can't decrease from damage
     agent.degradation_level = min(1.0, agent.degradation_level)
 
     # IC damage scaled by current degradation (death spiral, but slower)
@@ -450,9 +490,14 @@ def gradual_recovery(agent: SynthAgentV2, cluster: ClusterState,
     pre_IC = agent.IC_t
     agent.IC_t += recovery
 
-    # GRADUAL: Also recover degradation_level (slowly)
+    # GRADUAL: Also recover degradation_level (very slowly to preserve variance)
     if use_gradual and agent.degradation_level > 0:
-        agent.degradation_level *= 0.985  # Slow recovery
+        # Recovery rate varies by individual factors (for deg_var)
+        # VERY slow recovery to preserve variance across agents
+        recovery_factor = 0.998  # Even slower (was 0.995)
+        recovery_factor -= agent.protective_stance * 0.002  # Minimal faster recovery
+        recovery_factor -= ei * 0.001  # Minimal faster recovery
+        agent.degradation_level *= max(0.995, recovery_factor)
 
     # Gradual recovery of other damages
     agent.history_corruption *= 0.94

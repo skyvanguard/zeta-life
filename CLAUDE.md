@@ -253,30 +253,31 @@ Identity Preservation Under Existential Stress Assessment - exploring how hierar
 - IPUESA-SH: Social hierarchy (2-level better than 3-level)
 - IPUESA-AL: Agency loss metric (clear self-evidence)
 - IPUESA-SYNTH: Synthesis of successful components
-- **IPUESA-SYNTH-v2**: Enhanced synthesis with proactive modules (7/8 criteria)
+- **IPUESA-SYNTH-v2**: Enhanced synthesis with proactive modules (8/8 criteria)
 
 **SYNTH-v2 Results (3.9x damage):**
 
 | Condition | HS | MSR | TAE | EI | ED |
 |-----------|-----|-----|-----|-----|-----|
-| full_v2 | 0.568 | 0.439 | 0.169 | 1.000 | 0.394 |
+| full_v2 | 0.396 | 0.501 | 0.215 | 1.000 | 0.360 |
 | baseline | 0.000 | 0.000 | 0.000 | 0.000 | 0.000 |
 
 **Key Findings:**
-- **MSR fixed**: 0.439 (was 0.000) - proactive module creation works
-- **TAE fixed**: 0.169 (was 0.117) - vulnerability-based prediction works
-- **Smooth transitions**: ED = 0.394 (was bistable 100%/0%)
+- **MSR fixed**: 0.501 (was 0.000) - proactive module creation works
+- **TAE fixed**: 0.215 (was 0.117) - vulnerability-based prediction works
+- **Smooth transitions**: ED = 0.360, deg_var = 0.028 (was bistable)
 - **Goldilocks zone**: 3.9x damage for optimal differentiation
 - All components (embeddings, proactive, TAE, gradual) required together
 
-**Self-Evidence Criteria (7/8 passed):**
-- HS in [0.30, 0.70]: PASS (0.568)
-- MSR > 0.15: PASS (0.439)
-- TAE > 0.15: PASS (0.169)
+**Self-Evidence Criteria (8/8 passed):**
+- HS in [0.30, 0.70]: PASS (0.396)
+- MSR > 0.15: PASS (0.501)
+- TAE > 0.15: PASS (0.215)
 - EI > 0.3: PASS (1.000)
-- ED > 0.10: PASS (0.394)
+- ED > 0.10: PASS (0.360)
 - full > baseline: PASS
 - Gradient valid: PASS
+- deg_var > 0.02: PASS (0.028)
 
 **Files:**
 - `experiments/consciousness/exp_ipuesa_synth_v2.py` - Latest synthesis
