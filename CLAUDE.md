@@ -546,6 +546,38 @@ no_adaptation    0.000      0.50 (unchanged) 0.33 (unchanged)
 - Both θ and α adapt in correct survival-oriented directions
 - full_adaptive shows most plasticity (0.100)
 
+#### 6.10 IPUESA-X (Exploratory Self-Expansion)
+
+**THE FINAL STEP**: Agent creates emergent micro-modules (β) in addition to adapting policy (θ) and architecture (α).
+
+**Triple Systems:**
+- **θ (WHO)**: risk_aversion, exploration, memory, prediction
+- **α (HOW)**: attention_weights, memory_update_rate, perceptual_gain
+- **β (WHAT EMERGES)**: micro-modules created under stress
+
+**Module Types:**
+- `pattern_detector`: Recognizes threat patterns
+- `threat_filter`: Attenuates threat signals
+- `recovery_accelerator`: Speeds up IC recovery
+- `exploration_dampener`: Reduces exploration under stress
+
+**Module Lifecycle:** Create (novel threat + SAI<0.5) → Consolidate (if helps) → Forget (if doesn't)
+
+**Perturbation Types:** history, prediction, identity, catastrophic, structural (novel)
+
+**Results:**
+```
+Condition        SAI_dyn    ES       Modules    Diversity
+full_expansion   0.000      0.000    4.0        -0.000
+perturbed        0.000      0.000    6.0        0.087
+```
+
+**Self-Evidence**: 1/9 criteria passed
+- Modules ARE created (4-6 per run)
+- More modules under stress (perturbed: +50%)
+- Diversity emerges under pressure
+- Framework complete for testing emergence
+
 #### IPUESA Self-Evidence Summary
 
 | Experiment | Focus | Criteria | Passed | Conclusion |
@@ -559,8 +591,9 @@ no_adaptation    0.000      0.50 (unchanged) 0.33 (unchanged)
 | IPUESA-EI | Existential irreversibility | 7 | 3/7 | Weak existential self |
 | IPUESA-MI | Meta-identity formation | 7 | 1/7 | Gradient direction correct |
 | IPUESA-AE | Adaptive emergence | 8 | 1/8 | Dual adaptation works |
+| IPUESA-X | Exploratory self-expansion | 9 | 1/9 | Modules emerge under stress |
 
-**Interpretation**: Baseline system shows no strong self-preservation across all tests. IPUESA-EI shows agency loss matters; IPUESA-MI/AE show correct adaptation directions. Complete framework (9 experiments) established for testing enhanced mechanisms.
+**Interpretation**: Baseline system shows no strong self-preservation across all tests. IPUESA-EI shows agency loss matters; IPUESA-MI/AE show correct adaptation directions; IPUESA-X shows emergent modules created under stress. Complete framework (10 experiments) established for testing enhanced mechanisms.
 
 ## Documentation
 
@@ -575,6 +608,7 @@ no_adaptation    0.000      0.50 (unchanged) 0.33 (unchanged)
 - `docs/plans/2026-01-10-ipuesa-ei-design.md` - IPUESA-EI existential irreversibility design
 - `docs/plans/2026-01-10-ipuesa-mi-design.md` - IPUESA-MI meta-identity formation design
 - `docs/plans/2026-01-10-ipuesa-ae-design.md` - IPUESA-AE adaptive emergence design
+- `docs/plans/2026-01-10-ipuesa-x-design.md` - IPUESA-X exploratory self-expansion design
 - `README_organism.md` - ZetaOrganism quickstart
 
 ## Reference
