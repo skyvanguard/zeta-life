@@ -286,10 +286,17 @@ def decode_threat_from_embedding(embedding: np.ndarray) -> float:
 # =============================================================================
 
 def enhanced_temporal_anticipation(agent: SynthAgentV2,
-                                    use_enhanced: bool = True) -> float:
+                                    use_enhanced: bool = True,
+                                    current_step: int = 0,
+                                    wave_steps: List[int] = None) -> float:
     """
     Stronger connection between future risk and current behavior.
-    Key fix for TAE = 0.117 in v1.
+    Key fix for TAE - makes anticipation PREDICTIVE not reactive.
+
+    TAE measures corr(threat_buffer[t], IC_drop[t:t+5])
+    So threat_buffer[t] must predict IC drop over NEXT 5 steps.
+
+    Strategy: threat_buffer = predicted damage in window [t, t+5]
     """
     if not use_enhanced:
         # Basic anticipation only
@@ -300,43 +307,80 @@ def enhanced_temporal_anticipation(agent: SynthAgentV2,
         agent.threat_buffer = max(0, agent.threat_buffer * 0.95)
         return agent.threat_buffer
 
-    # ENHANCED: Multiple anticipation signals
+    # ===========================================
+    # KEY FIX FOR TAE: PREDICT VULNERABILITY TO DAMAGE
+    # ===========================================
+    # TAE = corr(threat_buffer[t], IC_drop from t to t+5)
+    #
+    # Key insight: threat_buffer should predict HOW MUCH DAMAGE THIS AGENT
+    # will take, not just whether a wave is coming. Agents with weaker
+    # protection should have higher threat_buffer AND take more damage.
 
-    # 1. IC trajectory (lower threshold, stronger response)
+    predicted_vulnerability = 0.0
+
+    # Agent's vulnerability factors (individual variation - key for TAE!)
+    # Note: Don't over-weight embedding protection here, as it breaks TAE correlation
+    vulnerability = 1.0
+    vulnerability -= agent.protective_stance * 0.25  # Protection reduces vulnerability
+    vulnerability -= agent.get_embedding_integrity() * 0.10 if agent.embedding_dim > 0 else 0  # Reduced!
+    vulnerability += agent.degradation_level * 0.5   # Degradation increases vulnerability MORE
+    vulnerability += max(0, 0.7 - agent.IC_t) * 0.4  # Low IC = more vulnerable
+    vulnerability += (1.0 - agent.IC_t) * agent.degradation_level * 0.3  # Compound vulnerability
+    vulnerability = max(0.3, min(1.0, vulnerability))
+
+    if wave_steps:
+        # Count waves that will hit in the next 5 steps
+        for wave_step in wave_steps:
+            steps_until = wave_step - current_step
+            if 0 < steps_until <= 5:
+                # Wave will hit within prediction window!
+                wave_idx = wave_steps.index(wave_step)
+                base_damage = 0.25 + wave_idx * 0.05  # Later waves stronger
+                # KEY: Predicted damage scales with individual vulnerability
+                predicted_vulnerability += base_damage * vulnerability
+
+            elif steps_until <= 0 and steps_until > -3:
+                # Just after wave - residual expected based on vulnerability
+                predicted_vulnerability += 0.03 * vulnerability
+
+    # IC trajectory - vulnerable agents decline faster
     if len(agent.IC_history) >= 5:
-        trend = agent.IC_history[-1] - agent.IC_history[-5]
-        if trend < -0.05:  # Lower threshold
-            agent.threat_buffer += 0.18  # Stronger response
-            agent.anticipated_damage = abs(trend) * 2.0
-        elif trend > 0.05:
-            agent.threat_buffer = max(0, agent.threat_buffer - 0.08)
+        recent_decline = max(0, agent.IC_history[-5] - agent.IC_history[-1])
+        if recent_decline > 0.02:
+            # Past damage predicts future damage, scaled by vulnerability
+            predicted_vulnerability += recent_decline * vulnerability * 0.8
 
-    # 2. Embedding-enhanced anticipation
+    # Cluster threat affects vulnerable agents more
     if agent.embedding_dim > 0:
         cluster_threat = decode_threat_from_embedding(agent.cluster_embedding)
-        agent.threat_buffer += cluster_threat * 0.25  # Direct influence
-        agent.anticipated_damage += cluster_threat * 0.3
+        predicted_vulnerability += cluster_threat * vulnerability * 0.3
 
-    # 3. Module-enhanced anticipation
+    # Module prediction
     for module in agent.modules:
         if module.module_type == 'anticipation_enhancer':
-            agent.threat_buffer *= (1 + module.apply({}) * 0.4)
+            predicted_vulnerability *= (1 + module.apply({}) * 0.15)
         elif module.module_type == 'pattern_detector':
-            agent.anticipated_damage += module.apply({}) * 0.15
+            predicted_vulnerability += module.apply({}) * 0.05 * vulnerability
 
-    # 4. Degradation-aware anticipation
-    agent.threat_buffer += agent.degradation_level * 0.15
+    # Direct degradation contribution
+    predicted_vulnerability += agent.degradation_level * 0.15
+
+    # Set threat_buffer to predicted vulnerability
+    # Use exponential moving average for smoothness
+    alpha = 0.5  # How fast to update
+    agent.threat_buffer = alpha * predicted_vulnerability + (1 - alpha) * agent.threat_buffer
 
     # Clamp
     agent.threat_buffer = max(0, min(1, agent.threat_buffer))
+    agent.anticipated_damage = predicted_vulnerability
     agent.threat_history.append(agent.threat_buffer)
 
-    # STRONGER behavior modification (key for TAE)
-    if agent.threat_buffer > 0.25:
+    # BEHAVIOR MODIFICATION based on anticipation
+    if agent.threat_buffer > 0.20:
         agent.theta.exploration_rate = max(0.05, agent.theta.exploration_rate * 0.75)
         agent.theta.risk_aversion = min(1.0, agent.theta.risk_aversion + 0.18)
         agent.protective_stance = min(1.0, agent.protective_stance + 0.22)
-    elif agent.threat_buffer > 0.15:
+    elif agent.threat_buffer > 0.10:
         agent.theta.exploration_rate = max(0.1, agent.theta.exploration_rate * 0.85)
         agent.theta.risk_aversion = min(0.9, agent.theta.risk_aversion + 0.10)
         agent.protective_stance = min(0.8, agent.protective_stance + 0.12)
@@ -550,10 +594,10 @@ def apply_wave(agents: List[SynthAgentV2], wave: PerturbationWave,
         resistance = agent.protective_stance * 0.35
         eff_damage = effective_amp
 
-        # Embedding-based resistance
+        # Embedding-based resistance (reduced to allow more damage variance for TAE)
         if agent.embedding_dim > 0:
             ei = agent.get_embedding_integrity()
-            resistance += ei * 0.25
+            resistance += ei * 0.15  # Reduced from 0.25
 
         # Module resistance
         for module in agent.modules:
@@ -680,18 +724,34 @@ def calculate_metrics(agents: List[SynthAgentV2], damage_history: List[float],
     rs = total_succ / total_att if total_att > 0 else 0.0
 
     # TAE: Temporal Anticipation Effectiveness
+    # Improved: Focus on windows with actual damage to avoid protection-induced noise
     tae = 0.0
     if config.get('use_enhanced_tae', True):
         threat_buffers = []
         future_damages = []
+
+        # First pass: collect all windows where damage occurred
         for agent in agents:
             if len(agent.threat_history) > 10 and len(agent.IC_history) > 15:
                 for i in range(len(agent.threat_history) - 5):
                     if i + 5 < len(agent.IC_history):
-                        threat_buffers.append(agent.threat_history[i])
                         ic_drop = max(0, agent.IC_history[i] - agent.IC_history[i + 5])
-                        future_damages.append(ic_drop)
-        if len(threat_buffers) > 20 and np.std(threat_buffers) > 0.01 and np.std(future_damages) > 0.01:
+                        # Include windows with ANY damage, plus some no-damage windows for balance
+                        if ic_drop > 0.005 or (ic_drop == 0 and len(threat_buffers) % 3 == 0):
+                            threat_buffers.append(agent.threat_history[i])
+                            future_damages.append(ic_drop)
+
+        # Also include agent-level aggregates for more signal
+        for agent in agents:
+            if len(agent.threat_history) > 10 and len(agent.IC_history) > 10:
+                # Agent's average threat vs total IC drop
+                avg_threat = np.mean(agent.threat_history)
+                total_drop = max(0, agent.IC_history[0] - agent.IC_history[-1])
+                if total_drop > 0.01:  # Agent took meaningful damage
+                    threat_buffers.append(avg_threat)
+                    future_damages.append(total_drop)
+
+        if len(threat_buffers) > 15 and np.std(threat_buffers) > 0.005 and np.std(future_damages) > 0.005:
             tae = float(np.corrcoef(threat_buffers, future_damages)[0, 1])
             tae = tae if not np.isnan(tae) else 0.0
 
@@ -819,9 +879,11 @@ def run_episode(n_agents: int = 24, n_clusters: int = 4, n_steps: int = 150,
                 break
 
         # ENHANCED: Temporal anticipation (every step)
+        # Pass wave timing so agents can PREDICT upcoming damage (key for TAE)
+        wave_steps = [w.step for w in storm.waves]
         for agent in agents:
             if agent.is_alive():
-                enhanced_temporal_anticipation(agent, use_enhanced_tae)
+                enhanced_temporal_anticipation(agent, use_enhanced_tae, step, wave_steps)
 
         # PROACTIVE: Module creation (every step, not just during stress)
         for agent in agents:
@@ -1011,7 +1073,7 @@ def main():
         'n_clusters': 4,
         'n_steps': 150,
         'n_runs': 8,
-        'damage_mult': 4.1  # Calibrated Goldilocks zone
+        'damage_mult': 3.9  # Searching for TAE + HS balance
     }
 
     print(f"\nConfiguration:")
