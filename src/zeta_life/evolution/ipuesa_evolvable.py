@@ -181,10 +181,13 @@ def gradual_damage(agent: EvolvableAgent, damage: float,
     # Compound effect (degraded agents degrade faster)
     individual_factor *= (1.0 + agent.degradation_level * config.compound_factor)
 
-    # Module protection
+    # Module protection - activate modules when used
     for module in agent.modules:
         if module.module_type in ['threat_filter', 'cascade_breaker']:
-            individual_factor *= (1.0 - module.strength * config.module_protection)
+            effect = module.apply(config)  # Increment activation_count
+            individual_factor *= (1.0 - effect)
+            # Track contribution (positive = helped reduce damage)
+            module.contribution += 0.1 * module.strength
 
     # Random resilience
     np.random.seed(agent.agent_id + int(damage * 1000))
@@ -232,13 +235,29 @@ def gradual_recovery(agent: EvolvableAgent, cluster: ClusterState,
     rate = base_rate * (1 + ei * config.embedding_bonus)
     rate *= (1 + cluster_support * config.cluster_bonus)
 
-    # Module bonuses
-    effects = config.get_module_effects()
+    # Module bonuses - activate modules when used
     for module in agent.modules:
         if module.module_type == 'recovery_accelerator':
-            rate *= (1 + module.strength * effects['recovery_accelerator'])
+            effect = module.apply(config)
+            rate *= (1 + effect)
+            module.contribution += 0.1 * module.strength
         elif module.module_type == 'residual_cleaner':
-            agent.residual_damage *= (1 - module.strength * effects['residual_cleaner'] * 0.5)
+            effect = module.apply(config)
+            agent.residual_damage *= (1 - effect * 0.5)
+            module.contribution += 0.1 * module.strength
+        elif module.module_type == 'embedding_protector':
+            effect = module.apply(config)
+            agent.embedding_staleness *= (1 - effect * 0.3)
+            module.contribution += 0.05 * module.strength
+        elif module.module_type == 'pattern_detector':
+            # Pattern detectors help predict and prepare
+            effect = module.apply(config)
+            agent.protective_stance = min(1.0, agent.protective_stance + effect * 0.1)
+            module.contribution += 0.05 * module.strength
+        elif module.module_type == 'anticipation_enhancer':
+            effect = module.apply(config)
+            # Improves threat prediction accuracy
+            module.contribution += 0.05 * module.strength
 
     # Degradation penalty
     rate *= (1 - agent.degradation_level * config.degradation_penalty)
