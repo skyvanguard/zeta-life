@@ -829,6 +829,64 @@ baseline          0.000    0.000    0.000    0.000
 
 **Interpretation**: Baseline system shows no strong self-preservation across individual tests. IPUESA-EI shows agency loss matters; IPUESA-MI/AE show correct adaptation directions; IPUESA-X shows emergent modules; IPUESA-CE shows cooperation is essential for social self; IPUESA-SH reveals 2-level hierarchy outperforms 3-level; IPUESA-HG-Cal finds the Goldilocks zone (2.4×) where holographic embeddings provide survival advantage (14% vs 0%); IPUESA-SYNTH reveals critical phase transition at 2.13× with bistable dynamics. Complete framework (16 experiments) from individual to social to hierarchical to holographic to synthesized self.
 
+### 7. Evolutionary Hyperparameter Optimization (2026-01-11)
+
+Inspired by OpenAlpha_Evolve, a genetic algorithm-based system to automatically optimize IPUESA hyperparameters.
+
+```
+src/zeta_life/evolution/
+├── __init__.py           - Module exports
+├── config_space.py       - 30 evolvable parameters with ranges
+├── fitness_evaluator.py  - 8 self-evidence criteria
+└── ipuesa_evolvable.py   - Parameterized IPUESA simulation
+
+experiments/evolution/
+└── exp_evolve_ipuesa.py  - CLI orchestrator with checkpoint/resume
+```
+
+**30 Evolvable Parameters** (4 groups):
+- **Damage**: damage_multiplier, base_degrad_rate, embedding_protection, stance_protection, compound_factor, module_protection, resilience_min, resilience_range, noise_scale, residual_cap
+- **Recovery**: base_recovery_rate, embedding_bonus, cluster_bonus, degradation_penalty, degrad_recovery_factor, corruption_decay
+- **Module Effects**: effect_* (8 parameters for pattern_detector, threat_filter, recovery_accelerator, etc.)
+- **Thresholds**: consolidation_threshold, spread_threshold, spread_probability, spread_strength_factor, module_cap, min_activations
+
+**8 Self-Evidence Criteria**:
+1. HS_in_range: Holographic survival ∈ [0.30, 0.70]
+2. MSR_pass: Module spreading rate > 0.15
+3. TAE_pass: Temporal anticipation effectiveness > 0.15
+4. EI_pass: Embedding integrity > 0.30
+5. ED_pass: Emergent differentiation > 0.10
+6. diff_pass: full > baseline survival
+7. gradient_pass: full > no_embedding > baseline
+8. smooth_transition: degradation variance > 0.02
+
+**Results (30 generations)**:
+```
+Initial:  fitness=0.68, 6/8 criteria
+Final:    fitness=0.99, 8/8 criteria
+```
+
+**Key Evolved Changes**:
+| Parameter | Default | Evolved | Change |
+|-----------|---------|---------|--------|
+| damage_multiplier | 3.9 | 3.77 | -3.3% |
+| compound_factor | 0.5 | 0.74 | +48.7% |
+| base_recovery_rate | 0.06 | 0.079 | +31.9% |
+| embedding_bonus | 0.4 | 0.50 | +24.5% |
+| spread_probability | 0.25 | 0.27 | +9.6% |
+
+**Usage**:
+```bash
+# Run evolution (30 generations)
+python experiments/evolution/exp_evolve_ipuesa.py --generations 30 --population 20
+
+# Resume from checkpoint
+python experiments/evolution/exp_evolve_ipuesa.py --resume checkpoint_gen20.json
+
+# Quick validation (5 generations)
+python experiments/evolution/exp_evolve_ipuesa.py --quick
+```
+
 ## Documentation
 
 - `docs/REPORTE_ZETA_ORGANISM.md` - Full research report with all experiments
@@ -849,6 +907,7 @@ baseline          0.000    0.000    0.000    0.000
 - `docs/plans/2026-01-10-ipuesa-hg-plus-design.md` - IPUESA-HG+ stress test design
 - `docs/plans/2026-01-10-ipuesa-hg-cal-design.md` - IPUESA-HG-Cal calibrated design
 - `docs/plans/2026-01-10-ipuesa-synth-design.md` - IPUESA-SYNTH synthesis design
+- `docs/plans/2026-01-11-openalpha-integration-design.md` - Evolutionary optimization design
 - `README_organism.md` - ZetaOrganism quickstart
 
 ## Reference
