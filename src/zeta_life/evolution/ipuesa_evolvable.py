@@ -399,12 +399,14 @@ def update_cluster(cluster: ClusterState, agents: List[EvolvableAgent]):
 def create_storm(damage_multiplier: float, n_steps: int = 150) -> List[PerturbationWave]:
     """Create cascading storm with 5 wave types."""
     waves = []
+    # Base damages calibrated for survival with damage_multiplier ~2-4
+    # These are much lower than original to allow evolution to explore
     base_damages = {
-        'history': 0.08,
-        'prediction': 0.10,
-        'social': 0.06,
-        'identity': 0.12,
-        'catastrophic': 0.15
+        'history': 0.015,
+        'prediction': 0.020,
+        'social': 0.012,
+        'identity': 0.025,
+        'catastrophic': 0.030
     }
 
     wave_types = list(base_damages.keys())
