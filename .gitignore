@@ -109,3 +109,4 @@ docs/_build_clean/
 docs/_build_v3/
 docs/_build*/
 docs/serve_docs.bat
+tmpclaude-*
