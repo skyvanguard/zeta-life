@@ -85,6 +85,8 @@ Thumbs.db
 *.jpg
 *.jpeg
 !results/figures/.gitkeep
+!results/figures/evolution_results.png
+!results/figures/synth_comparison.png
 *.json
 !pyproject.toml
 *.pt
