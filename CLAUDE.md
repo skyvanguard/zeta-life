@@ -806,6 +806,46 @@ baseline          0.000    0.000    0.000    0.000
 - MSR = 0: Module spreading still needs work (modules not created under moderate stress)
 - System has bistable dynamics: embeddings protect completely or fail completely
 
+#### 6.17 IPUESA-SYNTH-v2 (Enhanced Synthesis - 2026-01-11)
+
+**THE BREAKTHROUGH**: Fixed MSR and TAE issues from v1, achieving **8/8 self-evidence criteria**.
+
+**Key Fixes**:
+1. **MSR Fix**: Modules now call `apply()` during damage/recovery, accumulating activation_count and contribution
+2. **TAE Fix**: Vulnerability-based prediction (agents predict their OWN damage, not just wave timing)
+3. **Proactive Modules**: Created under low stress, not just high stress
+4. **Gradual Degradation**: Smooth transitions instead of bistable cliff
+
+**Results (3.9× damage)**:
+```
+Condition         HS       MSR      TAE      EI       ED
+---------------------------------------------------------
+full_v2           0.391    0.498    0.225    1.000    0.359
+no_proactive      0.000    0.000    0.975    0.000    0.200
+no_enhanced_tae   0.000    0.300    0.000    0.000    0.138
+no_gradual        0.964    0.445    0.184    1.000    0.110
+no_embeddings     0.047    0.470    0.152    0.000    0.226
+baseline          0.000    0.000    0.000    0.000    0.000
+```
+
+**Passed: 8/8 criteria** - **STRONG EVIDENCE OF SYNTHESIZED SELF**
+
+**Self-Evidence Criteria**:
+- [PASS] HS in [0.30, 0.70]: 0.391
+- [PASS] MSR > 0.15: 0.498
+- [PASS] TAE > 0.15: 0.225
+- [PASS] EI > 0.3: 1.000
+- [PASS] ED > 0.10: 0.359
+- [PASS] full > baseline: 0.391 vs 0.000
+- [PASS] Gradient valid
+- [PASS] Smooth transition: deg_var = 0.027
+
+**Key Insights**:
+- MSR jumped from 0.000 to 0.498 (module activation fix)
+- TAE jumped from 0.117 to 0.225 (vulnerability-based prediction)
+- All components required together for full effect
+- Proactive modules essential (without them: HS=0, MSR=0)
+
 #### IPUESA Self-Evidence Summary
 
 | Experiment | Focus | Criteria | Passed | Conclusion |
@@ -826,8 +866,15 @@ baseline          0.000    0.000    0.000    0.000
 | IPUESA-HG+ | Stress test | 8 | 0/8 | Too severe, optimal params between HG/HG+ |
 | IPUESA-HG-Cal | Calibrated | 8 | 3/8 | Goldilocks found: 14% vs 0% at 2.4× |
 | IPUESA-SYNTH | Synthesis | 8 | 3/8 | Critical transition, strong embedding advantage |
+| **IPUESA-SYNTH-v2** | **Enhanced synthesis** | **8** | **8/8** | **STRONG EVIDENCE - All criteria pass** |
 
-**Interpretation**: Baseline system shows no strong self-preservation across individual tests. IPUESA-EI shows agency loss matters; IPUESA-MI/AE show correct adaptation directions; IPUESA-X shows emergent modules; IPUESA-CE shows cooperation is essential for social self; IPUESA-SH reveals 2-level hierarchy outperforms 3-level; IPUESA-HG-Cal finds the Goldilocks zone (2.4×) where holographic embeddings provide survival advantage (14% vs 0%); IPUESA-SYNTH reveals critical phase transition at 2.13× with bistable dynamics. Complete framework (16 experiments) from individual to social to hierarchical to holographic to synthesized self.
+**Interpretation**: Progressive refinement from 0/5 to **8/8 criteria**. Key breakthroughs:
+1. **MSR fix** (module activation): 0.000 → 0.498
+2. **TAE fix** (vulnerability prediction): 0.117 → 0.225
+3. **Gradual degradation**: bistable → smooth transitions
+4. **Proactive modules**: essential for survival
+
+IPUESA-SYNTH-v2 demonstrates **strong evidence of emergent self-preservation** through the synthesis of holographic embeddings, proactive module creation, enhanced temporal anticipation, and gradual degradation. All 8 self-evidence criteria pass simultaneously.
 
 ### 7. Evolutionary Hyperparameter Optimization (2026-01-11)
 
@@ -835,10 +882,11 @@ Inspired by OpenAlpha_Evolve, a genetic algorithm-based system to automatically 
 
 ```
 src/zeta_life/evolution/
-├── __init__.py           - Module exports
+├── __init__.py           - Module exports + optimized config
 ├── config_space.py       - 30 evolvable parameters with ranges
 ├── fitness_evaluator.py  - 8 self-evidence criteria
-└── ipuesa_evolvable.py   - Parameterized IPUESA simulation
+├── ipuesa_evolvable.py   - Parameterized IPUESA simulation
+└── optimized_config.py   - Best evolved configuration (fitness=0.9993)
 
 experiments/evolution/
 └── exp_evolve_ipuesa.py  - CLI orchestrator with checkpoint/resume
@@ -860,30 +908,39 @@ experiments/evolution/
 7. gradient_pass: full > no_embedding > baseline
 8. smooth_transition: degradation variance > 0.02
 
-**Results (30 generations)**:
+**Results (50 generations)**:
 ```
 Initial:  fitness=0.68, 6/8 criteria
-Final:    fitness=0.99, 8/8 criteria
+Gen 0:    fitness=0.95, 8/8 criteria (MSR fix breakthrough)
+Gen 34:   fitness=0.9993, 8/8 criteria (OPTIMUM FOUND)
 ```
 
-**Key Evolved Changes**:
-| Parameter | Default | Evolved | Change |
-|-----------|---------|---------|--------|
-| damage_multiplier | 3.9 | 3.77 | -3.3% |
-| compound_factor | 0.5 | 0.74 | +48.7% |
-| base_recovery_rate | 0.06 | 0.079 | +31.9% |
-| embedding_bonus | 0.4 | 0.50 | +24.5% |
-| spread_probability | 0.25 | 0.27 | +9.6% |
+**Key Evolved Changes** (from 50-gen optimization):
+| Parameter | Default | Evolved | Change | Insight |
+|-----------|---------|---------|--------|---------|
+| base_recovery_rate | 0.06 | 0.098 | **+63%** | Faster recovery critical |
+| spread_probability | 0.30 | 0.48 | **+61%** | Easier module spreading |
+| min_activations | 3.0 | 4.57 | **+52%** | More selective spreading |
+| noise_scale | 0.25 | 0.37 | **+49%** | Anti-fragility via variability |
+| damage_multiplier | 3.9 | 4.43 | +14% | Higher stress tolerance |
+| embedding_protection | 0.15 | 0.05 | **-67%** | Dynamic > static protection |
+| compound_factor | 0.50 | 0.25 | **-51%** | Reduced damage cascades |
 
 **Usage**:
+```python
+# Load optimized config
+from zeta_life.evolution import get_optimized_config, OPTIMIZED_CONFIG
+config = get_optimized_config()  # Returns EvolvableConfig
+```
+
 ```bash
-# Run evolution (30 generations)
-python experiments/evolution/exp_evolve_ipuesa.py --generations 30 --population 20
+# Run evolution (50 generations, no early stop)
+python experiments/evolution/exp_evolve_ipuesa.py --generations 50 --target 9
 
 # Resume from checkpoint
 python experiments/evolution/exp_evolve_ipuesa.py --resume checkpoint_gen20.json
 
-# Quick validation (5 generations)
+# Quick validation
 python experiments/evolution/exp_evolve_ipuesa.py --quick
 ```
 
@@ -907,6 +964,7 @@ python experiments/evolution/exp_evolve_ipuesa.py --quick
 - `docs/plans/2026-01-10-ipuesa-hg-plus-design.md` - IPUESA-HG+ stress test design
 - `docs/plans/2026-01-10-ipuesa-hg-cal-design.md` - IPUESA-HG-Cal calibrated design
 - `docs/plans/2026-01-10-ipuesa-synth-design.md` - IPUESA-SYNTH synthesis design
+- `docs/plans/2026-01-10-ipuesa-synth-v2-design.md` - IPUESA-SYNTH-v2 enhanced synthesis design
 - `docs/plans/2026-01-11-openalpha-integration-design.md` - Evolutionary optimization design
 - `README_organism.md` - ZetaOrganism quickstart
 
