@@ -35,6 +35,10 @@ from .bottom_up_integrator import BottomUpIntegrator
 from .top_down_modulator import TopDownModulator
 from .cluster_assigner import ClusterAssigner, ClusteringConfig, ClusteringStrategy
 
+# IPUESA resilience integration
+from .damage_system import DamageSystem
+from .resilience_config import get_preset_config, create_hierarchical_config
+
 
 # =============================================================================
 # CONFIGURACIÓN DE SIMULACIÓN
@@ -76,6 +80,11 @@ class SimulationConfig:
     perturbation_strength: float = 0.2  # Perturbaciones más suaves (era 0.3)
     post_perturbation_contagion: float = 0.5  # Contagio extra post-perturbación
 
+    # IPUESA Resilience settings
+    enable_resilience: bool = True  # Enable damage/recovery dynamics
+    resilience_preset: str = 'optimal'  # Preset: demo, optimal, stress, validation
+    resilience_config: Optional[Dict] = None  # Custom config (overrides preset)
+
 
 # =============================================================================
 # REGISTRO DE MÉTRICAS
@@ -108,6 +117,12 @@ class SimulationMetrics:
     avg_surprise: float = 0.0
     modulation_quality: float = 0.0
 
+    # IPUESA resilience metrics
+    holographic_survival: float = 1.0  # HS: functional cells / total cells
+    mean_degradation: float = 0.0
+    total_modules: int = 0
+    modules_spread: int = 0  # Modules spread this step
+
     def to_dict(self) -> Dict:
         """Convierte a diccionario."""
         return {
@@ -125,7 +140,12 @@ class SimulationMetrics:
             'n_fi_cells': self.n_fi_cells,
             'n_mi_cells': self.n_mi_cells,
             'avg_surprise': self.avg_surprise,
-            'modulation_quality': self.modulation_quality
+            'modulation_quality': self.modulation_quality,
+            # IPUESA resilience metrics
+            'holographic_survival': self.holographic_survival,
+            'mean_degradation': self.mean_degradation,
+            'total_modules': self.total_modules,
+            'modules_spread': self.modules_spread,
         }
 
 
@@ -183,6 +203,27 @@ class HierarchicalSimulation:
 
         # Callbacks opcionales
         self.on_step_callbacks: List[Callable] = []
+
+        # IPUESA Resilience system
+        self.damage_system: Optional[DamageSystem] = None
+        self.resilience_config: Optional[Dict] = None
+        if self.config.enable_resilience:
+            self._setup_resilience_system()
+
+    # =========================================================================
+    # RESILIENCE SETUP
+    # =========================================================================
+
+    def _setup_resilience_system(self) -> None:
+        """Initialize the IPUESA resilience system."""
+        if self.config.resilience_config:
+            # Use custom config
+            self.resilience_config = self.config.resilience_config
+        else:
+            # Use preset
+            self.resilience_config = get_preset_config(self.config.resilience_preset)
+
+        self.damage_system = DamageSystem(self.resilience_config)
 
     # =========================================================================
     # INICIALIZACIÓN
@@ -262,7 +303,7 @@ class HierarchicalSimulation:
     # CICLO PRINCIPAL
     # =========================================================================
 
-    def step(self) -> SimulationMetrics:
+    def step(self, external_stimulus: Optional[np.ndarray] = None) -> SimulationMetrics:
         """
         Ejecuta un paso de simulación.
 
@@ -270,8 +311,13 @@ class HierarchicalSimulation:
         1. Aplicar dinámica lateral (contagio)
         2. Integración bottom-up
         3. Modulación top-down
-        4. Actualizar energía y estados
-        5. Potencial reasignación de clusters
+        4. NUEVO: Daño y recuperación IPUESA
+        5. NUEVO: Spreading de módulos
+        6. Actualizar energía y estados
+        7. Potencial reasignación de clusters
+
+        Args:
+            external_stimulus: Optional external stress stimulus (affects damage)
 
         Returns:
             Métricas del paso actual
@@ -280,6 +326,7 @@ class HierarchicalSimulation:
             raise RuntimeError("Simulación no inicializada. Llamar initialize() primero.")
 
         self.step_count += 1
+        modules_spread_this_step = 0
 
         # 1. Dinámica lateral: contagio psíquico entre células
         self._apply_lateral_dynamics()
@@ -296,19 +343,28 @@ class HierarchicalSimulation:
             apply_to_cells=True
         )
 
-        # 4. Actualizar energía y estados de células
+        # 4. IPUESA: Daño y recuperación
+        if self.config.enable_resilience and self.damage_system:
+            self._apply_resilience_dynamics(external_stimulus)
+
+            # 5. IPUESA: Spreading de módulos intra-cluster
+            for cluster in self.clusters:
+                spread = cluster.spread_modules(self.resilience_config)
+                modules_spread_this_step += spread
+
+        # 6. Actualizar energía y estados de células
         self._update_cell_dynamics()
 
-        # 5. Potencial reasignación de clusters
+        # 7. Potencial reasignación de clusters
         self.clusters = self.assigner.assign(self.cells, self.clusters)
 
-        # 6. Perturbaciones opcionales
+        # 8. Perturbaciones opcionales
         if self.config.enable_perturbations:
             if self.step_count % self.config.perturbation_interval == 0:
                 self._apply_perturbation()
 
         # Registrar métricas
-        metrics = self._record_metrics(mod_results)
+        metrics = self._record_metrics(mod_results, modules_spread_this_step)
 
         # Ejecutar callbacks
         for callback in self.on_step_callbacks:
@@ -381,6 +437,10 @@ class HierarchicalSimulation:
     def _update_cell_dynamics(self) -> None:
         """Actualiza energía y phi local de células."""
         for cell in self.cells:
+            # Skip collapsed cells
+            if not cell.is_functional:
+                continue
+
             # Decay de energía
             cell.energy = max(0.1, cell.energy - self.config.energy_decay)
 
@@ -399,6 +459,51 @@ class HierarchicalSimulation:
             # Bonus adicional si phi es alto (coherencia con vecinos)
             if cell.psyche.phi_local > self.config.phi_threshold:
                 cell.energy = min(1.0, cell.energy + 0.015)
+
+    def _apply_resilience_dynamics(
+        self,
+        external_stimulus: Optional[np.ndarray] = None
+    ) -> None:
+        """
+        Apply IPUESA damage and recovery dynamics.
+
+        For each cluster:
+        1. Apply damage to cells based on stimulus and stress
+        2. Apply recovery based on cluster cohesion
+        """
+        if not self.damage_system:
+            return
+
+        # Base stress from perturbations or external stimulus
+        base_stress = 0.0
+        if external_stimulus is not None:
+            base_stress = float(np.linalg.norm(external_stimulus)) * 0.5
+
+        # Process each cluster
+        for cluster in self.clusters:
+            cohesion = cluster.cohesion
+
+            for cell in cluster.cells:
+                # Calculate cell-specific stress
+                # Lower phi_local = higher stress (less integration)
+                isolation_stress = (1.0 - cell.psyche.phi_local) * 0.2
+
+                # Surprise contributes to stress
+                surprise_stress = cell.psyche.accumulated_surprise * 0.1
+
+                # Total stress for this cell
+                cell_stress = base_stress + isolation_stress + surprise_stress
+
+                # Apply damage if stress is significant
+                if cell_stress > 0.1:
+                    self.damage_system.apply_damage(
+                        cell, cell.resilience, cell_stress
+                    )
+
+                # Apply recovery (always)
+                self.damage_system.apply_recovery(
+                    cell, cell.resilience, cohesion
+                )
 
     def _apply_perturbation(self) -> None:
         """Aplica perturbación aleatoria al sistema."""
@@ -443,7 +548,8 @@ class HierarchicalSimulation:
 
     def _record_metrics(
         self,
-        mod_results: Optional[Dict] = None
+        mod_results: Optional[Dict] = None,
+        modules_spread: int = 0
     ) -> SimulationMetrics:
         """Registra métricas del estado actual."""
         metrics = SimulationMetrics(step=self.step_count)
@@ -484,6 +590,18 @@ class HierarchicalSimulation:
             metrics.modulation_quality = self.modulator.compute_modulation_quality(
                 self.cells, self.organism
             )
+
+        # IPUESA resilience metrics
+        if self.cells and self.config.enable_resilience:
+            functional_count = sum(1 for c in self.cells if c.is_functional)
+            metrics.holographic_survival = functional_count / len(self.cells)
+            metrics.mean_degradation = float(np.mean([
+                c.resilience.degradation_level for c in self.cells
+            ]))
+            metrics.total_modules = sum(
+                len(c.resilience.modules) for c in self.cells
+            )
+            metrics.modules_spread = modules_spread
 
         self.metrics_history.append(metrics)
         return metrics

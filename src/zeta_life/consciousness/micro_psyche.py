@@ -14,7 +14,7 @@ import torch.nn as nn
 import torch.nn.functional as F
 import numpy as np
 from dataclasses import dataclass, field
-from typing import Deque, Optional, Tuple, List
+from typing import Deque, Optional, Tuple, List, TYPE_CHECKING
 from collections import deque
 from enum import Enum
 
@@ -22,6 +22,10 @@ from enum import Enum
 from ..core.vertex import Vertex, VertexBehaviors, BehaviorVector
 from ..core.tetrahedral_space import TetrahedralSpace, get_tetrahedral_space
 from ..organism.cell_state import CellRole
+
+# Resilience components (IPUESA integration)
+if TYPE_CHECKING:
+    from .resilience import CellResilience
 
 # Backwards compatibility alias
 Archetype = Vertex
@@ -256,6 +260,12 @@ class MicroPsyche:
 # CONSCIOUS CELL
 # =============================================================================
 
+def _create_default_resilience() -> 'CellResilience':
+    """Factory function to create default CellResilience (avoids circular import)."""
+    from .resilience import CellResilience
+    return CellResilience()
+
+
 @dataclass
 class ConsciousCell:
     """
@@ -273,6 +283,7 @@ class ConsciousCell:
         psyche: Micro-psique de la célula
         cluster_id: ID del cluster al que pertenece
         cluster_weight: Peso/importancia en su cluster
+        resilience: Estado de resiliencia IPUESA (daño, módulos, anticipación)
     """
 
     # Atributos físicos (de CellEntity original)
@@ -289,6 +300,9 @@ class ConsciousCell:
 
     # Parametric behaviors (new abstract system)
     behaviors: VertexBehaviors = field(default_factory=VertexBehaviors.default)
+
+    # IPUESA resilience state
+    resilience: 'CellResilience' = field(default_factory=_create_default_resilience)
 
     @property
     def role_idx(self) -> int:
@@ -314,6 +328,23 @@ class ConsciousCell:
     def is_corrupt(self) -> bool:
         """¿Es esta célula Corrupt?"""
         return self.role_idx == 2
+
+    @property
+    def is_functional(self) -> bool:
+        """Cell is functional if resilience is not collapsed."""
+        return self.resilience.is_functional
+
+    @property
+    def effective_plasticity(self) -> float:
+        """Plasticity modulated by degradation level."""
+        base_plasticity = self.psyche.get_plasticity()
+        degradation_penalty = self.resilience.degradation_level * 0.5
+        return base_plasticity * (1.0 - degradation_penalty)
+
+    @property
+    def degradation_state(self) -> str:
+        """Current degradation state (OPTIMAL, STRESSED, IMPAIRED, CRITICAL, COLLAPSED)."""
+        return self.resilience.state
 
     def distance_to(self, other: 'ConsciousCell') -> float:
         """Calcula distancia euclidiana a otra célula."""
@@ -370,7 +401,14 @@ class ConsciousCell:
             'role': self.role_name,
             'energy': self.energy,
             'cluster_id': self.cluster_id,
-            'psyche': self.psyche.to_dict()
+            'psyche': self.psyche.to_dict(),
+            'resilience': {
+                'degradation': self.resilience.degradation_level,
+                'state': self.resilience.state,
+                'is_functional': self.resilience.is_functional,
+                'modules': len(self.resilience.modules),
+                'threat_buffer': self.resilience.threat_buffer,
+            }
         }
 
     @classmethod

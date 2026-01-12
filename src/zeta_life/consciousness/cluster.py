@@ -14,13 +14,17 @@ import torch.nn as nn
 import torch.nn.functional as F
 import numpy as np
 from dataclasses import dataclass, field
-from typing import List, Dict, Tuple, Optional
+from typing import List, Dict, Tuple, Optional, TYPE_CHECKING
 from enum import Enum
 
 # Importar del sistema existente
 from ..psyche.zeta_psyche import Archetype
 from ..organism.cell_state import CellRole
 from .micro_psyche import ConsciousCell, MicroPsyche, compute_local_phi, unbiased_argmax
+
+# Type hint for resilience config
+if TYPE_CHECKING:
+    from .resilience import MicroModule
 
 
 # =============================================================================
@@ -223,6 +227,121 @@ class Cluster:
             return 0.0
         return float(np.mean([c.energy for c in self.cells]))
 
+    # =========================================================================
+    # RESILIENCE PROPERTIES (IPUESA Integration)
+    # =========================================================================
+
+    @property
+    def cluster_resilience(self) -> float:
+        """
+        Average resilience (1 - degradation) of functional cells.
+
+        Returns:
+            Resilience score [0, 1], where 1 is fully healthy
+        """
+        functional = [c for c in self.cells if c.is_functional]
+        if not functional:
+            return 0.0
+        return 1.0 - float(np.mean([c.resilience.degradation_level for c in functional]))
+
+    @property
+    def functional_ratio(self) -> float:
+        """Proportion of functional (non-collapsed) cells."""
+        if not self.cells:
+            return 0.0
+        return sum(1 for c in self.cells if c.is_functional) / len(self.cells)
+
+    @property
+    def mean_degradation(self) -> float:
+        """Mean degradation level across all cells."""
+        if not self.cells:
+            return 0.0
+        return float(np.mean([c.resilience.degradation_level for c in self.cells]))
+
+    @property
+    def total_modules(self) -> int:
+        """Total number of modules across all cells."""
+        return sum(len(c.resilience.modules) for c in self.cells)
+
+    @property
+    def cohesion(self) -> float:
+        """
+        Cluster cohesion for recovery bonus.
+
+        Combines internal coherence with functional ratio.
+        """
+        if not self.cells:
+            return 0.0
+        internal_coherence = self.compute_internal_coherence()
+        return internal_coherence * self.functional_ratio
+
+    def spread_modules(self, config: dict) -> int:
+        """
+        Spread consolidated modules between cells in this cluster.
+
+        Consolidated modules (high activations, positive contribution)
+        can be copied to neighboring cells that lack that module type.
+
+        Args:
+            config: Configuration dict with 'modules.spreading' section
+
+        Returns:
+            Number of modules spread
+        """
+        from .resilience import MicroModule
+
+        spreading_cfg = config.get('modules', {}).get('spreading', {})
+        min_activations = spreading_cfg.get('min_activations', 3)
+        probability = spreading_cfg.get('probability', 0.3)
+        strength_factor = spreading_cfg.get('strength_factor', 0.5)
+        max_per_cell = spreading_cfg.get('max_per_cell', 6)
+
+        spread_count = 0
+
+        # Find all consolidated modules
+        consolidated: List[Tuple[ConsciousCell, 'MicroModule']] = []
+        for cell in self.cells:
+            for module in cell.resilience.get_consolidated_modules(min_activations):
+                consolidated.append((cell, module))
+
+        # Try to spread each consolidated module
+        for source_cell, module in consolidated:
+            if np.random.random() > probability:
+                continue
+
+            # Find target cell without this module type
+            for target_cell in self.cells:
+                if target_cell is source_cell:
+                    continue
+
+                # Skip non-functional cells
+                if not target_cell.is_functional:
+                    continue
+
+                # Skip if target already has this type
+                if target_cell.resilience.has_module_type(module.module_type):
+                    continue
+
+                # Skip if target at module cap
+                if len(target_cell.resilience.modules) >= max_per_cell:
+                    continue
+
+                # Create weakened copy
+                new_module = module.copy_weakened(strength_factor)
+                target_cell.resilience.modules.append(new_module)
+                spread_count += 1
+                break  # Only spread to one target per source module
+
+        return spread_count
+
+    def get_functional_cells(self) -> List[ConsciousCell]:
+        """Returns list of functional (non-collapsed) cells."""
+        return [c for c in self.cells if c.is_functional]
+
+    def get_collapsed_cells(self) -> List[ConsciousCell]:
+        """Returns list of collapsed cells."""
+        return [c for c in self.cells if not c.is_functional]
+
     @property
     def dominant_archetype(self) -> Archetype:
         """Arquetipo dominante del cluster."""
@@ -330,7 +449,14 @@ class Cluster:
             'collective_role': self.collective_role.name,
             'neighbors': self.neighbors,
             'psyche': self.psyche.to_dict() if self.psyche else None,
-            'avg_energy': self.avg_energy
+            'avg_energy': self.avg_energy,
+            'resilience': {
+                'cluster_resilience': self.cluster_resilience,
+                'functional_ratio': self.functional_ratio,
+                'mean_degradation': self.mean_degradation,
+                'total_modules': self.total_modules,
+                'cohesion': self.cohesion,
+            }
         }
 
     @classmethod
