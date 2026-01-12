@@ -201,6 +201,72 @@ dynamic clustering:  2-8 clusters (was fixed at 4)
 surprise plasticity: 0.64-1.36 range based on accumulated surprise
 ```
 
+#### 4.1 IPUESA Resilience Integration (2026-01-12)
+
+Integrates IPUESA (Identity-Preserving Unified Emergent Self-Architecture) resilience mechanisms into the hierarchical consciousness system.
+
+```
+src/zeta_life/consciousness/
+├── resilience.py           - CellResilience, MicroModule (8 types)
+├── damage_system.py        - DamageSystem (damage, recovery, spreading)
+├── resilience_config.py    - Presets: demo, optimal, stress, validation
+├── micro_psyche.py         - ConsciousCell + resilience field
+├── cluster.py              - Cluster + spread_modules(), cohesion
+└── hierarchical_simulation.py - Integration with damage/recovery cycle
+```
+
+**Core Components:**
+
+| Component | Description |
+|-----------|-------------|
+| `CellResilience` | 5 degradation states: OPTIMAL → STRESSED → IMPAIRED → CRITICAL → COLLAPSED |
+| `MicroModule` | 8 types: threat_filter, recovery_accelerator, cascade_breaker, etc. |
+| `DamageSystem` | Gradual damage with module mitigation, recovery with cluster cohesion |
+| `Presets` | demo (0.6x), optimal (1.0x), stress (1.5x), validation (3.9x) |
+
+**Key Features:**
+- **Gradual Degradation**: Smooth transitions, not bistable (deg_var > 0.02)
+- **Module Creation**: Proactive under vulnerability > threshold
+- **Module Spreading**: Consolidated modules copy to cluster neighbors
+- **Temporal Anticipation (TAE)**: threat_buffer → anticipated_damage → protective_stance
+- **Embedding Protection**: Holographic embeddings preserve identity
+
+**Calibration Results (2026-01-12):**
+```
+Multiplier  HS       MSR      TAE      Criteria
+──────────────────────────────────────────────
+1.5         0.983    1.0      1.0      6/8
+1.75        0.833    1.0      1.0      6/8
+2.0         0.467    1.0      1.0      6/8  ← Optimal for hierarchy
+2.5         0.233    1.0      1.0      5/8
+3.9         0.075    1.0      1.0      5/8  ← Original SYNTH-v2
+```
+
+**Key Finding**: Hierarchical system needs **2.0x damage** (vs 3.9x for flat SYNTH-v2) due to cluster cohesion bonuses and multi-level dynamics.
+
+**Usage:**
+```python
+from zeta_life.consciousness.resilience_config import get_preset_config
+from zeta_life.consciousness.damage_system import DamageSystem
+
+config = get_preset_config('optimal')  # or 'demo', 'stress', 'validation'
+ds = DamageSystem(config)
+
+# Apply to cell
+ds.apply_damage(cell, cell.resilience, base_damage=0.3)
+ds.apply_recovery(cell, cell.resilience, cluster_cohesion=0.8)
+
+# Spread modules in cluster
+spread_count = ds.spread_modules_in_cluster(cluster.cells)
+```
+
+**Validation Experiment:**
+```bash
+python experiments/consciousness/exp_hierarchical_resilience_validation.py
+```
+
+**Tests:** `tests/test_resilience.py` (34 tests)
+
 ### 5. Strange Loop & Attractor Memory (2026-01-03)
 
 Self-referential consciousness emergence through auto-observation cycles.
@@ -966,6 +1032,7 @@ python experiments/evolution/exp_evolve_ipuesa.py --quick
 - `docs/plans/2026-01-10-ipuesa-synth-design.md` - IPUESA-SYNTH synthesis design
 - `docs/plans/2026-01-10-ipuesa-synth-v2-design.md` - IPUESA-SYNTH-v2 enhanced synthesis design
 - `docs/plans/2026-01-11-openalpha-integration-design.md` - Evolutionary optimization design
+- `docs/plans/2026-01-11-ipuesa-hierarchical-integration-design.md` - IPUESA → Hierarchical integration design
 - `README_organism.md` - ZetaOrganism quickstart
 
 ## Reference
