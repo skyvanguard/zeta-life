@@ -31,7 +31,9 @@ if sys.platform == 'win32':
     except (AttributeError, io.UnsupportedOperation):
         pass
 
-from ..psyche.zeta_psyche import Archetype
+# Use Vertex from local module to avoid circular import with psyche
+# Vertex has backwards-compatible aliases: PERSONA, SOMBRA, ANIMA, ANIMUS
+from .vertex import Vertex as Archetype
 
 
 # =============================================================================

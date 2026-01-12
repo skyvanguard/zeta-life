@@ -480,9 +480,9 @@ class TestClusterResilience:
         cells[3].resilience.degradation_level = 0.6
         cells[4].resilience.degradation_level = 0.9  # COLLAPSED
 
-        # Create cluster
+        # Create cluster (Cluster uses 'id' not 'cluster_id')
         psyche = ClusterPsyche.from_cells(cells)
-        return Cluster(cluster_id=0, cells=cells, psyche=psyche)
+        return Cluster(id=0, cells=cells, psyche=psyche)
 
     def test_cluster_resilience(self, cluster_with_cells):
         """cluster_resilience property works."""
