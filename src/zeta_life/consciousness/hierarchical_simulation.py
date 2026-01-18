@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """
 HierarchicalSimulation: Loop principal de consciencia jerárquica.
 
@@ -11,34 +10,38 @@ Orquesta el sistema completo:
 Fecha: 2026-01-03
 """
 
+import json
+from collections import deque
+from collections.abc import Callable
+from dataclasses import dataclass, field
+from datetime import datetime
+from typing import Dict, List, Optional, Tuple
+
+import matplotlib.pyplot as plt
+import numpy as np
 import torch
 import torch.nn.functional as F
-import numpy as np
-import matplotlib.pyplot as plt
-from typing import List, Dict, Optional, Tuple, Callable
-from dataclasses import dataclass, field
-from collections import deque
-import json
-from datetime import datetime
 
 # Importar del sistema existente
 from ..psyche.zeta_psyche import Archetype
-
-# Importar módulos de consciencia jerárquica
-from .micro_psyche import ConsciousCell, MicroPsyche, compute_local_phi, apply_psyche_contagion, unbiased_argmax
-from .cluster import Cluster, ClusterPsyche, find_cluster_neighbors
-from .organism_consciousness import (
-    OrganismConsciousness, HierarchicalMetrics,
-    IndividuationStage
-)
 from .bottom_up_integrator import BottomUpIntegrator
-from .top_down_modulator import TopDownModulator
+from .cluster import Cluster, ClusterPsyche, find_cluster_neighbors
 from .cluster_assigner import ClusterAssigner, ClusteringConfig, ClusteringStrategy
 
 # IPUESA resilience integration
 from .damage_system import DamageSystem
-from .resilience_config import get_preset_config, create_hierarchical_config
 
+# Importar módulos de consciencia jerárquica
+from .micro_psyche import (
+    ConsciousCell,
+    MicroPsyche,
+    apply_psyche_contagion,
+    compute_local_phi,
+    unbiased_argmax,
+)
+from .organism_consciousness import HierarchicalMetrics, IndividuationStage, OrganismConsciousness
+from .resilience_config import create_hierarchical_config, get_preset_config
+from .top_down_modulator import TopDownModulator
 
 # =============================================================================
 # CONFIGURACIÓN DE SIMULACIÓN
@@ -83,7 +86,7 @@ class SimulationConfig:
     # IPUESA Resilience settings
     enable_resilience: bool = True  # Enable damage/recovery dynamics
     resilience_preset: str = 'optimal'  # Preset: demo, optimal, stress, validation
-    resilience_config: Optional[Dict] = None  # Custom config (overrides preset)
+    resilience_config: dict | None = None  # Custom config (overrides preset)
 
 
 # =============================================================================
@@ -105,7 +108,7 @@ class SimulationMetrics:
     # Métricas de clusters
     avg_phi_cluster: float = 0.0
     avg_coherence: float = 0.0
-    cluster_sizes: List[int] = field(default_factory=list)
+    cluster_sizes: list[int] = field(default_factory=list)
 
     # Métricas de células
     avg_phi_local: float = 0.0
@@ -123,7 +126,7 @@ class SimulationMetrics:
     total_modules: int = 0
     modules_spread: int = 0  # Modules spread this step
 
-    def to_dict(self) -> Dict:
+    def to_dict(self) -> dict:
         """Convierte a diccionario."""
         return {
             'step': self.step,
@@ -168,13 +171,13 @@ class HierarchicalSimulation:
     - Lateral: Contagio psíquico entre células
     """
 
-    def __init__(self, config: Optional[SimulationConfig] = None):
+    def __init__(self, config: SimulationConfig | None = None):
         self.config = config or SimulationConfig()
 
         # Componentes del sistema
-        self.cells: List[ConsciousCell] = []
-        self.clusters: List[Cluster] = []
-        self.organism: Optional[OrganismConsciousness] = None
+        self.cells: list[ConsciousCell] = []
+        self.clusters: list[Cluster] = []
+        self.organism: OrganismConsciousness | None = None
 
         # Integradores
         self.integrator = BottomUpIntegrator(
@@ -198,15 +201,15 @@ class HierarchicalSimulation:
 
         # Estado de simulación
         self.step_count = 0
-        self.metrics_history: List[SimulationMetrics] = []
+        self.metrics_history: list[SimulationMetrics] = []
         self.is_initialized = False
 
         # Callbacks opcionales
-        self.on_step_callbacks: List[Callable] = []
+        self.on_step_callbacks: list[Callable] = []
 
         # IPUESA Resilience system
-        self.damage_system: Optional[DamageSystem] = None
-        self.resilience_config: Optional[Dict] = None
+        self.damage_system: DamageSystem | None = None
+        self.resilience_config: dict | None = None
         if self.config.enable_resilience:
             self._setup_resilience_system()
 
@@ -231,7 +234,7 @@ class HierarchicalSimulation:
 
     def initialize(
         self,
-        archetype_distribution: Optional[Dict[Archetype, float]] = None
+        archetype_distribution: dict[Archetype, float] | None = None
     ) -> None:
         """
         Inicializa el sistema completo.
@@ -264,8 +267,8 @@ class HierarchicalSimulation:
 
     def _create_cells(
         self,
-        distribution: Dict[Archetype, float]
-    ) -> List[ConsciousCell]:
+        distribution: dict[Archetype, float]
+    ) -> list[ConsciousCell]:
         """Crea células según distribución de arquetipos."""
         cells = []
 
@@ -303,7 +306,7 @@ class HierarchicalSimulation:
     # CICLO PRINCIPAL
     # =========================================================================
 
-    def step(self, external_stimulus: Optional[np.ndarray] = None) -> SimulationMetrics:
+    def step(self, external_stimulus: np.ndarray | None = None) -> SimulationMetrics:
         """
         Ejecuta un paso de simulación.
 
@@ -374,9 +377,9 @@ class HierarchicalSimulation:
 
     def run(
         self,
-        n_steps: Optional[int] = None,
+        n_steps: int | None = None,
         verbose: bool = True
-    ) -> List[SimulationMetrics]:
+    ) -> list[SimulationMetrics]:
         """
         Ejecuta múltiples pasos de simulación.
 
@@ -462,7 +465,7 @@ class HierarchicalSimulation:
 
     def _apply_resilience_dynamics(
         self,
-        external_stimulus: Optional[np.ndarray] = None
+        external_stimulus: np.ndarray | None = None
     ) -> None:
         """
         Apply IPUESA damage and recovery dynamics.
@@ -548,7 +551,7 @@ class HierarchicalSimulation:
 
     def _record_metrics(
         self,
-        mod_results: Optional[Dict] = None,
+        mod_results: dict | None = None,
         modules_spread: int = 0
     ) -> SimulationMetrics:
         """Registra métricas del estado actual."""
@@ -606,7 +609,7 @@ class HierarchicalSimulation:
         self.metrics_history.append(metrics)
         return metrics
 
-    def get_summary(self) -> Dict:
+    def get_summary(self) -> dict:
         """Retorna resumen de la simulación."""
         if not self.metrics_history:
             return {}
@@ -631,7 +634,7 @@ class HierarchicalSimulation:
 
     def plot_metrics(
         self,
-        save_path: Optional[str] = None,
+        save_path: str | None = None,
         show: bool = True
     ) -> None:
         """Grafica evolución de métricas."""
@@ -706,7 +709,7 @@ class HierarchicalSimulation:
 
     def plot_archetype_distribution(
         self,
-        save_path: Optional[str] = None,
+        save_path: str | None = None,
         show: bool = True
     ) -> None:
         """Grafica distribución de arquetipos en el sistema."""
@@ -758,7 +761,7 @@ class HierarchicalSimulation:
 
     def plot_spatial_distribution(
         self,
-        save_path: Optional[str] = None,
+        save_path: str | None = None,
         show: bool = True
     ) -> None:
         """Grafica distribución espacial de células y clusters."""
@@ -839,7 +842,7 @@ class HierarchicalSimulation:
 def run_emergence_experiment(
     n_steps: int = 100,
     verbose: bool = True
-) -> Dict:
+) -> dict:
     """
     Experimento: Emergencia de consciencia desde células random.
 
@@ -886,7 +889,7 @@ def run_emergence_experiment(
 def run_perturbation_experiment(
     n_steps: int = 200,
     verbose: bool = True
-) -> Dict:
+) -> dict:
     """
     Experimento: Resiliencia ante perturbaciones.
 
@@ -948,7 +951,7 @@ def run_archetype_bias_experiment(
     bias_strength: float = 0.5,
     n_steps: int = 100,
     verbose: bool = True
-) -> Dict:
+) -> dict:
     """
     Experimento: Efecto del sesgo arquetípico inicial.
 

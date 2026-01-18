@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """
 Cluster: Grupo de células conscientes con psique emergente.
 
@@ -9,17 +8,19 @@ psique emergente (ClusterPsyche) que representa el "mood" colectivo.
 Fecha: 2026-01-03
 """
 
+from dataclasses import dataclass, field
+from enum import Enum
+from typing import TYPE_CHECKING, Dict, List, Optional, Tuple
+
+import numpy as np
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-import numpy as np
-from dataclasses import dataclass, field
-from typing import List, Dict, Tuple, Optional, TYPE_CHECKING
-from enum import Enum
+
+from ..organism.cell_state import CellRole
 
 # Importar del sistema existente
 from ..psyche.zeta_psyche import Archetype
-from ..organism.cell_state import CellRole
 from .micro_psyche import ConsciousCell, MicroPsyche, compute_local_phi, unbiased_argmax
 
 # Type hint for resilience config
@@ -106,7 +107,7 @@ class ClusterPsyche:
         )
 
     @classmethod
-    def from_cells(cls, cells: List[ConsciousCell]) -> 'ClusterPsyche':
+    def from_cells(cls, cells: list[ConsciousCell]) -> 'ClusterPsyche':
         """
         Crea ClusterPsyche agregando estados de células.
 
@@ -196,10 +197,10 @@ class Cluster:
     """
 
     id: int
-    cells: List[ConsciousCell] = field(default_factory=list)
-    psyche: Optional[ClusterPsyche] = None
-    centroid: Tuple[float, float] = (0.0, 0.0)
-    neighbors: List[int] = field(default_factory=list)
+    cells: list[ConsciousCell] = field(default_factory=list)
+    psyche: ClusterPsyche | None = None
+    centroid: tuple[float, float] = (0.0, 0.0)
+    neighbors: list[int] = field(default_factory=list)
     collective_role: CellRole = CellRole.MASS
 
     def __post_init__(self) -> None:
@@ -299,7 +300,7 @@ class Cluster:
         spread_count = 0
 
         # Find all consolidated modules
-        consolidated: List[Tuple[ConsciousCell, 'MicroModule']] = []
+        consolidated: list[tuple[ConsciousCell, MicroModule]] = []
         for cell in self.cells:
             for module in cell.resilience.get_consolidated_modules(min_activations):
                 consolidated.append((cell, module))
@@ -334,11 +335,11 @@ class Cluster:
 
         return spread_count
 
-    def get_functional_cells(self) -> List[ConsciousCell]:
+    def get_functional_cells(self) -> list[ConsciousCell]:
         """Returns list of functional (non-collapsed) cells."""
         return [c for c in self.cells if c.is_functional]
 
-    def get_collapsed_cells(self) -> List[ConsciousCell]:
+    def get_collapsed_cells(self) -> list[ConsciousCell]:
         """Returns list of collapsed cells."""
         return [c for c in self.cells if not c.is_functional]
 
@@ -393,7 +394,7 @@ class Cluster:
         self.psyche = ClusterPsyche.from_cells(self.cells)
         self._update_collective_role()
 
-    def distance_to_point(self, point: Tuple[float, float]) -> float:
+    def distance_to_point(self, point: tuple[float, float]) -> float:
         """Distancia del centroide a un punto."""
         dx = self.centroid[0] - point[0]
         dy = self.centroid[1] - point[1]
@@ -403,11 +404,11 @@ class Cluster:
         """Distancia entre centroides de clusters."""
         return self.distance_to_point(other.centroid)
 
-    def get_fi_cells(self) -> List[ConsciousCell]:
+    def get_fi_cells(self) -> list[ConsciousCell]:
         """Retorna células con rol Fi (líderes)."""
         return [c for c in self.cells if c.is_fi]
 
-    def get_mass_cells(self) -> List[ConsciousCell]:
+    def get_mass_cells(self) -> list[ConsciousCell]:
         """Retorna células con rol Mass."""
         return [c for c in self.cells if c.is_mass]
 
@@ -432,7 +433,7 @@ class Cluster:
         if len(self.cells) < 2:
             return 1.0
 
-        similarities: List[float] = []
+        similarities: list[float] = []
         for i, cell_a in enumerate(self.cells):
             for cell_b in self.cells[i+1:]:
                 sim = cell_a.psyche_similarity(cell_b)
@@ -463,7 +464,7 @@ class Cluster:
     def create_from_cells(
         cls,
         cluster_id: int,
-        cells: List[ConsciousCell]
+        cells: list[ConsciousCell]
     ) -> 'Cluster':
         """
         Crea un cluster desde una lista de células.
@@ -486,7 +487,7 @@ class Cluster:
 # =============================================================================
 
 def find_cluster_neighbors(
-    clusters: List[Cluster],
+    clusters: list[Cluster],
     threshold_ratio: float = 1.5
 ) -> None:
     """
@@ -524,7 +525,7 @@ def find_cluster_neighbors(
                     cluster.neighbors.append(other.id)
 
 
-def compute_inter_cluster_coherence(clusters: List[Cluster]) -> float:
+def compute_inter_cluster_coherence(clusters: list[Cluster]) -> float:
     """
     Calcula coherencia entre clusters (diversidad de especializaciones).
 
@@ -574,7 +575,7 @@ def merge_clusters(cluster_a: Cluster, cluster_b: Cluster) -> Cluster:
 def split_cluster(
     cluster: Cluster,
     n_parts: int = 2
-) -> List[Cluster]:
+) -> list[Cluster]:
     """
     Divide un cluster en partes basándose en posición espacial.
 

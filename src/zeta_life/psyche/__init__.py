@@ -12,11 +12,11 @@ Consciousness Index:
 consciousness = 0.3*integration + 0.3*stability + 0.2*(1-dist_to_self) + 0.2*|self_reference|
 """
 
-from .zeta_psyche import ZetaPsyche, ZetaModulator, Archetype
-from .zeta_conscious_self import ZetaConsciousSelf, AttractorMemory
+from .zeta_attention import AttentionOutput, ZetaAttentionSystem
+from .zeta_conscious_self import AttractorMemory, ZetaConsciousSelf
+from .zeta_dream_consolidation import ConsolidationReport, DreamMemory
+from .zeta_dreams import DreamFragment, DreamReport, DreamType
 from .zeta_individuation import IndividuationStage, IntegrationMetrics
-from .zeta_attention import ZetaAttentionSystem, AttentionOutput
 from .zeta_predictive import ZetaPredictivePsyche
-from .zeta_dreams import DreamType, DreamFragment, DreamReport
-from .zeta_dream_consolidation import DreamMemory, ConsolidationReport
-from .zeta_psyche_voice import OrganicVoice, ConversationalPsyche
+from .zeta_psyche import Archetype, ZetaModulator, ZetaPsyche
+from .zeta_psyche_voice import ConversationalPsyche, OrganicVoice

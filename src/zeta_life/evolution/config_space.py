@@ -5,12 +5,11 @@ Defines the 30 evolvable parameters with their valid ranges
 and the EvolvableConfig dataclass for type-safe configuration.
 """
 
-from dataclasses import dataclass, field, asdict
-from typing import Dict, Any, Tuple
-
+from dataclasses import asdict, dataclass, field
+from typing import Any, Dict, Tuple
 
 # Parameter ranges: (min, max) for each evolvable parameter
-PARAM_RANGES: Dict[str, Tuple[float, float]] = {
+PARAM_RANGES: dict[str, tuple[float, float]] = {
     # Group A: Damage and Degradation (10 params)
     'damage_multiplier': (1.5, 5.0),
     'base_degrad_rate': (0.05, 0.30),
@@ -98,7 +97,7 @@ class EvolvableConfig:
     min_activations: int = 3
 
     @classmethod
-    def from_dict(cls, d: Dict[str, Any]) -> 'EvolvableConfig':
+    def from_dict(cls, d: dict[str, Any]) -> 'EvolvableConfig':
         """Create config from dictionary (e.g., from OpenAlpha output)."""
         valid_keys = set(cls.__dataclass_fields__.keys())
         filtered = {k: v for k, v in d.items() if k in valid_keys}
@@ -110,11 +109,11 @@ class EvolvableConfig:
 
         return cls(**filtered)
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         """Convert to dictionary."""
         return asdict(self)
 
-    def get_module_effects(self) -> Dict[str, float]:
+    def get_module_effects(self) -> dict[str, float]:
         """Get module effects as dictionary for MicroModule."""
         return {
             'pattern_detector': self.effect_pattern_detector,
@@ -127,7 +126,7 @@ class EvolvableConfig:
             'anticipation_enhancer': self.effect_anticipation_enhancer,
         }
 
-    def validate(self) -> Tuple[bool, str]:
+    def validate(self) -> tuple[bool, str]:
         """Validate that all parameters are within valid ranges."""
         for key, (min_val, max_val) in PARAM_RANGES.items():
             value = getattr(self, key, None)
@@ -151,7 +150,7 @@ def get_baseline_config() -> EvolvableConfig:
     return EvolvableConfig()
 
 
-def get_config_as_flat_dict(config: EvolvableConfig) -> Dict[str, float]:
+def get_config_as_flat_dict(config: EvolvableConfig) -> dict[str, float]:
     """Get only the evolvable parameters as a flat dict."""
     d = config.to_dict()
     return {k: float(v) for k, v in d.items() if k in PARAM_RANGES}

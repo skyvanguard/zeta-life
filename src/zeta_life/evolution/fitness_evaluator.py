@@ -6,10 +6,11 @@ fitness scores based on self-evidence criteria.
 """
 
 from dataclasses import dataclass
-from typing import Dict, Any, Tuple, Optional
+from typing import Any, Dict, Optional, Tuple
+
 import numpy as np
 
-from .config_space import EvolvableConfig, PARAM_RANGES
+from .config_space import PARAM_RANGES, EvolvableConfig
 
 
 @dataclass
@@ -18,13 +19,13 @@ class FitnessResult:
     fitness_score: float          # Composite score (0-1)
     criteria_passed: int          # Criteria passed (0-8)
     criteria_total: int           # Total criteria (8)
-    criteria_details: Dict[str, bool]  # Individual criteria results
-    metrics: Dict[str, float]     # Raw metrics from simulation
+    criteria_details: dict[str, bool]  # Individual criteria results
+    metrics: dict[str, float]     # Raw metrics from simulation
     valid_config: bool            # Whether config was valid
-    error: Optional[str] = None   # Error message if failed
+    error: str | None = None   # Error message if failed
 
 
-def validate_config(config: Dict[str, Any]) -> Tuple[bool, str]:
+def validate_config(config: dict[str, Any]) -> tuple[bool, str]:
     """Validate that config has all required keys within valid ranges."""
     # Check for missing keys
     missing = set(PARAM_RANGES.keys()) - set(config.keys())
@@ -42,7 +43,7 @@ def validate_config(config: Dict[str, Any]) -> Tuple[bool, str]:
     return True, "OK"
 
 
-def evaluate_self_evidence(metrics: Dict[str, float]) -> Dict[str, bool]:
+def evaluate_self_evidence(metrics: dict[str, float]) -> dict[str, bool]:
     """
     Evaluate the 8 self-evidence criteria.
 
@@ -80,8 +81,8 @@ def evaluate_self_evidence(metrics: Dict[str, float]) -> Dict[str, bool]:
     }
 
 
-def calculate_fitness(criteria: Dict[str, bool],
-                      metrics: Dict[str, float]) -> float:
+def calculate_fitness(criteria: dict[str, bool],
+                      metrics: dict[str, float]) -> float:
     """
     Calculate composite fitness score.
 
@@ -115,7 +116,7 @@ def calculate_fitness(criteria: Dict[str, bool],
     return round(fitness, 4)
 
 
-def evaluate_config(config: Dict[str, Any],
+def evaluate_config(config: dict[str, Any],
                     n_runs: int = 5,
                     n_steps: int = 100,
                     n_agents: int = 24,
@@ -185,7 +186,7 @@ def evaluate_config(config: Dict[str, Any],
     )
 
 
-def quick_evaluate(config: Dict[str, Any]) -> Tuple[float, int]:
+def quick_evaluate(config: dict[str, Any]) -> tuple[float, int]:
     """
     Quick evaluation for debugging (fewer runs, fewer steps).
 

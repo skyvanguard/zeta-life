@@ -1,5 +1,4 @@
 #!/usr/bin/env python
-# -*- coding: utf-8 -*-
 """
 ╔══════════════════════════════════════════════════════════════════════════════╗
 ║                                                                              ║
@@ -22,13 +21,13 @@
 ╚══════════════════════════════════════════════════════════════════════════════╝
 """
 
-import sys
 import json
 import os
-from enum import Enum, auto
+import sys
 from dataclasses import dataclass, field
-from typing import Dict, List, Optional, Tuple, Any
 from datetime import datetime
+from enum import Enum, auto
+from typing import Any, Dict, List, Optional, Tuple
 
 if sys.platform == 'win32':
     try:
@@ -36,53 +35,51 @@ if sys.platform == 'win32':
     except:
         pass
 
-import torch
 import numpy as np
+import torch
+
+from ..core.zeta_memory import EpisodicMemory, MemoryAwarePsyche, SemanticMemory, ZetaMemorySystem
+from ..psyche.zeta_dreams import (
+    DreamFragment,
+    DreamingPsyche,
+    DreamNarrativeGenerator,
+    DreamSystem,
+    DreamType,
+)
+from ..psyche.zeta_individuation import (
+    IndividuatingPsyche,
+    IndividuationProcess,
+    IndividuationStage,
+    IntegrationMetrics,
+    IntegrationWork,
+    ResistanceSystem,
+    SelfSystem,
+)
+from ..psyche.zeta_introspection import (
+    ArchetypeVoices,
+    Insight,
+    InsightGenerator,
+    InsightType,
+    IntrospectivePsyche,
+    PsychicMoment,
+    StateExplainer,
+    TrajectoryNarrator,
+)
 
 # =============================================================================
 # IMPORTAR TODOS LOS MÓDULOS
 # =============================================================================
-
 from ..psyche.zeta_psyche import (
-    ZetaPsyche, Archetype, TetrahedralSpace,
-    PsycheInterface, SymbolSystem,
-    ARCHETYPE_COLORS, ARCHETYPE_DESCRIPTIONS
+    ARCHETYPE_COLORS,
+    ARCHETYPE_DESCRIPTIONS,
+    Archetype,
+    PsycheInterface,
+    SymbolSystem,
+    TetrahedralSpace,
+    ZetaPsyche,
 )
-
-from ..psyche.zeta_psyche_voice import (
-    ArchetypalVoice, ConversationalPsyche,
-    EXPANDED_VOCABULARY
-)
-
-from ..core.zeta_memory import (
-    ZetaMemorySystem, EpisodicMemory, SemanticMemory,
-    MemoryAwarePsyche
-)
-
-from ..psyche.zeta_dreams import (
-    DreamSystem, DreamType, DreamFragment,
-    DreamNarrativeGenerator, DreamingPsyche
-)
-
-from ..psyche.zeta_individuation import (
-    IndividuationProcess, IndividuationStage,
-    IntegrationMetrics, IntegrationWork,
-    ResistanceSystem, SelfSystem,
-    IndividuatingPsyche
-)
-
-from ..psyche.zeta_introspection import (
-    IntrospectivePsyche, StateExplainer,
-    TrajectoryNarrator, InsightGenerator,
-    InsightType, Insight, PsychicMoment,
-    ArchetypeVoices
-)
-
-from .zeta_society import (
-    PsycheSociety, SocialPsyche,
-    RelationType, PersonalityGenerator
-)
-
+from ..psyche.zeta_psyche_voice import EXPANDED_VOCABULARY, ArchetypalVoice, ConversationalPsyche
+from .zeta_society import PersonalityGenerator, PsycheSociety, RelationType, SocialPsyche
 
 # =============================================================================
 # CLASE PRINCIPAL UNIFICADA
@@ -101,7 +98,7 @@ class ConsciousnessState:
     """Estado completo de la consciencia."""
     mode: ConsciousnessMode
     dominant_archetype: Archetype
-    blend: Dict[Archetype, float]
+    blend: dict[Archetype, float]
     individuation_stage: IndividuationStage
     integration: float
     self_luminosity: float
@@ -111,7 +108,7 @@ class ConsciousnessState:
     dream_count: int
     timestamp: str = field(default_factory=lambda: datetime.now().isoformat())
 
-    def to_dict(self) -> Dict:
+    def to_dict(self) -> dict:
         return {
             'mode': self.mode.name,
             'dominant': self.dominant_archetype.name,
@@ -179,7 +176,7 @@ class ZetaConsciousness:
 
         # === SUEÑOS ===
         self.dream_system = DreamSystem(self.psyche, self.memory)
-        self.dreams: List[Dict] = []
+        self.dreams: list[dict] = []
 
         # === INDIVIDUACIÓN ===
         self.individuation = IndividuationProcess(self.psyche)
@@ -188,7 +185,7 @@ class ZetaConsciousness:
         self.explainer = StateExplainer()
         self.narrator = TrajectoryNarrator()
         self.insight_gen = InsightGenerator()
-        self.insights: List[Insight] = []
+        self.insights: list[Insight] = []
 
         # === ESTADO ===
         self.mode = ConsciousnessMode.AWAKE
@@ -211,7 +208,7 @@ class ZetaConsciousness:
     # PROCESAMIENTO PRINCIPAL
     # =========================================================================
 
-    def process(self, text: str, context: str = '') -> Dict:
+    def process(self, text: str, context: str = '') -> dict:
         """
         Procesa entrada de texto y genera respuesta completa.
 
@@ -346,8 +343,8 @@ class ZetaConsciousness:
 
     def _generate_insight(self,
                          dominant: Archetype,
-                         blend: Dict[Archetype, float],
-                         stimulus: str) -> Optional[Insight]:
+                         blend: dict[Archetype, float],
+                         stimulus: str) -> Insight | None:
         """Genera un insight basado en el estado actual."""
         # Alternar tipos de insights
         roll = np.random.random()
@@ -367,7 +364,7 @@ class ZetaConsciousness:
     # SUEÑOS
     # =========================================================================
 
-    def dream(self, duration: int = 20) -> Dict:
+    def dream(self, duration: int = 20) -> dict:
         """
         Entra en modo sueño y procesa el inconsciente.
 
@@ -438,7 +435,7 @@ class ZetaConsciousness:
             'report': report
         }
 
-    def get_last_dream(self) -> Optional[Dict]:
+    def get_last_dream(self) -> dict | None:
         """Obtiene el último sueño."""
         return self.dreams[-1] if self.dreams else None
 
@@ -512,7 +509,7 @@ class ZetaConsciousness:
 
         return self.insight_gen.generate_prediction(trajectory, trend)
 
-    def get_patterns(self) -> List[str]:
+    def get_patterns(self) -> list[str]:
         """Obtiene patrones detectados."""
         return self.narrator.identify_patterns()
 
@@ -520,7 +517,7 @@ class ZetaConsciousness:
     # INDIVIDUACIÓN
     # =========================================================================
 
-    def do_integration_work(self, work_name: Optional[str] = None) -> Dict:
+    def do_integration_work(self, work_name: str | None = None) -> dict:
         """
         Realiza un trabajo de integración.
 
@@ -539,7 +536,7 @@ class ZetaConsciousness:
         """Obtiene el trabajo de integración recomendado."""
         return self.individuation.get_recommended_work()
 
-    def get_integration_metrics(self) -> Dict:
+    def get_integration_metrics(self) -> dict:
         """Obtiene métricas de integración."""
         return self.individuation.metrics.to_dict()
 
@@ -547,7 +544,7 @@ class ZetaConsciousness:
     # MEMORIA
     # =========================================================================
 
-    def recall_memories(self, n: int = 5) -> List[Dict]:
+    def recall_memories(self, n: int = 5) -> list[dict]:
         """
         Recuerda memorias similares al estado actual.
 
@@ -561,7 +558,7 @@ class ZetaConsciousness:
         memories = self.memory.recall_by_state(obs['global_state'], n=n)
         return [{'text': m.user_input, 'dominant': m.dominant, 'response': m.response} for m in memories]
 
-    def get_memory_summary(self) -> Dict:
+    def get_memory_summary(self) -> dict:
         """Obtiene resumen de memoria."""
         return self.memory.get_memory_summary()
 
@@ -635,7 +632,7 @@ class ZetaConsciousness:
 
         return report
 
-    def save(self, path: Optional[str] = None) -> None:
+    def save(self, path: str | None = None) -> None:
         """Guarda el estado completo."""
         path = path or self.state_path
 
@@ -659,12 +656,12 @@ class ZetaConsciousness:
         # Guardar memoria
         self.memory.save_memories()
 
-    def load(self, path: Optional[str] = None) -> None:
+    def load(self, path: str | None = None) -> None:
         """Carga el estado completo."""
         path = path or self.state_path
 
         try:
-            with open(path, 'r', encoding='utf-8') as f:
+            with open(path, encoding='utf-8') as f:
                 state = json.load(f)
 
             self.birth_time = state.get('birth_time', self.birth_time)
@@ -733,13 +730,13 @@ class ConsciousnessSociety:
 
     def __init__(self, n_members: int = 5) -> None:
         """Crea una sociedad de consciencias."""
-        self.members: Dict[int, ZetaConsciousness] = {}
-        self.relationships: Dict[Tuple[int, int], float] = {}
+        self.members: dict[int, ZetaConsciousness] = {}
+        self.relationships: dict[tuple[int, int], float] = {}
 
         for i in range(n_members):
             self.members[i] = ZetaConsciousness(n_cells=32, load_state=False)
 
-    def interact(self, id1: int, id2: int, topic: str) -> Dict:
+    def interact(self, id1: int, id2: int, topic: str) -> dict:
         """Hace interactuar a dos consciencias."""
         c1 = self.members[id1]
         c2 = self.members[id2]
@@ -755,9 +752,9 @@ class ConsciousnessSociety:
             'member_2': {'id': id2, 'response': r2}
         }
 
-    def group_discussion(self, topic: str, rounds: int = 3) -> List[Dict]:
+    def group_discussion(self, topic: str, rounds: int = 3) -> list[dict]:
         """Discusión grupal sobre un tema."""
-        discussion: List[Dict] = []
+        discussion: list[dict] = []
 
         for round_num in range(rounds):
             for member_id, consciousness in self.members.items():
@@ -952,7 +949,7 @@ def interactive_session() -> None:
 
         elif cmd == '/memoria_estado':
             summary = consciousness.get_memory_summary()
-            print(f"\n  ═══ ESTADO DE MEMORIA ═══")
+            print("\n  ═══ ESTADO DE MEMORIA ═══")
             print(f"  Episódica: {summary['total_episodic']} recuerdos")
             print(f"  Semántica: {summary['total_semantic']} conceptos")
 

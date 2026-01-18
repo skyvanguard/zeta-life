@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """
 ZetaAttention: Sistema de Atención Selectiva Jerárquica
 ========================================================
@@ -13,15 +12,15 @@ Basado en la teoría de Friston (precision-weighted prediction errors).
 Fecha de implementación: 3 Enero 2026
 """
 
+import time
+from collections import deque
+from dataclasses import dataclass, field
+from typing import Dict, List, Optional, Tuple
+
+import numpy as np
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-import numpy as np
-from typing import Dict, List, Optional, Tuple
-from dataclasses import dataclass, field
-from collections import deque
-import time
-
 
 # =============================================================================
 # ESTRUCTURAS DE DATOS
@@ -61,10 +60,10 @@ class AttentionOutput:
     attention_coherence: float            # Coherencia entre niveles [0,1]
 
     # Contexto detectado
-    context: Dict[str, float]             # threat, opportunity, emotional, cognitive
+    context: dict[str, float]             # threat, opportunity, emotional, cognitive
 
     # Memoria atendida
-    attended_memory: Optional[torch.Tensor] = None  # Representación ponderada
+    attended_memory: torch.Tensor | None = None  # Representación ponderada
 
 
 # =============================================================================
@@ -102,7 +101,7 @@ class ContextDetector(nn.Module):
                 nn.init.xavier_uniform_(layer.weight)
                 nn.init.constant_(layer.bias, 0.0)
 
-    def forward(self, stimulus: torch.Tensor, state: torch.Tensor) -> Dict[str, float]:
+    def forward(self, stimulus: torch.Tensor, state: torch.Tensor) -> dict[str, float]:
         """
         Detecta el contexto actual.
 
@@ -171,7 +170,7 @@ class GlobalArchetypalAttention(nn.Module):
     def forward(
         self,
         state: torch.Tensor,
-        context: Dict[str, float],
+        context: dict[str, float],
         uncertainty: float = 0.5
     ) -> torch.Tensor:
         """
@@ -237,7 +236,7 @@ class MemoryBuffer:
         self.base_decay = base_decay
 
         self.buffer: deque = deque(maxlen=max_size)
-        self.importance: List[float] = []  # Importancia de cada item
+        self.importance: list[float] = []  # Importancia de cada item
 
     def add(self, item: MemoryItem) -> None:
         """Añade un nuevo elemento al buffer"""
@@ -264,7 +263,7 @@ class MemoryBuffer:
 
             self.importance[i] *= decay_rate
 
-    def get_tensors(self) -> Tuple[torch.Tensor, torch.Tensor]:
+    def get_tensors(self) -> tuple[torch.Tensor, torch.Tensor]:
         """
         Retorna tensores para atención.
 
@@ -331,7 +330,7 @@ class TemporalAttention(nn.Module):
         importance: torch.Tensor,
         archetypal_attention: torch.Tensor,
         current_time: float
-    ) -> Tuple[torch.Tensor, torch.Tensor]:
+    ) -> tuple[torch.Tensor, torch.Tensor]:
         """
         Calcula atención temporal sobre memorias.
 
@@ -412,7 +411,7 @@ class ErrorAttention(nn.Module):
         self.history_size = history_size
 
         # Historial de errores para calcular varianza
-        self.error_history: List[torch.Tensor] = []
+        self.error_history: list[torch.Tensor] = []
 
         # Red para aprender pesos de atención
         self.attention_net = nn.Sequential(
@@ -546,8 +545,8 @@ class AttentionIntegrator(nn.Module):
         archetypal_attention: torch.Tensor,  # [4]
         temporal_attention: torch.Tensor,     # [buffer_size]
         error_attention: torch.Tensor,        # [3]
-        attended_memory: Optional[torch.Tensor] = None
-    ) -> Tuple[torch.Tensor, float, float]:
+        attended_memory: torch.Tensor | None = None
+    ) -> tuple[torch.Tensor, float, float]:
         """
         Integra los niveles de atención.
 
@@ -639,9 +638,9 @@ class AttentionMetrics:
     """Métricas para evaluar la calidad de la atención"""
 
     # Historial para cálculos
-    attention_history: List[torch.Tensor] = field(default_factory=list)
-    coherence_history: List[float] = field(default_factory=list)
-    intensity_history: List[float] = field(default_factory=list)
+    attention_history: list[torch.Tensor] = field(default_factory=list)
+    coherence_history: list[float] = field(default_factory=list)
+    intensity_history: list[float] = field(default_factory=list)
 
     history_size: int = 50
 
@@ -662,7 +661,7 @@ class AttentionMetrics:
             self.coherence_history.pop(0)
             self.intensity_history.pop(0)
 
-    def compute(self) -> Dict[str, float]:
+    def compute(self) -> dict[str, float]:
         """
         Calcula métricas de atención.
 
@@ -751,7 +750,7 @@ class ZetaAttentionSystem(nn.Module):
 
         # Estado interno
         self.current_time = 0.0
-        self.last_output: Optional[AttentionOutput] = None
+        self.last_output: AttentionOutput | None = None
 
     def forward(
         self,
@@ -834,7 +833,7 @@ class ZetaAttentionSystem(nn.Module):
         self.last_output = output
         return output
 
-    def get_metrics(self) -> Dict[str, float]:
+    def get_metrics(self) -> dict[str, float]:
         """Retorna métricas actuales de atención"""
         return self.metrics.compute()
 
@@ -940,33 +939,33 @@ def demo_attention_system() -> None:
         )
 
         # Mostrar contexto detectado
-        print(f"\nContexto detectado:")
+        print("\nContexto detectado:")
         for ctx_name, ctx_val in output.context.items():
             bar = '#' * int(ctx_val * 20)
             print(f"  {ctx_name:12}: {bar:<20} {ctx_val:.2f}")
 
         # Mostrar atencion arquetipal
-        print(f"\nAtencion Arquetipal (Nivel 3):")
+        print("\nAtencion Arquetipal (Nivel 3):")
         for j, (name, val) in enumerate(zip(ARCHETYPE_NAMES, output.archetypal_attention)):
             bar = '#' * int(val.item() * 20)
             marker = ' <<<' if j == output.archetypal_attention.argmax() else ''
             print(f"  {name:8}: {bar:<20} {val.item():.2f}{marker}")
 
         # Mostrar atencion de errores
-        print(f"\nAtencion de Errores (Nivel 1):")
+        print("\nAtencion de Errores (Nivel 1):")
         for j, (name, val) in enumerate(zip(['L1-Stim', 'L2-State', 'L3-Meta'], output.error_attention)):
             bar = '#' * int(val.item() * 20)
             print(f"  {name:8}: {bar:<20} {val.item():.2f}")
 
         # Mostrar atencion global
-        print(f"\nAtencion Global Integrada:")
+        print("\nAtencion Global Integrada:")
         for j, (name, val) in enumerate(zip(ARCHETYPE_NAMES, output.global_attention)):
             bar = '#' * int(val.item() * 20)
             marker = ' <<<' if j == output.global_attention.argmax() else ''
             print(f"  {name:8}: {bar:<20} {val.item():.2f}{marker}")
 
         # Metricas
-        print(f"\nMetricas:")
+        print("\nMetricas:")
         print(f"  Intensidad:  {output.attention_intensity:.2f}")
         print(f"  Coherencia:  {output.attention_coherence:.2f}")
         print(f"  Memoria:     {len(system.memory_buffer)} items")

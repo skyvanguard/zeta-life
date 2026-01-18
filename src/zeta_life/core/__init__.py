@@ -5,21 +5,21 @@ Jungian archetypes with semantically-neutral geometric vertices,
 plus the memory system for long-term state persistence.
 """
 
-from .vertex import Vertex, BehaviorVector, VertexBehaviors
 from .tetrahedral_space import TetrahedralSpace, get_tetrahedral_space
+from .vertex import BehaviorVector, Vertex, VertexBehaviors
 from .zeta_memory import (
     EpisodicMemory,
-    SemanticMemory,
-    ProceduralMemory,
-    ZetaMemorySystem,
     MemoryAwarePsyche,
+    ProceduralMemory,
+    SemanticMemory,
+    ZetaMemorySystem,
 )
 from .zeta_rnn import (
-    ZetaMemoryLayer,
-    ZetaLSTMCell,
     ZetaLSTM,
-    ZetaSequenceGenerator,
+    ZetaLSTMCell,
     ZetaLSTMExperiment,
+    ZetaMemoryLayer,
+    ZetaSequenceGenerator,
 )
 
 __all__ = [

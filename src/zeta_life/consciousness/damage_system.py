@@ -14,9 +14,10 @@ The DamageSystem implements:
 """
 
 from typing import TYPE_CHECKING, List, Optional, Tuple
+
 import numpy as np
 
-from .resilience import CellResilience, MicroModule, MODULE_TYPES
+from .resilience import MODULE_TYPES, CellResilience, MicroModule
 
 if TYPE_CHECKING:
     from .micro_psyche import ConsciousCell
@@ -283,7 +284,7 @@ class DamageSystem:
         threshold = cfg_modules['consolidation_threshold']
         resilience.remove_weak_modules(threshold)
 
-    def spread_modules_in_cluster(self, cells: List['ConsciousCell']) -> int:
+    def spread_modules_in_cluster(self, cells: list['ConsciousCell']) -> int:
         """
         Spread consolidated modules between cells in a cluster.
 
@@ -300,7 +301,7 @@ class DamageSystem:
         spread_count = 0
 
         # Find all consolidated modules
-        consolidated: List[Tuple['ConsciousCell', MicroModule]] = []
+        consolidated: list[tuple[ConsciousCell, MicroModule]] = []
         for cell in cells:
             for module in cell.resilience.get_consolidated_modules(
                 min_activations=cfg_spreading['min_activations']
@@ -333,7 +334,7 @@ class DamageSystem:
 
         return spread_count
 
-    def calculate_cluster_resilience(self, cells: List['ConsciousCell']) -> float:
+    def calculate_cluster_resilience(self, cells: list['ConsciousCell']) -> float:
         """
         Calculate aggregate resilience for a cluster.
 
@@ -345,13 +346,13 @@ class DamageSystem:
 
         return 1.0 - np.mean([c.resilience.degradation_level for c in functional])
 
-    def calculate_functional_ratio(self, cells: List['ConsciousCell']) -> float:
+    def calculate_functional_ratio(self, cells: list['ConsciousCell']) -> float:
         """Calculate proportion of functional cells."""
         if not cells:
             return 0.0
         return sum(1 for c in cells if c.resilience.is_functional) / len(cells)
 
-    def get_metrics(self, cells: List['ConsciousCell']) -> dict:
+    def get_metrics(self, cells: list['ConsciousCell']) -> dict:
         """
         Calculate IPUESA-compatible metrics for a set of cells.
 

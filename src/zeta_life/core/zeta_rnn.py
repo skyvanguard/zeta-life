@@ -9,10 +9,11 @@ Where: m_t = (1/N) * sum_j(phi(gamma_j) * h_{t-1} * cos(gamma_j * t))
 The zeta zeros gamma_j create oscillators that capture long-range temporal dependencies.
 """
 
+from typing import Any, Dict, List, Literal, Optional, Tuple, Union, overload
+
 import numpy as np
 import torch
 import torch.nn as nn
-from typing import Any, Dict, List, Literal, Optional, Tuple, Union, overload
 from numpy.typing import NDArray
 
 # Reuse existing zeta zeros function
@@ -23,7 +24,7 @@ except ImportError:
     HAS_MPMATH = False
 
 
-def get_zeta_zeros(M: int) -> List[float]:
+def get_zeta_zeros(M: int) -> list[float]:
     """Get first M non-trivial zeros of Riemann zeta function."""
     if HAS_MPMATH:
         return [float(zetazero(k).imag) for k in range(1, M + 1)]
@@ -154,9 +155,9 @@ class ZetaLSTMCell(nn.Module):
     def forward(
         self,
         x: torch.Tensor,
-        hc: Optional[Tuple[torch.Tensor, torch.Tensor]],
+        hc: tuple[torch.Tensor, torch.Tensor] | None,
         t: int
-    ) -> Tuple[torch.Tensor, torch.Tensor]:
+    ) -> tuple[torch.Tensor, torch.Tensor]:
         """
         Forward pass of ZetaLSTMCell.
 
@@ -236,8 +237,8 @@ class ZetaLSTM(nn.Module):
     def forward(
         self,
         x: torch.Tensor,
-        hc: Optional[Tuple[torch.Tensor, torch.Tensor]] = None
-    ) -> Tuple[torch.Tensor, Tuple[torch.Tensor, torch.Tensor]]:
+        hc: tuple[torch.Tensor, torch.Tensor] | None = None
+    ) -> tuple[torch.Tensor, tuple[torch.Tensor, torch.Tensor]]:
         """
         Forward pass through sequence.
 
@@ -344,20 +345,20 @@ class ZetaSequenceGenerator:
         self,
         batch_size: int,
         return_numpy: Literal[False] = ...
-    ) -> Tuple[torch.Tensor, torch.Tensor]: ...
+    ) -> tuple[torch.Tensor, torch.Tensor]: ...
 
     @overload
     def generate_batch(
         self,
         batch_size: int,
         return_numpy: Literal[True] = ...
-    ) -> Tuple[NDArray[np.floating[Any]], NDArray[np.floating[Any]]]: ...
+    ) -> tuple[NDArray[np.floating[Any]], NDArray[np.floating[Any]]]: ...
 
     def generate_batch(
         self,
         batch_size: int,
         return_numpy: bool = False
-    ) -> Union[Tuple[torch.Tensor, torch.Tensor], Tuple[NDArray[np.floating[Any]], NDArray[np.floating[Any]]]]:
+    ) -> tuple[torch.Tensor, torch.Tensor] | tuple[NDArray[np.floating[Any]], NDArray[np.floating[Any]]]:
         """
         Generate a batch of sequences.
 
@@ -505,7 +506,7 @@ class ZetaLSTMExperiment:
         batch_size: int = 32,
         batches_per_epoch: int = 20,
         lr: float = 1e-3
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """
         Run comparison experiment.
 
@@ -519,7 +520,7 @@ class ZetaLSTMExperiment:
         vanilla_opt = torch.optim.Adam(vanilla_params, lr=lr)
         zeta_opt = torch.optim.Adam(zeta_params, lr=lr)
 
-        results: Dict[str, Any] = {
+        results: dict[str, Any] = {
             'vanilla_loss': [],
             'zeta_loss': [],
             'vanilla_eval': [],
@@ -602,7 +603,7 @@ def demo_zeta_lstm():
         if results['improvement_percent'] >= 10:
             print("   [OK] Paper conjecture (~10% improvement) VALIDATED!")
     else:
-        print(f"\n   [--] No improvement observed")
+        print("\n   [--] No improvement observed")
 
     # 4. Plot results
     print("\n4. Generating plots...")

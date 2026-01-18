@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """
 ZetaDreamConsolidation: Consolidacion de Memoria mediante Suenos
 =================================================================
@@ -21,25 +20,26 @@ Basado en:
 
 Fecha: 3 Enero 2026
 """
-import sys
 import os
+import sys
+
 if sys.platform == 'win32':
     os.system('')
 
+import random
+from collections import deque
+from dataclasses import dataclass, field
+from enum import Enum
+from typing import Dict, List, Optional, Tuple
+
+import numpy as np
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-import numpy as np
-import random
-from dataclasses import dataclass, field
-from typing import Dict, List, Tuple, Optional
-from collections import deque
-from enum import Enum
 
+from .zeta_attention import AttentionOutput, MemoryItem
 from .zeta_attentive_predictive import ZetaAttentivePredictive
-from .zeta_attention import MemoryItem, AttentionOutput
-from .zeta_online_learning import OnlineLearner, HebbianLearner
-
+from .zeta_online_learning import HebbianLearner, OnlineLearner
 
 # =============================================================================
 # TIPOS DE CONSOLIDACION
@@ -69,8 +69,8 @@ class ConsolidationReport:
     memories_replayed: int
     learning_events: int
     loss_reduction: float
-    associations_learned: Dict[str, Tuple[str, float]]
-    insights: List[str]
+    associations_learned: dict[str, tuple[str, float]]
+    insights: list[str]
     consciousness_before: float
     consciousness_after: float
 
@@ -95,10 +95,10 @@ class MemorySelector:
 
     def select_for_replay(
         self,
-        memory_buffer: List[MemoryItem],
-        importance: List[float],
+        memory_buffer: list[MemoryItem],
+        importance: list[float],
         n_select: int = 20
-    ) -> List[DreamMemory]:
+    ) -> list[DreamMemory]:
         """
         Selecciona memorias para replay.
 
@@ -108,7 +108,7 @@ class MemorySelector:
             return []
 
         # Calcular scores de seleccion
-        scores: List[float] = []
+        scores: list[float] = []
         for i, (mem, imp) in enumerate(zip(memory_buffer, importance)):
             # Combinar factores
             surprise_score = mem.surprise
@@ -187,7 +187,7 @@ class AttentiveDreamGenerator:
     def generate_dream_fragment(
         self,
         memory: DreamMemory,
-        context: Dict[str, float]
+        context: dict[str, float]
     ) -> str:
         """Genera fragmento de sueno desde una memoria."""
         archetype = memory.original.archetype_dominant
@@ -245,8 +245,8 @@ class DreamConsolidator:
 
         # Estado
         self.is_dreaming = False
-        self.current_dream_memories: List[DreamMemory] = []
-        self.dream_history: List[ConsolidationReport] = []
+        self.current_dream_memories: list[DreamMemory] = []
+        self.dream_history: list[ConsolidationReport] = []
 
         # Metricas
         self.total_replays = 0
@@ -266,7 +266,7 @@ class DreamConsolidator:
 
         return f"Entrando en sueno... {len(self.current_dream_memories)} memorias seleccionadas para replay."
 
-    def dream_step(self) -> Dict:
+    def dream_step(self) -> dict:
         """
         Ejecuta un paso del sueno.
 
@@ -359,7 +359,7 @@ class DreamConsolidator:
 
         return report
 
-    def _generate_insights(self) -> List[str]:
+    def _generate_insights(self) -> list[str]:
         """Genera insights basados en el proceso de consolidacion."""
         insights = []
 
@@ -512,10 +512,10 @@ class ConsciousSystemWithDreams:
         self.steps_since_dream = 0
 
         # Historial
-        self.consciousness_history: List[float] = []
+        self.consciousness_history: list[float] = []
         self.dream_count = 0
 
-    def step(self, stimulus: Optional[torch.Tensor] = None, auto_dream: bool = True) -> Dict:
+    def step(self, stimulus: torch.Tensor | None = None, auto_dream: bool = True) -> dict:
         """
         Ejecuta un paso del sistema.
 
@@ -547,7 +547,7 @@ class ConsciousSystemWithDreams:
         self.dream_count += 1
         return self.consolidator.dream_cycle(duration, verbose)
 
-    def get_status(self) -> Dict:
+    def get_status(self) -> dict:
         """Estado actual del sistema."""
         return {
             'steps': len(self.consciousness_history),

@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """
 ClusterAssigner: Asignación dinámica de células a clusters.
 
@@ -12,21 +11,22 @@ El clustering es dinámico y se recalcula cada N pasos.
 Fecha: 2026-01-03
 """
 
-import torch
-import torch.nn.functional as F
-import numpy as np
-from typing import List, Dict, Optional, Tuple
 from dataclasses import dataclass
 from enum import Enum
+from typing import Dict, List, Optional, Tuple
+
+import numpy as np
+import torch
+import torch.nn.functional as F
+
+from ..organism.cell_state import CellRole
 
 # Importar del sistema existente
 from ..psyche.zeta_psyche import Archetype
-from ..organism.cell_state import CellRole
+from .cluster import Cluster, ClusterPsyche
 
 # Importar de módulos nuevos
 from .micro_psyche import ConsciousCell, MicroPsyche
-from .cluster import Cluster, ClusterPsyche
-
 
 # =============================================================================
 # ESTRATEGIAS DE CLUSTERING
@@ -82,10 +82,10 @@ class ClusterAssigner:
     3. Balance de tamaño (evitar clusters muy grandes/pequeños)
     """
 
-    def __init__(self, config: Optional[ClusteringConfig] = None):
+    def __init__(self, config: ClusteringConfig | None = None):
         self.config = config or ClusteringConfig()
         self.step_count = 0
-        self.cluster_history: List[Dict[int, int]] = []  # cell_id -> cluster_id
+        self.cluster_history: list[dict[int, int]] = []  # cell_id -> cluster_id
 
     # =========================================================================
     # MÉTRICAS DE SIMILITUD
@@ -94,7 +94,7 @@ class ClusterAssigner:
     def compute_spatial_distance(
         self,
         cell: ConsciousCell,
-        centroid: Tuple[float, float]
+        centroid: tuple[float, float]
     ) -> float:
         """
         Distancia espacial entre célula y centroide.
@@ -175,9 +175,9 @@ class ClusterAssigner:
 
     def initialize_clusters_spatial(
         self,
-        cells: List[ConsciousCell],
+        cells: list[ConsciousCell],
         grid_size: int = 64
-    ) -> List[Cluster]:
+    ) -> list[Cluster]:
         """
         Inicializa clusters dividiendo el espacio en cuadrantes.
 
@@ -230,8 +230,8 @@ class ClusterAssigner:
 
     def initialize_clusters_archetype(
         self,
-        cells: List[ConsciousCell]
-    ) -> List[Cluster]:
+        cells: list[ConsciousCell]
+    ) -> list[Cluster]:
         """
         Inicializa clusters por arquetipo dominante.
 
@@ -269,7 +269,7 @@ class ClusterAssigner:
 
         return clusters
 
-    def _update_neighbors(self, clusters: List[Cluster]) -> None:
+    def _update_neighbors(self, clusters: list[Cluster]) -> None:
         """Actualiza lista de clusters vecinos basado en proximidad."""
         for cluster in clusters:
             # Ordenar otros clusters por distancia al centroide
@@ -287,7 +287,7 @@ class ClusterAssigner:
 
     def should_reassign(
         self,
-        clusters: List[Cluster],
+        clusters: list[Cluster],
         force: bool = False
     ) -> bool:
         """
@@ -325,9 +325,9 @@ class ClusterAssigner:
 
     def reassign_cells(
         self,
-        cells: List[ConsciousCell],
-        clusters: List[Cluster]
-    ) -> List[Cluster]:
+        cells: list[ConsciousCell],
+        clusters: list[Cluster]
+    ) -> list[Cluster]:
         """
         Reasigna células a clusters optimizando afinidad.
 
@@ -395,8 +395,8 @@ class ClusterAssigner:
 
     def balance_clusters(
         self,
-        clusters: List[Cluster]
-    ) -> List[Cluster]:
+        clusters: list[Cluster]
+    ) -> list[Cluster]:
         """
         Balancea tamaños de clusters moviendo células de borde.
 
@@ -440,7 +440,7 @@ class ClusterAssigner:
 
     def adapt_weights(
         self,
-        clusters: List[Cluster]
+        clusters: list[Cluster]
     ) -> None:
         """
         Adapta pesos espacial/psíquico según coherencia.
@@ -539,8 +539,8 @@ class ClusterAssigner:
     def split_cluster(
         self,
         cluster: Cluster,
-        all_clusters: List[Cluster]
-    ) -> Optional[Tuple[Cluster, Cluster]]:
+        all_clusters: list[Cluster]
+    ) -> tuple[Cluster, Cluster] | None:
         """
         Divide un cluster heterogéneo en dos.
 
@@ -559,7 +559,7 @@ class ClusterAssigner:
             return None
 
         # Encontrar los dos arquetipos más comunes
-        archetype_counts: Dict[Archetype, int] = {}
+        archetype_counts: dict[Archetype, int] = {}
         for cell in cluster.cells:
             arch = cell.psyche.dominant
             archetype_counts[arch] = archetype_counts.get(arch, 0) + 1
@@ -711,8 +711,8 @@ class ClusterAssigner:
 
     def cleanup_clusters(
         self,
-        clusters: List[Cluster]
-    ) -> List[Cluster]:
+        clusters: list[Cluster]
+    ) -> list[Cluster]:
         """
         Elimina clusters vacíos o demasiado pequeños.
 
@@ -751,8 +751,8 @@ class ClusterAssigner:
 
     def apply_dynamic_clustering(
         self,
-        clusters: List[Cluster]
-    ) -> List[Cluster]:
+        clusters: list[Cluster]
+    ) -> list[Cluster]:
         """
         Aplica operaciones de clustering dinámico.
 
@@ -785,7 +785,7 @@ class ClusterAssigner:
                     break
 
         # 2. SPLIT: Dividir clusters heterogéneos
-        new_clusters: List[Cluster] = []
+        new_clusters: list[Cluster] = []
         for cluster in clusters:
             if self.should_split_cluster(cluster) and len(clusters) + len(new_clusters) < self.config.max_clusters:
                 result = self.split_cluster(cluster, clusters + new_clusters)
@@ -812,10 +812,10 @@ class ClusterAssigner:
 
     def assign(
         self,
-        cells: List[ConsciousCell],
-        existing_clusters: Optional[List[Cluster]] = None,
+        cells: list[ConsciousCell],
+        existing_clusters: list[Cluster] | None = None,
         force_reassign: bool = False
-    ) -> List[Cluster]:
+    ) -> list[Cluster]:
         """
         Asigna células a clusters.
 
@@ -859,8 +859,8 @@ class ClusterAssigner:
 
     def get_clustering_quality(
         self,
-        clusters: List[Cluster]
-    ) -> Dict[str, float]:
+        clusters: list[Cluster]
+    ) -> dict[str, float]:
         """
         Calcula métricas de calidad del clustering.
 
@@ -889,7 +889,7 @@ class ClusterAssigner:
         avg_coherence = float(np.mean(coherences)) if coherences else 0.0
 
         # Separación inter-cluster
-        separations: List[float] = []
+        separations: list[float] = []
         for i, cluster_a in enumerate(clusters):
             for cluster_b in clusters[i+1:]:
                 if cluster_a.psyche and cluster_b.psyche:

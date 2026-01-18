@@ -12,8 +12,8 @@ Components:
 
 from dataclasses import dataclass, field
 from typing import List, Optional
-import numpy as np
 
+import numpy as np
 
 # Degradation state thresholds
 DEGRADATION_THRESHOLDS = {
@@ -130,7 +130,7 @@ class CellResilience:
     residual_damage: float = 0.0
 
     # Micro-modules
-    modules: List[MicroModule] = field(default_factory=list)
+    modules: list[MicroModule] = field(default_factory=list)
 
     # Temporal anticipation (TAE)
     threat_buffer: float = 0.0
@@ -138,7 +138,7 @@ class CellResilience:
     protective_stance: float = 0.0
 
     # Optional holographic embedding
-    embedding: Optional[np.ndarray] = None
+    embedding: np.ndarray | None = None
     embedding_strength: float = 1.0
 
     @property
@@ -182,7 +182,7 @@ class CellResilience:
 
         return max(0.0, min(1.0, base - module_protection - embedding_protection))
 
-    def get_modules_by_type(self, module_type: str) -> List[MicroModule]:
+    def get_modules_by_type(self, module_type: str) -> list[MicroModule]:
         """Get all modules of a specific type."""
         return [m for m in self.modules if m.module_type == module_type]
 
@@ -221,7 +221,7 @@ class CellResilience:
         for module in self.modules:
             module.decay(rate)
 
-    def get_consolidated_modules(self, min_activations: int = 3) -> List[MicroModule]:
+    def get_consolidated_modules(self, min_activations: int = 3) -> list[MicroModule]:
         """Get all consolidated modules (eligible for spreading)."""
         return [m for m in self.modules if m.is_consolidated(min_activations)]
 

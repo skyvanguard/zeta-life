@@ -13,13 +13,15 @@ El sistema aprende a:
 """
 
 import matplotlib
+
 matplotlib.use('Agg')
 
-import numpy as np
-import matplotlib.pyplot as plt
-from matplotlib.colors import LinearSegmentedColormap
-from typing import List, Tuple, Optional
 import warnings
+from typing import List, Optional, Tuple
+
+import matplotlib.pyplot as plt
+import numpy as np
+from matplotlib.colors import LinearSegmentedColormap
 
 # PyTorch imports
 try:
@@ -40,7 +42,7 @@ except ImportError:
     HAS_MPMATH = False
 
 
-def get_zeta_zeros(M: int) -> List[float]:
+def get_zeta_zeros(M: int) -> list[float]:
     """Obtiene los primeros M ceros de zeta."""
     if HAS_MPMATH:
         return [float(zetazero(k).imag) for k in range(1, M + 1)]
@@ -278,7 +280,7 @@ if HAS_TORCH:
             self.target_padded = torch.cat([self.target, hidden_pad], dim=1)
 
             self.optimizer = Adam(model.parameters(), lr=lr)
-            self.losses: List[float] = []
+            self.losses: list[float] = []
 
         def loss_fn(self, x: torch.Tensor) -> torch.Tensor:
             """
@@ -358,7 +360,7 @@ if HAS_TORCH:
 
             print("Entrenamiento completado.")
 
-        def visualize_growth(self, steps: int = 100, save_path: Optional[str] = None):
+        def visualize_growth(self, steps: int = 100, save_path: str | None = None):
             """
             Visualiza el crecimiento desde la semilla.
             """
@@ -400,7 +402,7 @@ if HAS_TORCH:
 
             return fig
 
-        def visualize_regeneration(self, damage_step: int = 50, total_steps: int = 150, save_path: Optional[str] = None):
+        def visualize_regeneration(self, damage_step: int = 50, total_steps: int = 150, save_path: str | None = None):
             """
             Visualiza la regeneracion ante dano.
             """
@@ -501,7 +503,7 @@ def create_zeta_pattern_target(size: int = 64, M: int = 10, sigma: float = 0.1) 
     return target
 
 
-def demo_zeta_nca() -> Optional[Tuple["ZetaNCA", "ZetaNCATrainer"]]:
+def demo_zeta_nca() -> tuple["ZetaNCA", "ZetaNCATrainer"] | None:
     """
     Demostracion del Zeta Neural CA.
     """

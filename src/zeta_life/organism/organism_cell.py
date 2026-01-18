@@ -1,10 +1,11 @@
 # organism_cell.py
 """Celula del organismo con NCA + Resonant."""
+from typing import Optional, Tuple
+
+import numpy as np
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-import numpy as np
-from typing import Tuple, Optional
 
 # Import ZetaMemoryGatedSimple from zeta_resonance
 try:
@@ -86,7 +87,7 @@ class OrganismCell(nn.Module):
         )
 
     def perceive(self, state: torch.Tensor, neighbors: torch.Tensor,
-                 field: Optional[torch.Tensor], position: Tuple[int, int]) -> torch.Tensor:
+                 field: torch.Tensor | None, position: tuple[int, int]) -> torch.Tensor:
         """Percibe el entorno combinando estado, vecinos y campo.
 
         Args:
@@ -125,7 +126,7 @@ class OrganismCell(nn.Module):
         result: torch.Tensor = self.perception_net(combined)
         return result
 
-    def get_memory(self, perception: torch.Tensor) -> Tuple[torch.Tensor, float]:
+    def get_memory(self, perception: torch.Tensor) -> tuple[torch.Tensor, float]:
         """Obtiene memoria gateada basada en percepcion.
 
         Args:
@@ -151,7 +152,7 @@ class OrganismCell(nn.Module):
         return F.softmax(logits, dim=-1)
 
     def forward(self, state: torch.Tensor, neighbors: torch.Tensor,
-                field: Optional[torch.Tensor], position: Tuple[int, int]) -> Tuple[torch.Tensor, torch.Tensor]:
+                field: torch.Tensor | None, position: tuple[int, int]) -> tuple[torch.Tensor, torch.Tensor]:
         """Forward pass completo de la celula.
 
         Args:

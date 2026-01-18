@@ -7,10 +7,11 @@ Implementation of the behavior algorithm from research notes:
 - A^3 + V -> B^3 + A: Transformation with vital potential
 - B = AA* - A*A: Net role (difference between emitting and receiving)
 """
+from typing import List, Tuple
+
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-from typing import Tuple, List
 
 
 class BehaviorEngine(nn.Module):
@@ -48,7 +49,7 @@ class BehaviorEngine(nn.Module):
         )
 
     def bidirectional_influence(self, cell: torch.Tensor,
-                                 neighbors: torch.Tensor) -> Tuple[torch.Tensor, torch.Tensor]:
+                                 neighbors: torch.Tensor) -> tuple[torch.Tensor, torch.Tensor]:
         """A <-> B: Calculate bidirectional influence.
 
         Models the mutual interaction between a cell (A) and its neighbors (B).
@@ -171,7 +172,7 @@ class BehaviorEngine(nn.Module):
         return net
 
     def step(self, cell: torch.Tensor, neighbors: torch.Tensor,
-             potential: float, alpha: float = 0.3) -> Tuple[torch.Tensor, torch.Tensor]:
+             potential: float, alpha: float = 0.3) -> tuple[torch.Tensor, torch.Tensor]:
         """Execute one complete step of the behavior engine.
 
         Combines all behavior components:

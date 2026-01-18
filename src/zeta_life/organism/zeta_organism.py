@@ -1,19 +1,22 @@
 # zeta_organism.py
 """ZetaOrganism: Organismo artificial con inteligencia colectiva."""
+from dataclasses import dataclass, field
+from typing import Dict, List, Optional, Tuple
+
+import numpy as np
 import torch
 import torch.nn as nn
-import numpy as np
-from dataclasses import dataclass, field
-from typing import List, Dict, Tuple, Optional
-from .cell_state import CellState, CellRole
-from .force_field import ForceField
+
 from .behavior_engine import BehaviorEngine
+from .cell_state import CellRole, CellState
+from .force_field import ForceField
 from .organism_cell import OrganismCell
+
 
 @dataclass
 class CellEntity:
     """Entidad célula en el grid."""
-    position: Tuple[int, int]
+    position: tuple[int, int]
     state: torch.Tensor
     role: torch.Tensor  # probabilities [MASS, FORCE, CORRUPT]
     energy: float = 0.0
@@ -46,10 +49,10 @@ class ZetaOrganism(nn.Module):
         self.cell_module = OrganismCell(state_dim, hidden_dim, M, sigma)
 
         # Estado
-        self.cells: List[CellEntity] = []
+        self.cells: list[CellEntity] = []
         self.energy_grid = torch.zeros(1, 1, grid_size, grid_size)
         self.role_grid = torch.zeros(1, 1, grid_size, grid_size)
-        self.history: List[Dict] = []
+        self.history: list[dict] = []
 
         # Crear células iniciales (sin Fi semilla)
         self._create_cells(seed_fi=False)
@@ -94,7 +97,7 @@ class ZetaOrganism(nn.Module):
             self.energy_grid[0, 0, y, x] = cell.energy
             self.role_grid[0, 0, y, x] = cell.role_idx
 
-    def _get_neighbors(self, cell: CellEntity, radius: int = 3) -> List[CellEntity]:
+    def _get_neighbors(self, cell: CellEntity, radius: int = 3) -> list[CellEntity]:
         """Obtiene células vecinas."""
         neighbors = []
         cx, cy = cell.position
@@ -250,7 +253,7 @@ class ZetaOrganism(nn.Module):
         self._update_grids()
         self.history.append(self.get_metrics())
 
-    def get_metrics(self) -> Dict:
+    def get_metrics(self) -> dict:
         """Métricas de inteligencia colectiva."""
         n_fi = sum(1 for c in self.cells if c.role_idx == 1)
         n_mass = sum(1 for c in self.cells if c.role_idx == 0)

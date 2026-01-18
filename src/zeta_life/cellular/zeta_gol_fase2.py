@@ -11,14 +11,16 @@ La diferencia clave con Fase 1:
 """
 
 import matplotlib
+
 matplotlib.use('Agg')
 
-import numpy as np
+import warnings
+from typing import List, Optional, Tuple
+
 import matplotlib.pyplot as plt
+import numpy as np
 from matplotlib.colors import LinearSegmentedColormap
 from scipy.signal import convolve2d
-from typing import List, Tuple, Optional
-import warnings
 
 try:
     from mpmath import zetazero
@@ -28,7 +30,7 @@ except ImportError:
     warnings.warn("mpmath no disponible. Usando aproximaciones.")
 
 
-def get_zeta_zeros(M: int) -> List[float]:
+def get_zeta_zeros(M: int) -> list[float]:
     """Obtiene los primeros M ceros de ζ(s)."""
     if HAS_MPMATH:
         return [float(zetazero(k).imag) for k in range(1, M + 1)]
@@ -158,9 +160,9 @@ class ZetaWeightedGoL:
         R: int = 3,
         M: int = 30,
         sigma: float = 0.1,
-        birth_range: Tuple[float, float] = (2.5, 3.5),
-        survive_range: Tuple[float, float] = (1.5, 3.5),
-        seed: Optional[int] = None
+        birth_range: tuple[float, float] = (2.5, 3.5),
+        survive_range: tuple[float, float] = (1.5, 3.5),
+        seed: int | None = None
     ):
         """
         Args:
@@ -179,7 +181,7 @@ class ZetaWeightedGoL:
         self.birth_range = birth_range
         self.survive_range = survive_range
         self.generation = 0
-        self.history: List[np.ndarray] = []
+        self.history: list[np.ndarray] = []
 
         # Inicialización
         if seed is not None:
@@ -266,7 +268,7 @@ class ZetaWeightedGoL:
             'density': alive / (self.rows * self.cols)
         }
 
-    def analyze_correlations(self, max_distance: int = 20) -> Tuple[np.ndarray, np.ndarray]:
+    def analyze_correlations(self, max_distance: int = 20) -> tuple[np.ndarray, np.ndarray]:
         """Analiza correlaciones espaciales."""
         distances = np.arange(1, max_distance + 1)
         correlations = []

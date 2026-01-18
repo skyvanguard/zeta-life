@@ -7,15 +7,16 @@ Provides functions for:
 - Statistical tests
 """
 
+from typing import Dict, List, Optional, Tuple
+
 import numpy as np
-from typing import Dict, List, Tuple, Optional
 from scipy import stats
 
 
 def compute_confidence_interval(
-    data: List[float],
+    data: list[float],
     confidence: float = 0.95
-) -> Tuple[float, float, float]:
+) -> tuple[float, float, float]:
     """
     Compute mean and confidence interval for a list of values.
 
@@ -44,8 +45,8 @@ def compute_confidence_interval(
 
 
 def compute_effect_size(
-    group1: List[float],
-    group2: List[float]
+    group1: list[float],
+    group2: list[float]
 ) -> float:
     """
     Compute Cohen's d effect size between two groups.
@@ -76,10 +77,10 @@ def compute_effect_size(
 
 
 def compare_conditions(
-    condition1: List[float],
-    condition2: List[float],
+    condition1: list[float],
+    condition2: list[float],
     test: str = 'mann_whitney'
-) -> Dict:
+) -> dict:
     """
     Compare two conditions statistically.
 
@@ -133,7 +134,7 @@ def format_ci(
     return f"{mean:.{decimals}f} [{lower:.{decimals}f}, {upper:.{decimals}f}]"
 
 
-def summarize_distribution(data: List[float]) -> Dict:
+def summarize_distribution(data: list[float]) -> dict:
     """
     Compute summary statistics for a distribution.
 
@@ -157,8 +158,8 @@ def summarize_distribution(data: List[float]) -> Dict:
 
 
 def is_significantly_different(
-    condition1: List[float],
-    condition2: List[float],
+    condition1: list[float],
+    condition2: list[float],
     alpha: float = 0.05
 ) -> bool:
     """Check if two conditions are significantly different at given alpha level."""

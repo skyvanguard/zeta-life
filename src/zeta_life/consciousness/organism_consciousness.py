@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """
 OrganismConsciousness: Estado de consciencia del organismo completo.
 
@@ -8,28 +7,29 @@ Emerge de la integración de todos los clusters.
 Fecha: 2026-01-03
 """
 
+from dataclasses import dataclass, field
+from datetime import datetime
+from enum import Enum
+from typing import Dict, List, Optional, Tuple
+
+import numpy as np
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-import numpy as np
-from dataclasses import dataclass, field
-from typing import List, Dict, Tuple, Optional
-from enum import Enum
-from datetime import datetime
+
+from ..core.tetrahedral_space import get_tetrahedral_space
 
 # Importar del sistema existente
 from ..core.vertex import Vertex
-from ..core.tetrahedral_space import get_tetrahedral_space
-from ..psyche.zeta_individuation import IndividuationStage, IntegrationMetrics
 from ..psyche.zeta_conscious_self import ConsciousnessIndex
+from ..psyche.zeta_individuation import IndividuationStage, IntegrationMetrics
 
 # Backwards compatibility alias
 Archetype = Vertex
 
 # Importar de módulos nuevos
-from .micro_psyche import ConsciousCell, MicroPsyche, unbiased_argmax
 from .cluster import Cluster, ClusterPsyche
-
+from .micro_psyche import ConsciousCell, MicroPsyche, unbiased_argmax
 
 # =============================================================================
 # ORGANISM CONSCIOUSNESS
@@ -145,7 +145,7 @@ class OrganismConsciousness:
     @classmethod
     def from_clusters(
         cls,
-        clusters: List[Cluster],
+        clusters: list[Cluster],
         prev_consciousness: Optional['OrganismConsciousness'] = None
     ) -> 'OrganismConsciousness':
         """
@@ -168,7 +168,7 @@ class OrganismConsciousness:
 
         # 1. Calcular pesos de cada cluster
         # Peso = phi_cluster × tamaño (proporcional, sin softmax para preservar ratios)
-        weight_list: List[float] = []
+        weight_list: list[float] = []
         for cluster in valid_clusters:
             # cluster.psyche is guaranteed to be non-None due to filtering above
             assert cluster.psyche is not None
@@ -270,10 +270,10 @@ def _integration_to_stage(integration: float, phi: float) -> IndividuationStage:
 
 
 def _compute_consciousness_index(
-    clusters: List[Cluster],
+    clusters: list[Cluster],
     phi_global: float,
     vertical_coherence: float,
-    prev_index: Optional[ConsciousnessIndex] = None
+    prev_index: ConsciousnessIndex | None = None
 ) -> ConsciousnessIndex:
     """
     Calcula el índice de consciencia desde los clusters.
@@ -336,15 +336,15 @@ class HierarchicalMetrics:
     cell_count: int
     avg_cell_energy: float
     avg_cell_phi_local: float
-    archetype_distribution: Dict[str, float]
-    role_distribution: Dict[str, float]
+    archetype_distribution: dict[str, float]
+    role_distribution: dict[str, float]
 
     # Nivel 1: Clusters
     cluster_count: int
     avg_cluster_size: float
     avg_cluster_phi: float
     avg_cluster_coherence: float
-    cluster_specializations: Dict[str, int]
+    cluster_specializations: dict[str, int]
 
     # Nivel 2: Organismo
     consciousness_index: float
@@ -392,8 +392,8 @@ class HierarchicalMetrics:
     @classmethod
     def compute(
         cls,
-        cells: List[ConsciousCell],
-        clusters: List[Cluster],
+        cells: list[ConsciousCell],
+        clusters: list[Cluster],
         organism: OrganismConsciousness,
         prev_metrics: Optional['HierarchicalMetrics'] = None
     ) -> 'HierarchicalMetrics':
@@ -418,7 +418,7 @@ class HierarchicalMetrics:
 
         # Distribución de roles
         role_names = ['MASS', 'FORCE', 'CORRUPT']
-        role_counts: Dict[str, int] = {'MASS': 0, 'FORCE': 0, 'CORRUPT': 0}
+        role_counts: dict[str, int] = {'MASS': 0, 'FORCE': 0, 'CORRUPT': 0}
         for cell in cells:
             role_idx = int(cell.role.argmax().item())
             role_name = role_names[role_idx]
@@ -436,7 +436,7 @@ class HierarchicalMetrics:
         cluster_coherences = [c.psyche.coherence for c in valid_clusters if c.psyche is not None]
         avg_coherence = float(np.mean(cluster_coherences)) if cluster_coherences else 0.0
 
-        spec_counts: Dict[str, int] = {a.name: 0 for a in Archetype}
+        spec_counts: dict[str, int] = {a.name: 0 for a in Archetype}
         for cluster in valid_clusters:
             if cluster.psyche is not None:
                 spec_counts[cluster.psyche.specialization.name] += 1
@@ -490,7 +490,7 @@ class HierarchicalMetrics:
         )
 
 
-def _compute_bottom_up_flow(cells: List[ConsciousCell], clusters: List[Cluster]) -> float:
+def _compute_bottom_up_flow(cells: list[ConsciousCell], clusters: list[Cluster]) -> float:
     """Calcula calidad del flujo bottom-up."""
     if not cells or not clusters:
         return 0.0
@@ -505,7 +505,7 @@ def _compute_bottom_up_flow(cells: List[ConsciousCell], clusters: List[Cluster])
     return total_rep / len(cells)
 
 
-def _compute_top_down_flow(cells: List[ConsciousCell], organism: OrganismConsciousness) -> float:
+def _compute_top_down_flow(cells: list[ConsciousCell], organism: OrganismConsciousness) -> float:
     """Calcula calidad del flujo top-down."""
     if not cells:
         return 0.0
@@ -519,7 +519,7 @@ def _compute_top_down_flow(cells: List[ConsciousCell], organism: OrganismConscio
     return float(np.mean(alignments))
 
 
-def _compute_horizontal_flow(clusters: List[Cluster]) -> float:
+def _compute_horizontal_flow(clusters: list[Cluster]) -> float:
     """Calcula flujo horizontal entre clusters."""
     if len(clusters) < 2:
         return 0.0

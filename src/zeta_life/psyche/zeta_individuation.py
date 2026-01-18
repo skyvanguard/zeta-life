@@ -1,5 +1,4 @@
 #!/usr/bin/env python
-# -*- coding: utf-8 -*-
 """
 ZetaIndividuation: Sistema de Individuación Junguiana
 
@@ -16,13 +15,14 @@ El Self no es un quinto arquetipo, sino el centro que emerge
 cuando los cuatro están en equilibrio dinámico.
 """
 
-import sys
-import math
 import json
-from enum import Enum, auto
+import math
+import sys
+from collections.abc import Callable
 from dataclasses import dataclass, field
-from typing import Any, Dict, List, Optional, Tuple, Callable, TypedDict
 from datetime import datetime
+from enum import Enum, auto
+from typing import Any, Dict, List, Optional, Tuple, TypedDict
 
 if sys.platform == 'win32':
     try:
@@ -30,27 +30,27 @@ if sys.platform == 'win32':
     except:
         pass
 
+import numpy as np
 import torch
 import torch.nn as nn
-import numpy as np
 
 # Importar sistema base
-from .zeta_psyche import ZetaPsyche, Archetype, TetrahedralSpace, PsycheInterface
+from .zeta_psyche import Archetype, PsycheInterface, TetrahedralSpace, ZetaPsyche
 
 
 class DefenseMechanism(TypedDict):
     """Type definition for defense mechanism entries."""
     description: str
-    blocks: List[Archetype]
+    blocks: list[Archetype]
     strength: float
 
 
 class IntegrationWorkEntry(TypedDict):
     """Type definition for integration work entries."""
     name: str
-    target: Optional[Archetype]
+    target: Archetype | None
     description: str
-    prompts: List[str]
+    prompts: list[str]
     integration_potential: float
 
 
@@ -81,7 +81,7 @@ class IntegrationMetrics:
                 self.anima_connection + self.animus_balance +
                 self.self_coherence) / 5.0
 
-    def to_dict(self) -> Dict:
+    def to_dict(self) -> dict:
         return {
             'persona_flexibility': self.persona_flexibility,
             'shadow_acceptance': self.shadow_acceptance,
@@ -111,7 +111,7 @@ class SelfManifestation:
     stability: float           # Qué tan estable es el centro
     luminosity: float          # Intensidad de la manifestación (0-1)
     symbol: str                # Símbolo asociado (mandala, etc)
-    message: Optional[str]     # Mensaje del Self si hay
+    message: str | None     # Mensaje del Self si hay
 
 
 class ResistanceSystem:
@@ -120,7 +120,7 @@ class ResistanceSystem:
     Las resistencias protegen al ego pero dificultan la individuación.
     """
 
-    DEFENSE_MECHANISMS: Dict[str, DefenseMechanism] = {
+    DEFENSE_MECHANISMS: dict[str, DefenseMechanism] = {
         'negacion': {
             'description': 'Rechazar aspectos de la realidad',
             'blocks': [Archetype.SOMBRA],
@@ -154,8 +154,8 @@ class ResistanceSystem:
     }
 
     def __init__(self) -> None:
-        self.active_defenses: Dict[str, float] = {}
-        self.defense_history: List[Tuple[str, str, float]] = []
+        self.active_defenses: dict[str, float] = {}
+        self.defense_history: list[tuple[str, str, float]] = []
 
     def activate_defense(self, defense_name: str, intensity: float = 1.0) -> None:
         """Activa una defensa con cierta intensidad."""
@@ -200,7 +200,7 @@ class IntegrationWork:
     Basados en técnicas junguianas (imaginación activa, análisis de sueños, etc).
     """
 
-    WORKS: Dict[str, IntegrationWorkEntry] = {
+    WORKS: dict[str, IntegrationWorkEntry] = {
         'shadow_dialogue': {
             'name': 'Diálogo con la Sombra',
             'target': Archetype.SOMBRA,
@@ -276,7 +276,7 @@ class IntegrationWork:
     }
 
     @classmethod
-    def get_work_for_stage(cls, stage: IndividuationStage) -> List[str]:
+    def get_work_for_stage(cls, stage: IndividuationStage) -> list[str]:
         """Retorna trabajos apropiados para una etapa."""
         stage_works = {
             IndividuationStage.INCONSCIENTE: ['persona_examination'],
@@ -302,11 +302,11 @@ class SelfSystem:
     SELF_SYMBOLS = ['☉', '◎', '✦', '⊙', '❂', '✧', '◉', '⚹']
 
     def __init__(self) -> None:
-        self.manifestations: List[SelfManifestation] = []
+        self.manifestations: list[SelfManifestation] = []
         self.total_luminosity: float = 0.0
-        self.center_history: List[torch.Tensor] = []
+        self.center_history: list[torch.Tensor] = []
 
-    def compute_self_center(self, psyche_state: Dict) -> torch.Tensor:
+    def compute_self_center(self, psyche_state: dict) -> torch.Tensor:
         """
         Calcula el centro del Self basado en el estado de la psique.
         El Self emerge en el centro cuando hay equilibrio.
@@ -370,7 +370,7 @@ class SelfSystem:
         stability = max(0, 1 - avg_variation * 5)
         return stability
 
-    def manifest(self, psyche_state: Dict, metrics: IntegrationMetrics) -> SelfManifestation:
+    def manifest(self, psyche_state: dict, metrics: IntegrationMetrics) -> SelfManifestation:
         """Genera una manifestación del Self."""
         center = self.compute_self_center(psyche_state)
         self.center_history.append(center)
@@ -450,7 +450,7 @@ class IndividuationProcess:
         self.metrics = IntegrationMetrics()
         self.resistance = ResistanceSystem()
         self.self_system = SelfSystem()
-        self.events: List[IndividuationEvent] = []
+        self.events: list[IndividuationEvent] = []
         self.session_count = 0
 
         # Umbrales para transiciones de etapa
@@ -519,7 +519,7 @@ class IndividuationProcess:
             total += self.resistance.get_resistance_to(arch)
         return total / len(Archetype)
 
-    def process_stimulus(self, stimulus: str) -> Dict:
+    def process_stimulus(self, stimulus: str) -> dict:
         """
         Procesa un estímulo a través del lente de individuación.
         Retorna estado actualizado y posible manifestación del Self.
@@ -597,7 +597,7 @@ class IndividuationProcess:
         self.metrics.animus_balance = min(1.0, self.metrics.animus_balance)
         self.metrics.self_coherence = min(1.0, self.metrics.self_coherence)
 
-    def do_integration_work(self, work_name: str) -> Dict:
+    def do_integration_work(self, work_name: str) -> dict:
         """
         Realiza un trabajo de integración.
         Retorna resultados y prompt para reflexión.
@@ -606,7 +606,7 @@ class IndividuationProcess:
             return {'error': f'Trabajo desconocido: {work_name}'}
 
         work: IntegrationWorkEntry = IntegrationWork.WORKS[work_name]
-        target: Optional[Archetype] = work['target']
+        target: Archetype | None = work['target']
 
         # Verificar resistencias
         resistance: float = 0.0
@@ -672,7 +672,7 @@ class IndividuationProcess:
 
         for work_name in works:
             work: IntegrationWorkEntry = IntegrationWork.WORKS[work_name]
-            target: Optional[Archetype] = work['target']
+            target: Archetype | None = work['target']
             if target:
                 res = self.resistance.get_resistance_to(target)
                 if res < min_resistance:
@@ -761,7 +761,7 @@ class IndividuationProcess:
     def load(self, path: str = "individuation_state.json") -> bool:
         """Carga el estado de individuación."""
         try:
-            with open(path, 'r', encoding='utf-8') as f:
+            with open(path, encoding='utf-8') as f:
                 state = json.load(f)
 
             self.stage = IndividuationStage[state['stage']]
@@ -800,12 +800,12 @@ class IndividuatingPsyche:
         for _ in range(20):
             self.psyche.step()
 
-    def process(self, text: str) -> Dict:
+    def process(self, text: str) -> dict:
         """Procesa texto y retorna respuesta con contexto de individuación."""
         result = self.individuation.process_stimulus(text)
         return result
 
-    def do_work(self, work_name: Optional[str] = None) -> Dict:
+    def do_work(self, work_name: str | None = None) -> dict:
         """Realiza trabajo de integración."""
         if work_name is None:
             work_name = self.individuation.get_recommended_work()
@@ -824,11 +824,11 @@ class IndividuatingPsyche:
         self.individuation.load()
 
 
-def visualize_individuation(process: IndividuationProcess, save_path: str = "individuation_progress.png") -> Optional[str]:
+def visualize_individuation(process: IndividuationProcess, save_path: str = "individuation_progress.png") -> str | None:
     """Visualiza el progreso de individuación."""
     try:
-        import matplotlib.pyplot as plt
         import matplotlib.patches as mpatches
+        import matplotlib.pyplot as plt
 
         fig, axes = plt.subplots(2, 2, figsize=(14, 10))
         fig.suptitle('Proceso de Individuación', fontsize=16, fontweight='bold')
@@ -962,7 +962,7 @@ def interactive_session() -> None:
             result = psyche.do_work()
             print(f"\n  [{result['work_name']}]")
             print(f"  {result['description']}")
-            print(f"\n  Pregunta para reflexionar:")
+            print("\n  Pregunta para reflexionar:")
             print(f"  \"{result['prompt']}\"")
             print(f"\n  Integración ganada: +{result['integration_gained']:.1%}")
             if result['resistance_encountered'] > 0:
@@ -983,7 +983,7 @@ def interactive_session() -> None:
             else:
                 print(f"\n  [{result['work_name']}]")
                 print(f"  {result['description']}")
-                print(f"\n  Pregunta para reflexionar:")
+                print("\n  Pregunta para reflexionar:")
                 print(f"  \"{result['prompt']}\"")
                 print(f"\n  Integración ganada: +{result['integration_gained']:.1%}")
 

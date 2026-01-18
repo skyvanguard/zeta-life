@@ -1,5 +1,4 @@
 #!/usr/bin/env python
-# -*- coding: utf-8 -*-
 """
 ZetaPsyche: Inteligencia Organica basada en Arquetipos de Jung
 
@@ -19,23 +18,23 @@ Los ceros de Riemann modulan la dinamica en el "borde del caos"
 donde la conciencia tiene mas probabilidad de emerger.
 """
 
-import sys
 import io
+import sys
 
 # Fix Windows console encoding for Unicode symbols
 if sys.platform == 'win32':
     sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding='utf-8', errors='replace')
 
+from dataclasses import dataclass, field
+from enum import Enum
+from typing import Any, Dict, List, Optional, Tuple
+
+import matplotlib.pyplot as plt
+import numpy as np
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-import numpy as np
-from dataclasses import dataclass, field
-from typing import List, Dict, Tuple, Optional, Any
-from enum import Enum
-import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d import Axes3D
-
 
 # =============================================================================
 # VERTICES ABSTRACTOS (antes Arquetipos de Jung)
@@ -43,7 +42,6 @@ from mpl_toolkits.mplot3d import Axes3D
 # NOTA: Para nuevos desarrollos, usar zeta_life.core.vertex.Vertex
 # y zeta_life.narrative.NarrativeMapper para visualizacion.
 # Los siguientes son aliases de compatibilidad.
-
 from ..core.vertex import Vertex
 
 # Backwards compatibility: Archetype es ahora alias de Vertex
@@ -119,7 +117,7 @@ class TetrahedralSpace:
         idx = weights.argmax().item()
         return Archetype(idx)
 
-    def get_archetype_blend(self, weights: torch.Tensor) -> Dict[Archetype, float]:
+    def get_archetype_blend(self, weights: torch.Tensor) -> dict[Archetype, float]:
         """Retorna la mezcla de arquetipos como diccionario."""
         weights = F.softmax(weights, dim=-1)
         return {Archetype(i): w.item() for i, w in enumerate(weights)}
@@ -269,9 +267,9 @@ class ZetaPsyche(nn.Module):
         )
 
         # Estado interno
-        self.cells: List[PsychicCell] = []
+        self.cells: list[PsychicCell] = []
         self.global_state = torch.zeros(4)  # Estado colectivo
-        self.consciousness_history: List[float] = []
+        self.consciousness_history: list[float] = []
         self.t = 0
 
         # Inicializar celulas
@@ -313,7 +311,7 @@ class ZetaPsyche(nn.Module):
             counts[dominant_idx] += 1
         return counts / len(self.cells)
 
-    def observe_self(self) -> Dict:
+    def observe_self(self) -> dict:
         """
         Auto-observacion: el sistema observa su propio estado.
 
@@ -430,7 +428,7 @@ class ZetaPsyche(nn.Module):
         obs = self.observe_self()
         self.consciousness_history.append(obs['consciousness_index'])
 
-    def step(self, stimulus: Optional[torch.Tensor] = None) -> Dict:
+    def step(self, stimulus: torch.Tensor | None = None) -> dict:
         """Ejecuta un paso de la psique."""
         if stimulus is None:
             stimulus = torch.rand(4)  # Estimulo aleatorio
@@ -438,7 +436,7 @@ class ZetaPsyche(nn.Module):
         self.receive_stimulus(stimulus)
         return self.observe_self()
 
-    def get_response(self) -> Tuple[Archetype, Dict[Archetype, float]]:
+    def get_response(self) -> tuple[Archetype, dict[Archetype, float]]:
         """
         Genera una respuesta basada en el estado actual.
         Retorna el arquetipo dominante y la mezcla.
@@ -532,7 +530,7 @@ class SymbolSystem:
             # Encontrar los dos dominantes
             idx1, idx2 = int(sorted_idx[0].item()), int(sorted_idx[1].item())
             # Usar simbolos de mezcla
-            pair_symbols: Dict[Tuple[int, int], str] = {
+            pair_symbols: dict[tuple[int, int], str] = {
                 (0, 1): '◈', (1, 0): '◈',  # Persona-Sombra
                 (0, 2): '◇', (2, 0): '◇',  # Persona-Anima
                 (0, 3): '◆', (3, 0): '◆',  # Persona-Animus
@@ -570,7 +568,7 @@ def run_consciousness_experiment(
     n_cells: int = 200,
     n_steps: int = 500,
     stimulus_pattern: str = 'cyclic'
-) -> Dict:
+) -> dict:
     """
     Ejecuta experimento para observar emergencia de conciencia.
 
@@ -580,7 +578,7 @@ def run_consciousness_experiment(
         stimulus_pattern: 'cyclic', 'random', 'focused', 'integrative'
     """
     print(f'\n{"="*70}')
-    print(f'EXPERIMENTO DE EMERGENCIA DE CONCIENCIA')
+    print('EXPERIMENTO DE EMERGENCIA DE CONCIENCIA')
     print(f'{"="*70}')
     print(f'Celulas: {n_cells}')
     print(f'Steps: {n_steps}')
@@ -591,7 +589,7 @@ def run_consciousness_experiment(
     symbols = SymbolSystem()
 
     # Historial
-    history: Dict[str, List] = {
+    history: dict[str, list] = {
         'consciousness': [],
         'integration': [],
         'dominant': [],
@@ -662,7 +660,7 @@ def run_consciousness_experiment(
         'symbol_sequence': ''.join(history['symbols']),
     }
 
-    print(f'\n[RESULTADOS]')
+    print('\n[RESULTADOS]')
     print(f'  Conciencia promedio: {results["avg_consciousness"]:.3f}')
     print(f'  Conciencia maxima: {results["max_consciousness"]:.3f}')
     print(f'  Tendencia: {trend:+.4f}')
@@ -673,7 +671,7 @@ def run_consciousness_experiment(
     return results
 
 
-def visualize_consciousness(results: Dict, save_path: str = 'zeta_psyche_consciousness.png') -> None:
+def visualize_consciousness(results: dict, save_path: str = 'zeta_psyche_consciousness.png') -> None:
     """Visualiza los resultados del experimento."""
 
     fig = plt.figure(figsize=(16, 10))
@@ -786,7 +784,7 @@ class PsycheInterface:
             'logica': [0.1, 0.1, 0.1, 0.7],
         }
 
-    def process_input(self, text: str, n_steps: int = 10) -> Dict[str, Any]:
+    def process_input(self, text: str, n_steps: int = 10) -> dict[str, Any]:
         """
         Procesa input de texto y retorna respuesta simbolica.
 

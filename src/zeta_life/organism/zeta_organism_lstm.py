@@ -4,14 +4,16 @@
 Evolucion de ZetaOrganism: usa OrganismCellLSTMPool para que cada celula
 mantenga su propio estado LSTM con memoria zeta.
 """
+from dataclasses import dataclass
+from typing import Dict, List, Optional
+
+import numpy as np
 import torch
 import torch.nn as nn
-import numpy as np
-from dataclasses import dataclass
-from typing import List, Dict, Optional
-from .cell_state import CellState, CellRole
-from .force_field import ForceField
+
 from .behavior_engine import BehaviorEngine
+from .cell_state import CellRole, CellState
+from .force_field import ForceField
 from .organism_cell_lstm import OrganismCellLSTMPool
 
 
@@ -24,7 +26,7 @@ class CellEntityLSTM:
     role: torch.Tensor
     energy: float = 0.0
     controlled_mass: float = 0.0
-    memory_info: Optional[dict] = None
+    memory_info: dict | None = None
 
     @property
     def role_idx(self) -> int:
@@ -70,10 +72,10 @@ class ZetaOrganismLSTM(nn.Module):
         )
 
         # Estado
-        self.cells: List[CellEntityLSTM] = []
+        self.cells: list[CellEntityLSTM] = []
         self.energy_grid = torch.zeros(1, 1, grid_size, grid_size)
         self.role_grid = torch.zeros(1, 1, grid_size, grid_size)
-        self.history: List[dict] = []
+        self.history: list[dict] = []
         self.next_cell_id = 0
 
     def _create_cell_id(self) -> int:
@@ -124,7 +126,7 @@ class ZetaOrganismLSTM(nn.Module):
             self.energy_grid[0, 0, y, x] = cell.energy
             self.role_grid[0, 0, y, x] = cell.role_idx
 
-    def _get_neighbors(self, cell: CellEntityLSTM, radius: int = 3) -> List[CellEntityLSTM]:
+    def _get_neighbors(self, cell: CellEntityLSTM, radius: int = 3) -> list[CellEntityLSTM]:
         """Obtiene celulas vecinas."""
         neighbors = []
         cx, cy = cell.position
@@ -312,12 +314,12 @@ if __name__ == '__main__':
 
     org.initialize(seed_fi=True)
 
-    print(f"\nEstado inicial:")
+    print("\nEstado inicial:")
     m = org.get_metrics()
     print(f"  Celulas: {m['n_total']} (Fi={m['n_fi']}, Mass={m['n_mass']})")
     print(f"  Energia promedio: {m['avg_energy']:.3f}")
 
-    print(f"\nSimulando 20 steps...")
+    print("\nSimulando 20 steps...")
     for step in range(20):
         org.step()
 
@@ -325,7 +327,7 @@ if __name__ == '__main__':
             m = org.get_metrics()
             print(f"  Step {step+1}: Fi={m['n_fi']}, h_norm={m['avg_h_norm']:.4f}")
 
-    print(f"\nEstado final:")
+    print("\nEstado final:")
     m = org.get_metrics()
     print(f"  Celulas: {m['n_total']} (Fi={m['n_fi']}, Mass={m['n_mass']})")
     print(f"  Energia promedio: {m['avg_energy']:.3f}")
@@ -333,7 +335,7 @@ if __name__ == '__main__':
     print(f"  Timestep: {m['timestep']}")
 
     # Test de dano
-    print(f"\nAplicando dano...")
+    print("\nAplicando dano...")
     damaged = org.damage((20, 20, 40, 40), intensity=0.8)
     print(f"  Celulas eliminadas: {damaged}")
 

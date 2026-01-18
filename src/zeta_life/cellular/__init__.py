@@ -9,7 +9,7 @@ Phases:
 """
 
 from .zeta_game_of_life import ZetaGameOfLife, ZetaKernel
-from .zeta_gol_fase2 import ZetaWeightedGoL, ZetaNeighborhoodKernel
+from .zeta_gol_fase2 import ZetaNeighborhoodKernel, ZetaWeightedGoL
 from .zeta_gol_fase3 import ZetaFullSystem, ZetaLaplaceOperator
 # Note: ZetaNCA classes require PyTorch - import directly if needed:
 # from .zeta_neural_ca import ZetaNCA, ZetaNCATrainer

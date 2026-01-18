@@ -1,5 +1,4 @@
 #!/usr/bin/env python
-# -*- coding: utf-8 -*-
 """
 ZetaPsyche Voice: Sistema de comunicacion verbal arquetipica.
 
@@ -7,13 +6,14 @@ Extiende ZetaPsyche para generar respuestas en lenguaje natural
 basadas en el arquetipo dominante y la mezcla de estados.
 """
 
-import sys
 import io
 import random
+import sys
+from enum import Enum
+from typing import Dict, List, Optional, Tuple
+
 import torch
 import torch.nn.functional as F
-from typing import Dict, List, Tuple, Optional
-from enum import Enum
 
 # Fix Windows console encoding
 if sys.platform == 'win32':
@@ -22,8 +22,7 @@ if sys.platform == 'win32':
     except (AttributeError, io.UnsupportedOperation):
         pass
 
-from .zeta_psyche import ZetaPsyche, Archetype, SymbolSystem
-
+from .zeta_psyche import Archetype, SymbolSystem, ZetaPsyche
 
 # =============================================================================
 # VOCABULARIO EXPANDIDO
@@ -465,9 +464,9 @@ class ArchetypalVoice:
     def generate(
         self,
         dominant: Archetype,
-        blend: Dict[Archetype, float],
+        blend: dict[Archetype, float],
         input_text: str = '',
-        context: Optional[List[str]] = None,
+        context: list[str] | None = None,
         consciousness: float = 0.5,
         luminosity: float = 0.0
     ) -> str:
@@ -547,7 +546,7 @@ class ArchetypalVoice:
 
         return final_response
 
-    def _generate_self_response(self) -> Optional[str]:
+    def _generate_self_response(self) -> str | None:
         """Genera respuesta desde el Self (alta integracion)."""
         available = [r for r in self.self_templates if r not in self.last_responses]
         if available:
@@ -568,7 +567,7 @@ class ArchetypalVoice:
             return str(random.choice(available))
         return str(random.choice(category_templates))
 
-    def _generate_blend_response(self, arch1: Archetype, arch2: Archetype) -> Optional[str]:
+    def _generate_blend_response(self, arch1: Archetype, arch2: Archetype) -> str | None:
         """Genera respuesta para mezcla de arquetipos."""
         key = tuple(sorted([arch1.name, arch2.name]))
         responses = self.blend_responses.get(key, [])
@@ -580,7 +579,7 @@ class ArchetypalVoice:
             return str(random.choice(responses))
         return None
 
-    def _get_flavor_phrase(self, archetype: Archetype) -> Optional[str]:
+    def _get_flavor_phrase(self, archetype: Archetype) -> str | None:
         """Obtiene frase de transicion del arquetipo secundario."""
         templates = self.templates.get(archetype, {})
         transitions = templates.get('transition', [])
@@ -597,7 +596,7 @@ class ArchetypalVoice:
             # Peso moderado: flavor despues
             return f"{base} {flavor}"
 
-    def _get_insight(self, archetype: Archetype) -> Optional[str]:
+    def _get_insight(self, archetype: Archetype) -> str | None:
         """Obtiene insight del arquetipo."""
         templates = self.templates.get(archetype, {})
         insights = templates.get('insight', [])
@@ -869,8 +868,8 @@ class OrganicVoice:
 
     def generate_self_description(
         self,
-        obs: Dict,
-        stimulus_info: Optional[Dict] = None,
+        obs: dict,
+        stimulus_info: dict | None = None,
         include_perception: bool = True
     ) -> str:
         """
@@ -919,8 +918,8 @@ class OrganicVoice:
 
     def generate_change_description(
         self,
-        prev_obs: Dict,
-        current_obs: Dict,
+        prev_obs: dict,
+        current_obs: dict,
         tension: float
     ) -> str:
         """
@@ -998,10 +997,10 @@ class OrganicVoice:
 
     def _get_secondary_archetype(
         self,
-        blend: Dict[Archetype, float],
+        blend: dict[Archetype, float],
         dominant: Archetype,
         threshold: float = 0.25
-    ) -> Optional[Archetype]:
+    ) -> Archetype | None:
         """Identifica arquetipo secundario significativo."""
         for arch, weight in sorted(blend.items(), key=lambda x: x[1], reverse=True):
             if arch != dominant and weight > threshold:
@@ -1029,7 +1028,7 @@ class ConversationalPsyche:
         self.voice = ArchetypalVoice()
         self.symbols = SymbolSystem()
         self.vocabulary = EXPANDED_VOCABULARY
-        self.conversation_history: List[Dict] = []
+        self.conversation_history: list[dict] = []
         self.processing_steps = 15  # Pasos por input (mas = mas respuesta)
 
     def _text_to_stimulus(self, text: str) -> torch.Tensor:
@@ -1055,7 +1054,7 @@ class ConversationalPsyche:
 
         return stimulus
 
-    def process(self, user_input: str) -> Dict:
+    def process(self, user_input: str) -> dict:
         """
         Procesa input del usuario y genera respuesta.
 
@@ -1118,7 +1117,7 @@ class ConversationalPsyche:
             'population': obs['population_distribution'].tolist(),
         }
 
-    def get_status_bar(self, obs: Optional[Dict] = None) -> str:
+    def get_status_bar(self, obs: dict | None = None) -> str:
         """Genera barra de estado visual."""
         if obs is None:
             obs = self.psyche.observe_self()
@@ -1134,7 +1133,7 @@ class ConversationalPsyche:
             f"  SOMBRA  {bar(pop[1])} {pop[1]*100:5.1f}%",
             f"  ANIMA   {bar(pop[2])} {pop[2]*100:5.1f}%",
             f"  ANIMUS  {bar(pop[3])} {pop[3]*100:5.1f}%",
-            f"",
+            "",
             f"  Consciencia: {bar(obs['consciousness_index'])} {obs['consciousness_index']:.3f}",
         ]
 

@@ -1,10 +1,12 @@
 # cell_state.py
 """Estado de celula para ZetaOrganism."""
-import torch
-from enum import Enum
-from dataclasses import dataclass, field
-from typing import Optional
 import math
+from dataclasses import dataclass, field
+from enum import Enum
+from typing import Optional
+
+import torch
+
 
 class CellRole(Enum):
     MASS = 0      # Mi - sigue a Fi

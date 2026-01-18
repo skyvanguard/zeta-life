@@ -12,7 +12,7 @@ Usage:
     damage_system = DamageSystem(config)
 """
 
-from typing import Dict, Any
+from typing import Any, Dict
 
 
 def _deep_update(base: dict, updates: dict) -> dict:
@@ -28,7 +28,7 @@ def _deep_update(base: dict, updates: dict) -> dict:
 def create_hierarchical_config(
     base_config: dict = None,
     scale_factor: float = 1.0
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     """
     Create configuration for HierarchicalSimulation from evolved params.
 
@@ -241,7 +241,7 @@ PRESETS = {
 }
 
 
-def get_preset_config(preset_name: str) -> Dict[str, Any]:
+def get_preset_config(preset_name: str) -> dict[str, Any]:
     """
     Get configuration by preset name.
 
@@ -277,7 +277,7 @@ def get_preset_config(preset_name: str) -> Dict[str, Any]:
     return config
 
 
-def list_presets() -> Dict[str, str]:
+def list_presets() -> dict[str, str]:
     """List available presets with descriptions."""
     return {name: preset['description'] for name, preset in PRESETS.items()}
 

@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """
 ZetaConsciousSelf: Sistema Integrado de Consciencia e Individuacion
 =====================================================================
@@ -19,34 +18,44 @@ El Self emerge cuando todos los sistemas trabajan en armonia:
 
 Fecha: 3 Enero 2026
 """
-import sys
 import os
+import sys
+
 if sys.platform == 'win32':
     os.system('')
 
+from collections import deque
+from dataclasses import dataclass, field
+from datetime import datetime
+from enum import Enum
+from typing import Dict, List, Optional, Tuple
+
+import numpy as np
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-import numpy as np
-from dataclasses import dataclass, field
-from typing import Dict, List, Tuple, Optional
-from collections import deque
-from enum import Enum
-from datetime import datetime
+
+from .zeta_attention import AttentionOutput, ZetaAttentionSystem
+from .zeta_attentive_predictive import ZetaAttentivePredictive
+from .zeta_dream_consolidation import ConsolidationReport, DreamConsolidator
+from .zeta_individuation import (
+    IndividuationProcess,
+    IndividuationStage,
+    IntegrationMetrics,
+    IntegrationWork,
+    ResistanceSystem,
+    SelfSystem,
+)
+from .zeta_integration_feedback import (
+    IntegrationFeedback,
+    IntegrationWorkFeedback,
+    create_feedback_system,
+)
+from .zeta_online_learning import HebbianLearner, OnlineLearner
 
 # Importar todos los sistemas
-from .zeta_psyche import ZetaPsyche, Archetype
-from .zeta_individuation import (
-    IndividuationProcess, IndividuationStage, IntegrationMetrics,
-    SelfSystem, ResistanceSystem, IntegrationWork
-)
-from .zeta_attentive_predictive import ZetaAttentivePredictive
-from .zeta_attention import ZetaAttentionSystem, AttentionOutput
-from .zeta_online_learning import OnlineLearner, HebbianLearner
-from .zeta_dream_consolidation import DreamConsolidator, ConsolidationReport
-from .zeta_integration_feedback import IntegrationFeedback, IntegrationWorkFeedback, create_feedback_system
+from .zeta_psyche import Archetype, ZetaPsyche
 from .zeta_psyche_voice import OrganicVoice
-
 
 # =============================================================================
 # INDICE DE CONSCIENCIA INTEGRADO
@@ -65,7 +74,7 @@ class ConsciousnessIndex:
     meta_awareness: float = 0.0  # Consciencia de la consciencia
 
     # Pesos
-    weights: Dict[str, float] = field(default_factory=lambda: {
+    weights: dict[str, float] = field(default_factory=lambda: {
         'predictive': 0.20,
         'attention': 0.20,
         'integration': 0.25,
@@ -86,7 +95,7 @@ class ConsciousnessIndex:
         )
         return min(1.0, max(0.0, total))
 
-    def to_dict(self) -> Dict:
+    def to_dict(self) -> dict:
         return {
             'predictive': self.predictive,
             'attention': self.attention,
@@ -140,12 +149,12 @@ class AttractorMemory:
         self.strength_decay = strength_decay
 
         # Almacenamiento
-        self.attractors: List[StoredAttractor] = []
+        self.attractors: list[StoredAttractor] = []
 
         # Metricas
         self.total_convergences: int = 0
         self.recognition_count: int = 0
-        self.recognition_history: List[Dict] = []
+        self.recognition_history: list[dict] = []
 
     def _cosine_similarity(self, a: torch.Tensor, b: torch.Tensor) -> float:
         """Calcula similitud coseno entre dos estados."""
@@ -158,7 +167,7 @@ class AttractorMemory:
             return 0.0
         return float((dot / (norm_a * norm_b)).item())
 
-    def find_similar(self, state: torch.Tensor) -> Optional[Tuple[int, float]]:
+    def find_similar(self, state: torch.Tensor) -> tuple[int, float] | None:
         """
         Busca un atractor similar al estado dado.
 
@@ -183,7 +192,7 @@ class AttractorMemory:
         state: torch.Tensor,
         dominant: Archetype,
         current_step: int
-    ) -> Dict:
+    ) -> dict:
         """
         Almacena un nuevo atractor o refuerza uno existente.
 
@@ -285,13 +294,13 @@ class AttractorMemory:
             return 0.0
         return self.recognition_count / self.total_convergences
 
-    def get_dominant_attractor(self) -> Optional[StoredAttractor]:
+    def get_dominant_attractor(self) -> StoredAttractor | None:
         """Retorna el atractor mas fuerte (identidad central)."""
         if not self.attractors:
             return None
         return max(self.attractors, key=lambda a: a.strength)
 
-    def get_metrics(self) -> Dict:
+    def get_metrics(self) -> dict:
         """Retorna metricas de emergencia."""
         dominant = self.get_dominant_attractor()
 
@@ -311,7 +320,7 @@ class AttractorMemory:
             return "Identidad aun no formada..."
 
         # Contar por arquetipo
-        arch_strength: Dict[str, float] = {}
+        arch_strength: dict[str, float] = {}
         for att in self.attractors:
             name = att.dominant.name
             arch_strength[name] = arch_strength.get(name, 0) + att.strength
@@ -356,7 +365,7 @@ class IndividuationModulator:
         attention_index: float,
         predictive_index: float,
         surprise: float
-    ) -> Dict:
+    ) -> dict:
         """
         Calcula modificadores para el proceso de individuacion.
         """
@@ -502,9 +511,9 @@ class ZetaConsciousSelf(nn.Module):
         dream_frequency: int = 100,
         load_state: bool = False,
         enable_decay: bool = False,
-        decay_config: Optional[Dict] = None,
+        decay_config: dict | None = None,
         enable_self_reflection: bool = False,
-        reflection_config: Optional[Dict] = None
+        reflection_config: dict | None = None
     ) -> None:
         super().__init__()
 
@@ -515,7 +524,7 @@ class ZetaConsciousSelf(nn.Module):
             'convergence_threshold': 0.05, # Umbral de tension epistemica
             'include_perception': True,    # Incluir percepcion externa
         }
-        self.reflection_history: List[Dict] = []
+        self.reflection_history: list[dict] = []
 
         # Configuracion de decay (comportamiento emergente de compensacion)
         self.enable_decay = enable_decay
@@ -528,7 +537,7 @@ class ZetaConsciousSelf(nn.Module):
         self.neglect_counters = {
             'PERSONA': 0, 'SOMBRA': 0, 'ANIMA': 0, 'ANIMUS': 0
         }
-        self.last_stimulus_dominant: Optional[str] = None
+        self.last_stimulus_dominant: str | None = None
 
         # Sistema base
         self.psyche = ZetaPsyche(n_cells=n_cells)
@@ -577,10 +586,10 @@ class ZetaConsciousSelf(nn.Module):
 
         # Indice de consciencia
         self.consciousness = ConsciousnessIndex()
-        self.consciousness_history: List[float] = []
+        self.consciousness_history: list[float] = []
 
         # Insights acumulados
-        self.insights: List[Insight] = []
+        self.insights: list[Insight] = []
 
         # Cargar estado si existe
         if load_state:
@@ -590,7 +599,7 @@ class ZetaConsciousSelf(nn.Module):
         for _ in range(20):
             self.psyche.step()
 
-    def step(self, stimulus: Optional[torch.Tensor] = None, text: Optional[str] = None) -> Dict:
+    def step(self, stimulus: torch.Tensor | None = None, text: str | None = None) -> dict:
         """
         Ejecuta un paso completo del sistema.
 
@@ -767,7 +776,7 @@ class ZetaConsciousSelf(nn.Module):
     def _update_individuation_metrics(
         self,
         dominant: Archetype,
-        modulation: Dict
+        modulation: dict
     ) -> None:
         """Actualiza metricas de individuacion con modulacion."""
         # Factor base
@@ -827,7 +836,7 @@ class ZetaConsciousSelf(nn.Module):
         if stimulus is not None:
             stim_idx = int(stimulus.argmax().item())
             stim_names = ['PERSONA', 'SOMBRA', 'ANIMA', 'ANIMUS']
-            current_dominant: Optional[str] = stim_names[stim_idx]
+            current_dominant: str | None = stim_names[stim_idx]
         else:
             current_dominant = self.last_stimulus_dominant
 
@@ -874,9 +883,9 @@ class ZetaConsciousSelf(nn.Module):
 
     def _update_consciousness_index(
         self,
-        ap_result: Dict,
+        ap_result: dict,
         self_manifestation,
-        modulation: Dict
+        modulation: dict
     ) -> None:
         """Actualiza el indice de consciencia integrado."""
         # Predictivo
@@ -905,7 +914,7 @@ class ZetaConsciousSelf(nn.Module):
         total = self.consciousness.compute_total()
         self.consciousness_history.append(total)
 
-    def _self_reflection_cycle(self, stimulus_info: Optional[Dict] = None) -> Dict:
+    def _self_reflection_cycle(self, stimulus_info: dict | None = None) -> dict:
         """
         Ejecuta ciclo de auto-observación controlado (Strange Loop).
 
@@ -1047,7 +1056,7 @@ class ZetaConsciousSelf(nn.Module):
         # Actualizar etapa
         self.individuation.update_stage()
 
-    def do_integration_work(self, work_name: Optional[str] = None) -> Dict:
+    def do_integration_work(self, work_name: str | None = None) -> dict:
         """Realiza trabajo de integracion con efectos reales en la psique."""
         if work_name is None:
             work_name = self.individuation.get_recommended_work()
@@ -1070,7 +1079,7 @@ class ZetaConsciousSelf(nn.Module):
 
         return result
 
-    def get_status(self) -> Dict:
+    def get_status(self) -> dict:
         """Retorna estado completo del sistema."""
         return {
             'step': self.t,

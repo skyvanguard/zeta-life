@@ -7,14 +7,16 @@ correlaciones estructuradas en la inicialización del autómata.
 """
 
 import matplotlib
+
 matplotlib.use('Agg')  # Backend no interactivo
 
-import numpy as np
+import warnings
+from typing import List, Optional, Tuple
+
 import matplotlib.pyplot as plt
+import numpy as np
 from matplotlib.animation import FuncAnimation
 from matplotlib.colors import LinearSegmentedColormap
-from typing import List, Tuple, Optional
-import warnings
 
 # Intentar importar mpmath para ceros exactos de zeta
 try:
@@ -25,7 +27,7 @@ except ImportError:
     warnings.warn("mpmath no disponible. Usando aproximaciones de ceros de zeta.")
 
 
-def get_zeta_zeros(M: int) -> List[float]:
+def get_zeta_zeros(M: int) -> list[float]:
     """
     Obtiene los primeros M ceros no triviales de ζ(s).
     Los ceros están en s = 1/2 + iγ, retornamos las partes imaginarias γ.
@@ -115,7 +117,7 @@ class ZetaGameOfLife:
         M: int = 50,
         sigma: float = 0.1,
         threshold: float = 0.0,
-        seed: Optional[int] = None
+        seed: int | None = None
     ):
         """
         Args:
@@ -131,7 +133,7 @@ class ZetaGameOfLife:
         self.threshold = threshold
         self.seed = seed
         self.generation = 0
-        self.history: List[np.ndarray] = []
+        self.history: list[np.ndarray] = []
 
         # Inicializar grid con ruido zeta estructurado
         self.grid = self._initialize_zeta_noise()
@@ -249,7 +251,7 @@ class ZetaGameOfLife:
             'density': density
         }
 
-    def analyze_correlations(self, max_distance: int = 20) -> Tuple[np.ndarray, np.ndarray]:
+    def analyze_correlations(self, max_distance: int = 20) -> tuple[np.ndarray, np.ndarray]:
         """
         Analiza la función de correlación espacial.
         Esto nos permite verificar si las correlaciones zeta persisten.
@@ -298,7 +300,7 @@ class ZetaVisualizer:
         colors = ['#0a0a0a', '#00ff88']  # Negro -> Verde neón
         self.cmap = LinearSegmentedColormap.from_list('zeta', colors)
 
-    def plot_state(self, title: Optional[str] = None, ax: Optional[plt.Axes] = None) -> plt.Axes:
+    def plot_state(self, title: str | None = None, ax: plt.Axes | None = None) -> plt.Axes:
         """Muestra el estado actual del grid."""
         if ax is None:
             fig, ax = plt.subplots(figsize=(10, 10))
@@ -364,7 +366,7 @@ class ZetaVisualizer:
 
         return fig
 
-    def animate(self, frames: int = 100, interval: int = 100, save_path: Optional[str] = None) -> FuncAnimation:
+    def animate(self, frames: int = 100, interval: int = 100, save_path: str | None = None) -> FuncAnimation:
         """Crea una animación de la evolución."""
         fig, ax = plt.subplots(figsize=(10, 10))
 

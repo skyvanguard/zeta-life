@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """
 ZetaAttentivePredictive: Sistema Completo con Atencion y Prediccion
 ====================================================================
@@ -14,38 +13,34 @@ y consciente de sus propios procesos.
 Fecha de implementacion: 3 Enero 2026
 """
 
-import sys
 import os
+import sys
 
 if sys.platform == 'win32':
     os.system('')  # Enable ANSI on Windows
 
+from collections import deque
+from dataclasses import dataclass, field
+from enum import Enum
+from typing import Deque, Dict, List, Optional, Tuple
+
+import numpy as np
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-import numpy as np
-from collections import deque
-from dataclasses import dataclass, field
-from typing import Dict, List, Tuple, Optional, Deque
-from enum import Enum
 
-# Importar sistemas base
-from .zeta_psyche import ZetaPsyche, Archetype
+from .zeta_attention import AttentionMetrics, AttentionOutput, MemoryItem, ZetaAttentionSystem
 from .zeta_predictive import (
-    ZetaPredictivePsyche,
-    StimulusPredictor,
-    StatePredictor,
+    ArchetypeInfluenceComputer,
     MetaPredictor,
     PredictiveConsciousnessMetrics,
-    ArchetypeInfluenceComputer
-)
-from .zeta_attention import (
-    ZetaAttentionSystem,
-    AttentionOutput,
-    AttentionMetrics,
-    MemoryItem
+    StatePredictor,
+    StimulusPredictor,
+    ZetaPredictivePsyche,
 )
 
+# Importar sistemas base
+from .zeta_psyche import Archetype, ZetaPsyche
 
 # =============================================================================
 # METRICAS DE CONSCIENCIA INTEGRADA
@@ -57,9 +52,9 @@ class IntegratedConsciousnessMetrics:
     Metricas de consciencia que combinan prediccion y atencion.
     """
     # Historiales
-    consciousness_history: List[float] = field(default_factory=list)
-    attention_index_history: List[float] = field(default_factory=list)
-    predictive_index_history: List[float] = field(default_factory=list)
+    consciousness_history: list[float] = field(default_factory=list)
+    attention_index_history: list[float] = field(default_factory=list)
+    predictive_index_history: list[float] = field(default_factory=list)
 
     window: int = 50
 
@@ -147,7 +142,7 @@ class AttentionPredictionModulator(nn.Module):
                 nn.init.xavier_uniform_(layer.weight)
                 nn.init.zeros_(layer.bias)
 
-    def forward(self, attention_output: AttentionOutput) -> Dict[str, torch.Tensor]:
+    def forward(self, attention_output: AttentionOutput) -> dict[str, torch.Tensor]:
         """
         Genera factores de modulacion para prediccion.
 
@@ -237,8 +232,8 @@ class ZetaAttentivePredictive(nn.Module):
 
         # Estado
         self.t = 0
-        self.last_attention: Optional[AttentionOutput] = None
-        self.last_modulation: Optional[Dict] = None
+        self.last_attention: AttentionOutput | None = None
+        self.last_modulation: dict | None = None
 
         # Pesos para indice de consciencia
         self.consciousness_weights = {
@@ -249,7 +244,7 @@ class ZetaAttentivePredictive(nn.Module):
             'stability': 0.05
         }
 
-    def step(self, stimulus: Optional[torch.Tensor] = None) -> Dict:
+    def step(self, stimulus: torch.Tensor | None = None) -> dict:
         """
         Ejecuta un paso completo del sistema integrado.
 
@@ -354,7 +349,7 @@ class ZetaAttentivePredictive(nn.Module):
 
     def _apply_attention_modulation(
         self,
-        modulation: Dict[str, torch.Tensor],
+        modulation: dict[str, torch.Tensor],
         attention: AttentionOutput
     ):
         """
@@ -380,7 +375,7 @@ class ZetaAttentivePredictive(nn.Module):
 
     def _compute_integrated_consciousness(
         self,
-        pred_result: Dict,
+        pred_result: dict,
         attention: AttentionOutput
     ) -> float:
         """
@@ -431,7 +426,7 @@ class ZetaAttentivePredictive(nn.Module):
         """Retorna la tendencia de consciencia"""
         return self.integrated_metrics.get_trend()
 
-    def observe(self) -> Dict:
+    def observe(self) -> dict:
         """Observacion completa del estado del sistema"""
         base_obs = self.predictive.psyche.observe_self()
         pred_obs = self.predictive.observe()
@@ -472,7 +467,7 @@ def run_integrated_experiment(
     n_cells: int = 100,
     n_steps: int = 300,
     stimulus_pattern: str = 'mixed'
-) -> Dict:
+) -> dict:
     """
     Ejecuta experimento del sistema integrado.
 
@@ -482,7 +477,7 @@ def run_integrated_experiment(
         stimulus_pattern: 'random', 'cyclic', 'sudden', 'mixed'
     """
     print(f'\n{"="*70}')
-    print(f'  EXPERIMENTO: Sistema Integrado Atencion + Prediccion')
+    print('  EXPERIMENTO: Sistema Integrado Atencion + Prediccion')
     print(f'{"="*70}')
     print(f'  Celulas: {n_cells}')
     print(f'  Pasos: {n_steps}')
@@ -493,7 +488,7 @@ def run_integrated_experiment(
     system = ZetaAttentivePredictive(n_cells=n_cells)
 
     # Historiales
-    history: Dict[str, List] = {
+    history: dict[str, list] = {
         'consciousness': [],
         'predictive_index': [],
         'attention_index': [],
@@ -577,7 +572,7 @@ def run_integrated_experiment(
     trend = system.get_trend()
 
     print(f'\n{"="*70}')
-    print(f'  RESULTADOS FINALES')
+    print('  RESULTADOS FINALES')
     print(f'{"="*70}')
     print(f'  Consciencia promedio: {np.mean(history["consciousness"]):.2%}')
     print(f'  Consciencia maxima:   {np.max(history["consciousness"]):.2%}')
@@ -601,7 +596,7 @@ def compare_with_without_attention(n_steps: int = 200):
     Compara el sistema con y sin atencion.
     """
     print(f'\n{"="*70}')
-    print(f'  COMPARACION: Con vs Sin Atencion')
+    print('  COMPARACION: Con vs Sin Atencion')
     print(f'{"="*70}\n')
 
     # Sistema sin atencion (solo predictivo)
@@ -626,9 +621,9 @@ def compare_with_without_attention(n_steps: int = 200):
 
     # Comparar
     print(f'\n{"="*70}')
-    print(f'  COMPARACION')
+    print('  COMPARACION')
     print(f'{"="*70}')
-    print(f'                          Sin Atencion  |  Con Atencion')
+    print('                          Sin Atencion  |  Con Atencion')
     print(f'  {"-"*56}')
     print(f'  Consciencia promedio:   {np.mean(consciousness_no_att):.2%}      |  {np.mean(consciousness_with_att):.2%}')
     print(f'  Consciencia maxima:     {np.max(consciousness_no_att):.2%}      |  {np.max(consciousness_with_att):.2%}')
@@ -651,7 +646,7 @@ def demo_attention_scenarios():
     Demuestra como la atencion responde a diferentes escenarios.
     """
     print(f'\n{"="*70}')
-    print(f'  DEMO: Respuesta de Atencion a Escenarios')
+    print('  DEMO: Respuesta de Atencion a Escenarios')
     print(f'{"="*70}\n')
 
     system = ZetaAttentivePredictive(n_cells=50)
@@ -677,20 +672,20 @@ def demo_attention_scenarios():
         print(f'{"-" * 70}')
 
         # Contexto detectado
-        print(f'\nContexto detectado:')
+        print('\nContexto detectado:')
         for ctx, val in result['attention']['context'].items():
             bar = '#' * int(val * 20)
             print(f'  {ctx:12}: {bar:<20} {val:.2f}')
 
         # Atencion global
-        print(f'\nAtencion global:')
+        print('\nAtencion global:')
         for i, (arch, val) in enumerate(zip(ARCHETYPE_NAMES, result['attention']['global'])):
             bar = '#' * int(val.item() * 20)
             marker = ' <<<' if i == result['attention']['global'].argmax() else ''
             print(f'  {arch:8}: {bar:<20} {val.item():.2f}{marker}')
 
         # Metricas
-        print(f'\nMetricas:')
+        print('\nMetricas:')
         print(f'  Consciencia: {result["consciousness"]:.2%}')
         print(f'  Intensidad:  {result["attention"]["intensity"]:.2f}')
         print(f'  Coherencia:  {result["attention"]["coherence"]:.2f}')

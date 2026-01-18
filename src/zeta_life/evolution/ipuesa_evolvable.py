@@ -6,12 +6,12 @@ allowing evolutionary optimization of hyperparameters.
 """
 
 from dataclasses import dataclass, field
-from typing import Dict, List, Any, Optional, Tuple
 from enum import Enum
+from typing import Any, Dict, List, Optional, Tuple
+
 import numpy as np
 
 from .config_space import EvolvableConfig
-
 
 # =============================================================================
 # DATA STRUCTURES
@@ -82,7 +82,7 @@ class EvolvableAgent:
     # Core identity
     theta: MetaPolicy = field(default_factory=MetaPolicy)
     alpha: CognitiveArchitecture = field(default_factory=CognitiveArchitecture)
-    modules: List[EvolvableMicroModule] = field(default_factory=list)
+    modules: list[EvolvableMicroModule] = field(default_factory=list)
     IC_t: float = 1.0
 
     # Holographic embeddings
@@ -92,7 +92,7 @@ class EvolvableAgent:
 
     # Temporal anticipation
     threat_buffer: float = 0.0
-    threat_history: List[float] = field(default_factory=list)
+    threat_history: list[float] = field(default_factory=list)
     anticipated_damage: float = 0.0
 
     # Gradual degradation
@@ -106,7 +106,7 @@ class EvolvableAgent:
     prediction_noise: float = 0.0
 
     # Tracking
-    IC_history: List[float] = field(default_factory=list)
+    IC_history: list[float] = field(default_factory=list)
     preemptive_actions: int = 0
     reactive_actions: int = 0
     recovery_attempts: int = 0
@@ -218,7 +218,7 @@ def gradual_damage(agent: EvolvableAgent, damage: float,
 
 
 def gradual_recovery(agent: EvolvableAgent, cluster: ClusterState,
-                     config: EvolvableConfig) -> Tuple[float, bool]:
+                     config: EvolvableConfig) -> tuple[float, bool]:
     """
     Recovery using config parameters.
     """
@@ -283,7 +283,7 @@ def gradual_recovery(agent: EvolvableAgent, cluster: ClusterState,
     return recovery, success
 
 
-def spread_modules(agents: List[EvolvableAgent], cluster_id: int,
+def spread_modules(agents: list[EvolvableAgent], cluster_id: int,
                    config: EvolvableConfig) -> int:
     """
     Module spreading with configurable thresholds.
@@ -394,7 +394,7 @@ def update_temporal_anticipation(agent: EvolvableAgent, damage: float):
     agent.threat_buffer = 0.7 * agent.threat_buffer + 0.3 * damage
 
 
-def update_cluster(cluster: ClusterState, agents: List[EvolvableAgent]):
+def update_cluster(cluster: ClusterState, agents: list[EvolvableAgent]):
     """Update cluster state based on member agents."""
     members = [a for a in agents if a.cluster_id == cluster.cluster_id and a.is_alive()]
     cluster.size = len(members)
@@ -415,7 +415,7 @@ def update_cluster(cluster: ClusterState, agents: List[EvolvableAgent]):
 # STORM GENERATION
 # =============================================================================
 
-def create_storm(damage_multiplier: float, n_steps: int = 150) -> List[PerturbationWave]:
+def create_storm(damage_multiplier: float, n_steps: int = 150) -> list[PerturbationWave]:
     """Create cascading storm with 5 wave types."""
     waves = []
     # Base damages calibrated for survival with damage_multiplier ~2-4
@@ -470,7 +470,7 @@ def apply_wave_damage(agent: EvolvableAgent, wave: PerturbationWave,
 # =============================================================================
 
 def create_agents(n_agents: int, n_clusters: int,
-                  config: EvolvableConfig) -> List[EvolvableAgent]:
+                  config: EvolvableConfig) -> list[EvolvableAgent]:
     """Create agents distributed across clusters."""
     agents = []
     for i in range(n_agents):
@@ -483,17 +483,17 @@ def create_agents(n_agents: int, n_clusters: int,
     return agents
 
 
-def create_clusters(n_clusters: int) -> List[ClusterState]:
+def create_clusters(n_clusters: int) -> list[ClusterState]:
     """Create cluster states."""
     return [ClusterState(cluster_id=i) for i in range(n_clusters)]
 
 
-def run_single_simulation(agents: List[EvolvableAgent],
-                          clusters: List[ClusterState],
-                          storm: List[PerturbationWave],
+def run_single_simulation(agents: list[EvolvableAgent],
+                          clusters: list[ClusterState],
+                          storm: list[PerturbationWave],
                           config: EvolvableConfig,
                           n_steps: int,
-                          seed: int) -> Dict[str, float]:
+                          seed: int) -> dict[str, float]:
     """Run a single simulation and return metrics."""
     np.random.seed(seed)
 
@@ -591,7 +591,7 @@ def run_single_simulation(agents: List[EvolvableAgent],
 
 def run_baseline_simulation(n_agents: int, n_clusters: int,
                             n_steps: int, seed: int,
-                            damage_multiplier: float) -> Dict[str, float]:
+                            damage_multiplier: float) -> dict[str, float]:
     """Run baseline simulation without advanced features."""
     np.random.seed(seed)
 
@@ -630,11 +630,11 @@ def run_baseline_simulation(n_agents: int, n_clusters: int,
     return {'baseline_survival': alive / n_agents}
 
 
-def run_ipuesa_with_config(config: Dict[str, Any],
+def run_ipuesa_with_config(config: dict[str, Any],
                            n_agents: int = 24,
                            n_clusters: int = 4,
                            n_steps: int = 150,
-                           n_runs: int = 8) -> Dict[str, float]:
+                           n_runs: int = 8) -> dict[str, float]:
     """
     Main entry point for OpenAlpha evaluation.
 

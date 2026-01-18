@@ -1,5 +1,4 @@
 #!/usr/bin/env python
-# -*- coding: utf-8 -*-
 """
 ZetaPredictiveIndividuation: Integración de Predicción con Individuación
 
@@ -14,24 +13,19 @@ La consciencia emerge cuando:
 3. El Self se manifiesta como centro unificador
 """
 
-import sys
 import io
+import sys
 
 if sys.platform == 'win32':
     sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding='utf-8', errors='replace')
 
+from dataclasses import dataclass
+from typing import Dict, Optional
+
+import numpy as np
 import torch
 import torch.nn.functional as F
-import numpy as np
-from typing import Dict, Optional
-from dataclasses import dataclass
 
-# Importar sistemas base
-from .zeta_psyche import ZetaPsyche, Archetype, PsycheInterface
-from .zeta_predictive import (
-    ZetaPredictivePsyche,
-    PredictiveConsciousnessMetrics,
-)
 from .zeta_individuation import (
     IndividuationProcess,
     IndividuationStage,
@@ -39,6 +33,13 @@ from .zeta_individuation import (
     IntegrationWork,
     SelfSystem,
 )
+from .zeta_predictive import (
+    PredictiveConsciousnessMetrics,
+    ZetaPredictivePsyche,
+)
+
+# Importar sistemas base
+from .zeta_psyche import Archetype, PsycheInterface, ZetaPsyche
 
 
 @dataclass
@@ -95,7 +96,7 @@ class FullConsciousnessMetrics:
             0.05 * self.stability
         )
 
-    def to_dict(self) -> Dict:
+    def to_dict(self) -> dict:
         return {
             'predictive': {
                 'awareness': self.awareness,
@@ -153,7 +154,7 @@ class PredictiveIndividuation:
         self.consciousness_history: list[float] = []
         self.session_count = 0
 
-    def process(self, text: str, n_steps: int = 10) -> Dict:
+    def process(self, text: str, n_steps: int = 10) -> dict:
         """
         Procesa texto con predicción + individuación.
 
@@ -245,7 +246,7 @@ class PredictiveIndividuation:
         return torch.tensor(weights, dtype=torch.float32)
 
     def _update_full_metrics(self, pred_metrics: PredictiveConsciousnessMetrics,
-                            indiv_result: Dict):
+                            indiv_result: dict):
         """Actualiza todas las métricas."""
         # Predictivas
         self.full_metrics.awareness = pred_metrics.awareness
@@ -287,7 +288,7 @@ class PredictiveIndividuation:
         self.individuation.metrics.self_coherence = min(1.0, self.individuation.metrics.self_coherence)
         self.individuation.metrics.shadow_acceptance = min(1.0, self.individuation.metrics.shadow_acceptance)
 
-    def do_work(self, work_name: Optional[str] = None) -> Dict:
+    def do_work(self, work_name: str | None = None) -> dict:
         """Realiza trabajo de integración."""
         if work_name is None:
             work_name = self.individuation.get_recommended_work()
@@ -385,11 +386,11 @@ class FullConsciousPsyche:
         for _ in range(30):
             self.predictive.step()
 
-    def process(self, text: str, n_steps: int = 10) -> Dict:
+    def process(self, text: str, n_steps: int = 10) -> dict:
         """Procesa texto con el sistema completo."""
         return self.full_system.process(text, n_steps)
 
-    def do_work(self, work_name: Optional[str] = None) -> Dict:
+    def do_work(self, work_name: str | None = None) -> dict:
         """Realiza trabajo de integración."""
         return self.full_system.do_work(work_name)
 
@@ -451,7 +452,7 @@ def interactive_session() -> None:
             result = psyche.do_work()
             print(f"\n  [{result['work_name']}]")
             print(f"  {result['description']}")
-            print(f"\n  Pregunta para reflexionar:")
+            print("\n  Pregunta para reflexionar:")
             print(f"  \"{result['prompt']}\"")
             print(f"\n  Integración ganada: +{result['integration_gained']:.1%}")
 

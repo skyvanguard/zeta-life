@@ -13,16 +13,18 @@ el operador de Laplace bilateral y la memoria de largo alcance.
 """
 
 import matplotlib
+
 matplotlib.use('Agg')
 
-import numpy as np
-import matplotlib.pyplot as plt
-from matplotlib.colors import LinearSegmentedColormap
-from scipy.signal import convolve2d
-from scipy.fft import fft2, ifft2, fftfreq
-from typing import List, Tuple, Optional, Dict, Any, Union
-from collections import deque
 import warnings
+from collections import deque
+from typing import Any, Dict, List, Optional, Tuple, Union
+
+import matplotlib.pyplot as plt
+import numpy as np
+from matplotlib.colors import LinearSegmentedColormap
+from scipy.fft import fft2, fftfreq, ifft2
+from scipy.signal import convolve2d
 
 try:
     from mpmath import zetazero
@@ -31,7 +33,7 @@ except ImportError:
     HAS_MPMATH = False
 
 
-def get_zeta_zeros(M: int) -> List[float]:
+def get_zeta_zeros(M: int) -> list[float]:
     """Obtiene los primeros M ceros de ζ(s)."""
     if HAS_MPMATH:
         return [float(zetazero(k).imag) for k in range(1, M + 1)]
@@ -82,7 +84,7 @@ class ZetaLaplaceOperator:
 
     def apply_memory_filter(
         self,
-        history: List[np.ndarray],
+        history: list[np.ndarray],
         normalize: bool = True
     ) -> np.ndarray:
         """
@@ -196,9 +198,9 @@ class ZetaFullSystem:
         memory_depth: int = 20,
         alpha: float = 0.1,  # Peso de memoria
         beta: float = 0.05,  # Peso de filtro espectral
-        birth_range: Tuple[float, float] = (0.8, 1.5),
-        survive_range: Tuple[float, float] = (0.3, 2.0),
-        seed: Optional[int] = None
+        birth_range: tuple[float, float] = (0.8, 1.5),
+        survive_range: tuple[float, float] = (0.3, 2.0),
+        seed: int | None = None
     ):
         self.rows = rows
         self.cols = cols
@@ -228,7 +230,7 @@ class ZetaFullSystem:
         self.history.append(self.grid.copy())
 
         # Métricas
-        self.metrics_history: List[Dict[str, Union[int, float]]] = []
+        self.metrics_history: list[dict[str, int | float]] = []
 
     def _build_spatial_kernel(self, R: int = 2) -> np.ndarray:
         """Construye kernel espacial zeta (de Fase 2)."""
@@ -332,7 +334,7 @@ class ZetaFullSystem:
             self.step()
         return self.grid
 
-    def get_statistics(self) -> Dict[str, Union[int, float]]:
+    def get_statistics(self) -> dict[str, int | float]:
         """Calcula estadísticas del estado actual."""
         alive = np.sum(self.grid)
         return {
@@ -341,7 +343,7 @@ class ZetaFullSystem:
             'density': alive / (self.rows * self.cols)
         }
 
-    def analyze_correlations(self, max_distance: int = 30) -> Tuple[np.ndarray, np.ndarray]:
+    def analyze_correlations(self, max_distance: int = 30) -> tuple[np.ndarray, np.ndarray]:
         """Analiza correlaciones espaciales."""
         distances = np.arange(1, max_distance + 1)
         correlations = []
@@ -367,7 +369,7 @@ class ZetaFullSystem:
 
         return distances, np.array(correlations)
 
-    def analyze_temporal_memory(self) -> Tuple[np.ndarray, np.ndarray]:
+    def analyze_temporal_memory(self) -> tuple[np.ndarray, np.ndarray]:
         """
         Analiza el efecto de la memoria temporal.
 

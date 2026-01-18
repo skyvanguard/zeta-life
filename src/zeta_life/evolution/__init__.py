@@ -5,8 +5,8 @@ Evolutionary optimization of IPUESA hyperparameters using
 genetic algorithms inspired by OpenAlpha_Evolve.
 """
 
-from .config_space import EvolvableConfig, PARAM_RANGES
-from .fitness_evaluator import evaluate_config, FitnessResult
+from .config_space import PARAM_RANGES, EvolvableConfig
+from .fitness_evaluator import FitnessResult, evaluate_config
 from .optimized_config import (
     OPTIMIZED_CONFIG,
     get_optimized_config,

@@ -10,14 +10,15 @@ Inspirado por:
 - "El orden oculto solo existe si los ceros estan en linea critica"
 """
 
+from typing import List, Optional, Tuple
+
 import numpy as np
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-from typing import Tuple, List, Optional
 
 
-def get_zeta_zeros(M: int = 15) -> List[float]:
+def get_zeta_zeros(M: int = 15) -> list[float]:
     """Primeros M ceros no triviales de zeta (parte imaginaria)."""
     zeros = [
         14.134725, 21.022040, 25.010858, 30.424876, 32.935062,
@@ -291,12 +292,12 @@ class ZetaLSTMResonant(nn.Module):
         self.zeta_memory = ZetaMemoryGated(hidden_size, M, sigma)
 
         # Diagnosticos
-        self.last_resonances: List[float] = []
-        self.last_tensions: List[float] = []
-        self.last_gates: List[float] = []
+        self.last_resonances: list[float] = []
+        self.last_tensions: list[float] = []
+        self.last_gates: list[float] = []
 
     def forward(self, x: torch.Tensor,
-                return_diagnostics: bool = False) -> Tuple[torch.Tensor, Tuple]:
+                return_diagnostics: bool = False) -> tuple[torch.Tensor, tuple]:
         """
         Forward pass.
 
@@ -388,7 +389,7 @@ class ZetaLSTMResonantSimple(nn.Module):
             nn.Sigmoid()
         )
 
-    def forward(self, x: torch.Tensor) -> Tuple[torch.Tensor, Tuple]:
+    def forward(self, x: torch.Tensor) -> tuple[torch.Tensor, tuple]:
         batch_size, seq_len, _ = x.shape
         device = x.device
 

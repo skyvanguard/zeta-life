@@ -1,5 +1,4 @@
 #!/usr/bin/env python
-# -*- coding: utf-8 -*-
 """
 ZetaIntrospection: Sistema de Auto-Explicación y Meta-Cognición
 
@@ -13,12 +12,12 @@ La introspección permite a la psique:
 Esto es meta-cognición: pensar sobre el propio pensamiento.
 """
 
-import sys
-from enum import Enum, auto
-from dataclasses import dataclass, field
-from typing import Dict, List, Optional, Tuple
-from datetime import datetime
 import json
+import sys
+from dataclasses import dataclass, field
+from datetime import datetime
+from enum import Enum, auto
+from typing import Dict, List, Optional, Tuple
 
 if sys.platform == 'win32':
     try:
@@ -26,15 +25,18 @@ if sys.platform == 'win32':
     except:
         pass
 
-import torch
 import numpy as np
+import torch
+
+from .zeta_individuation import (
+    IndividuatingPsyche,
+    IndividuationProcess,
+    IndividuationStage,
+    IntegrationMetrics,
+)
 
 # Importar sistemas existentes
-from .zeta_psyche import ZetaPsyche, Archetype, PsycheInterface
-from .zeta_individuation import (
-    IndividuationProcess, IndividuationStage,
-    IntegrationMetrics, IndividuatingPsyche
-)
+from .zeta_psyche import Archetype, PsycheInterface, ZetaPsyche
 
 
 class InsightType(Enum):
@@ -52,13 +54,13 @@ class PsychicMoment:
     """Un momento en la historia psíquica."""
     timestamp: str
     dominant: Archetype
-    blend: Dict[Archetype, float]
-    stimulus: Optional[str]
+    blend: dict[Archetype, float]
+    stimulus: str | None
     integration: float
     stage: IndividuationStage
     self_luminosity: float
 
-    def to_dict(self) -> Dict:
+    def to_dict(self) -> dict:
         return {
             'timestamp': self.timestamp,
             'dominant': self.dominant.name,
@@ -76,10 +78,10 @@ class Insight:
     type: InsightType
     content: str
     confidence: float  # 0-1
-    related_archetype: Optional[Archetype]
+    related_archetype: Archetype | None
     timestamp: str = field(default_factory=lambda: datetime.now().isoformat())
 
-    def to_dict(self) -> Dict:
+    def to_dict(self) -> dict:
         return {
             'type': self.type.name,
             'content': self.content,
@@ -155,7 +157,7 @@ class ArchetypeVoices:
     }
 
     @classmethod
-    def get_voice(cls, archetype: Archetype) -> Dict:
+    def get_voice(cls, archetype: Archetype) -> dict:
         return cls.VOICES.get(archetype, cls.VOICES[Archetype.PERSONA])
 
     @classmethod
@@ -230,7 +232,7 @@ class StateExplainer:
 
     def explain_current_state(self,
                               dominant: Archetype,
-                              blend: Dict[Archetype, float],
+                              blend: dict[Archetype, float],
                               integration: float,
                               stage: IndividuationStage,
                               self_luminosity: float) -> str:
@@ -300,7 +302,7 @@ class TrajectoryNarrator:
     """
 
     def __init__(self, max_history: int = 50) -> None:
-        self.history: List[PsychicMoment] = []
+        self.history: list[PsychicMoment] = []
         self.max_history = max_history
         self.transition_narratives = {
             (Archetype.PERSONA, Archetype.SOMBRA): [
@@ -342,8 +344,8 @@ class TrajectoryNarrator:
 
     def record_moment(self,
                       dominant: Archetype,
-                      blend: Dict[Archetype, float],
-                      stimulus: Optional[str],
+                      blend: dict[Archetype, float],
+                      stimulus: str | None,
                       integration: float,
                       stage: IndividuationStage,
                       self_luminosity: float):
@@ -362,11 +364,11 @@ class TrajectoryNarrator:
         if len(self.history) > self.max_history:
             self.history.pop(0)
 
-    def get_recent_trajectory(self, n: int = 5) -> List[Archetype]:
+    def get_recent_trajectory(self, n: int = 5) -> list[Archetype]:
         """Obtiene los arquetipos dominantes recientes."""
         return [m.dominant for m in self.history[-n:]]
 
-    def detect_transitions(self) -> List[Tuple[Archetype, Archetype]]:
+    def detect_transitions(self) -> list[tuple[Archetype, Archetype]]:
         """Detecta transiciones entre arquetipos."""
         transitions = []
         trajectory = self.get_recent_trajectory(10)
@@ -420,7 +422,7 @@ class TrajectoryNarrator:
 
         return "\n".join(narrative_parts)
 
-    def identify_patterns(self) -> List[str]:
+    def identify_patterns(self) -> list[str]:
         """Identifica patrones recurrentes en la trayectoria."""
         patterns = []
 
@@ -430,7 +432,7 @@ class TrajectoryNarrator:
         trajectory = self.get_recent_trajectory(20)
 
         # Contar frecuencia de arquetipos
-        counts: Dict[Archetype, int] = {}
+        counts: dict[Archetype, int] = {}
         for arch in trajectory:
             counts[arch] = counts.get(arch, 0) + 1
 
@@ -548,7 +550,7 @@ class InsightGenerator:
             related_archetype=dominant
         )
 
-    def generate_pattern_insight(self, patterns: List[str]) -> Optional[Insight]:
+    def generate_pattern_insight(self, patterns: list[str]) -> Insight | None:
         """Genera insight sobre patrones detectados."""
         if not patterns or "no hay suficiente" in patterns[0].lower():
             return None
@@ -595,7 +597,7 @@ class InsightGenerator:
         )
 
     def generate_prediction(self,
-                           trajectory: List[Archetype],
+                           trajectory: list[Archetype],
                            integration_trend: float) -> Insight:
         """Genera una predicción basada en la trayectoria."""
         predictions = []
@@ -630,7 +632,7 @@ class InsightGenerator:
             related_archetype=trajectory[-1] if trajectory else None
         )
 
-    def generate_paradox(self, blend: Dict[Archetype, float]) -> Optional[Insight]:
+    def generate_paradox(self, blend: dict[Archetype, float]) -> Insight | None:
         """Detecta y articula paradojas internas."""
         # Buscar opuestos con presencia significativa
         opposites = [
@@ -671,10 +673,10 @@ class IntrospectivePsyche:
         self.insight_gen = InsightGenerator()
 
         # Historial de insights
-        self.insights: List[Insight] = []
+        self.insights: list[Insight] = []
         self.max_insights = 100
 
-    def process(self, text: str) -> Dict:
+    def process(self, text: str) -> dict:
         """Procesa texto con introspección completa."""
         # Procesar con individuación
         result = self.individuation_psyche.process(text)
@@ -716,10 +718,10 @@ class IntrospectivePsyche:
 
     def _generate_insights(self,
                           dominant: Archetype,
-                          blend: Dict[Archetype, float],
+                          blend: dict[Archetype, float],
                           stimulus: str,
                           integration: float,
-                          stage: IndividuationStage) -> List[Insight]:
+                          stage: IndividuationStage) -> list[Insight]:
         """Genera insights basados en el estado actual."""
         insights = []
 
@@ -775,7 +777,7 @@ class IntrospectivePsyche:
         """Narra el viaje psíquico."""
         return self.narrator.narrate_journey()
 
-    def get_patterns(self) -> List[str]:
+    def get_patterns(self) -> list[str]:
         """Obtiene patrones detectados."""
         return self.narrator.identify_patterns()
 
@@ -792,7 +794,7 @@ class IntrospectivePsyche:
 
         return self.insight_gen.generate_prediction(trajectory, trend)
 
-    def get_recent_insights(self, n: int = 5) -> List[Insight]:
+    def get_recent_insights(self, n: int = 5) -> list[Insight]:
         """Obtiene los insights más recientes."""
         return self.insights[-n:]
 
@@ -848,7 +850,7 @@ class IntrospectivePsyche:
 
         return base_status + intro_status
 
-    def do_work(self, work_name: Optional[str] = None) -> Dict:
+    def do_work(self, work_name: str | None = None) -> dict:
         """Realiza trabajo de integración."""
         return self.individuation_psyche.do_work(work_name)
 
@@ -870,7 +872,7 @@ class IntrospectivePsyche:
         self.individuation_psyche.load()
 
         try:
-            with open(path, 'r', encoding='utf-8') as f:
+            with open(path, encoding='utf-8') as f:
                 state = json.load(f)
 
             # Reconstruir historia (simplificado)

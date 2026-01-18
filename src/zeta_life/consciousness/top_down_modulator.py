@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """
 TopDownModulator: Modulación de niveles superiores a inferiores.
 
@@ -11,25 +10,26 @@ El organismo influye en sus partes, creando coherencia vertical.
 Fecha: 2026-01-03
 """
 
+from dataclasses import dataclass
+from typing import Dict, List, Optional, Tuple
+
+import numpy as np
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-import numpy as np
-from typing import List, Dict, Optional, Tuple
-from dataclasses import dataclass
+
+from ..core.tetrahedral_space import get_tetrahedral_space
 
 # Importar del sistema existente
 from ..core.vertex import Vertex
-from ..core.tetrahedral_space import get_tetrahedral_space
 
 # Backwards compatibility alias
 Archetype = Vertex
 
 # Importar de módulos nuevos
-from .micro_psyche import ConsciousCell, MicroPsyche, unbiased_argmax
 from .cluster import Cluster, ClusterPsyche
+from .micro_psyche import ConsciousCell, MicroPsyche, unbiased_argmax
 from .organism_consciousness import OrganismConsciousness
-
 
 # =============================================================================
 # TOP-DOWN MODULATOR
@@ -152,8 +152,8 @@ class TopDownModulator(nn.Module):
     def distribute_attention(
         self,
         organism: OrganismConsciousness,
-        clusters: List[Cluster]
-    ) -> Dict[int, float]:
+        clusters: list[Cluster]
+    ) -> dict[int, float]:
         """
         Distribuye atención del organismo entre clusters.
 
@@ -185,8 +185,8 @@ class TopDownModulator(nn.Module):
     def generate_predictions(
         self,
         organism: OrganismConsciousness,
-        clusters: List[Cluster]
-    ) -> Dict[int, torch.Tensor]:
+        clusters: list[Cluster]
+    ) -> dict[int, torch.Tensor]:
         """
         Genera predicciones top-down para cada cluster.
 
@@ -393,7 +393,7 @@ class TopDownModulator(nn.Module):
         base_modulation: torch.Tensor,
         cluster_attention: float,
         organism: OrganismConsciousness
-    ) -> List[Tuple[ConsciousCell, torch.Tensor, float]]:
+    ) -> list[tuple[ConsciousCell, torch.Tensor, float]]:
         """
         Genera modulaciones específicas para cada célula de un cluster.
 
@@ -487,9 +487,9 @@ class TopDownModulator(nn.Module):
     def modulate(
         self,
         organism: OrganismConsciousness,
-        clusters: List[Cluster],
+        clusters: list[Cluster],
         apply_to_cells: bool = True
-    ) -> Dict:
+    ) -> dict:
         """
         Realiza modulación top-down completa.
 
@@ -561,7 +561,7 @@ class TopDownModulator(nn.Module):
 
     def compute_modulation_quality(
         self,
-        cells: List[ConsciousCell],
+        cells: list[ConsciousCell],
         organism: OrganismConsciousness
     ) -> float:
         """

@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """
 MicroPsyche: Psique simplificada para células individuales.
 
@@ -9,18 +8,20 @@ de la interacción de estas micro-psiques.
 Fecha: 2026-01-03
 """
 
+from collections import deque
+from dataclasses import dataclass, field
+from enum import Enum
+from typing import TYPE_CHECKING, Deque, List, Optional, Tuple
+
+import numpy as np
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-import numpy as np
-from dataclasses import dataclass, field
-from typing import Deque, Optional, Tuple, List, TYPE_CHECKING
-from collections import deque
-from enum import Enum
+
+from ..core.tetrahedral_space import TetrahedralSpace, get_tetrahedral_space
 
 # Importar del sistema existente
-from ..core.vertex import Vertex, VertexBehaviors, BehaviorVector
-from ..core.tetrahedral_space import TetrahedralSpace, get_tetrahedral_space
+from ..core.vertex import BehaviorVector, Vertex, VertexBehaviors
 from ..organism.cell_state import CellRole
 
 # Resilience components (IPUESA integration)
@@ -84,7 +85,7 @@ class MicroPsyche:
     archetype_state: torch.Tensor  # [PERSONA, SOMBRA, ANIMA, ANIMUS]
     dominant: Archetype
     emotional_energy: float  # 0-1
-    recent_states: Deque[torch.Tensor] = field(default_factory=lambda: deque(maxlen=5))
+    recent_states: deque[torch.Tensor] = field(default_factory=lambda: deque(maxlen=5))
     phi_local: float = 0.5
     accumulated_surprise: float = 0.0  # Sorpresa acumulada para plasticidad
 
@@ -223,7 +224,7 @@ class MicroPsyche:
         }
 
     @classmethod
-    def create_random(cls, bias: Optional[Archetype] = None) -> 'MicroPsyche':
+    def create_random(cls, bias: Archetype | None = None) -> 'MicroPsyche':
         """
         Crea una MicroPsyche con estado aleatorio.
 
@@ -287,7 +288,7 @@ class ConsciousCell:
     """
 
     # Atributos físicos (de CellEntity original)
-    position: Tuple[int, int]
+    position: tuple[int, int]
     state: torch.Tensor  # [state_dim]
     role: torch.Tensor   # [3] probabilidades MASS, FORCE, CORRUPT
     energy: float = 0.5
@@ -370,7 +371,7 @@ class ConsciousCell:
         """
         self.psyche.update_state(influence, blend_factor=strength)
 
-    def get_movement_bias(self) -> Tuple[float, float]:
+    def get_movement_bias(self) -> tuple[float, float]:
         """
         Calcula sesgo de movimiento basado en el vector de comportamiento parametrico.
 
@@ -416,7 +417,7 @@ class ConsciousCell:
         cls,
         grid_size: int,
         state_dim: int = 32,
-        archetype_bias: Optional[Archetype] = None
+        archetype_bias: Archetype | None = None
     ) -> 'ConsciousCell':
         """
         Crea una célula consciente con posición y estado aleatorios.
@@ -445,7 +446,7 @@ class ConsciousCell:
 # UTILIDADES
 # =============================================================================
 
-def compute_local_phi(cell: ConsciousCell, neighbors: List[ConsciousCell]) -> float:
+def compute_local_phi(cell: ConsciousCell, neighbors: list[ConsciousCell]) -> float:
     """
     Calcula Φ local (integración con vecinos).
 
@@ -480,7 +481,7 @@ def compute_local_phi(cell: ConsciousCell, neighbors: List[ConsciousCell]) -> fl
 
 def apply_psyche_contagion(
     cell: ConsciousCell,
-    neighbors: List[ConsciousCell],
+    neighbors: list[ConsciousCell],
     contagion_rate: float = 0.1,
     similarity_threshold: float = 0.85,
     friction_factor: float = 0.2

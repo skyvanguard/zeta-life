@@ -1,5 +1,4 @@
 #!/usr/bin/env python
-# -*- coding: utf-8 -*-
 """
 ZetaPsyche Dreams: Sistema de suenos y procesamiento inconsciente.
 
@@ -13,16 +12,17 @@ El modo sueno permite:
 Basado en la teoria de Jung sobre los suenos como mensajes del inconsciente.
 """
 
-import sys
 import io
 import random
-import torch
-import torch.nn.functional as F
-import numpy as np
+import sys
 from dataclasses import dataclass, field
-from typing import Any, Dict, List, Tuple, Optional
 from datetime import datetime
 from enum import Enum
+from typing import Any, Dict, List, Optional, Tuple
+
+import numpy as np
+import torch
+import torch.nn.functional as F
 
 # Fix Windows console encoding
 if sys.platform == 'win32':
@@ -31,8 +31,7 @@ if sys.platform == 'win32':
     except:
         pass
 
-from .zeta_psyche import ZetaPsyche, Archetype, SymbolSystem
-
+from .zeta_psyche import Archetype, SymbolSystem, ZetaPsyche
 
 # =============================================================================
 # TIPOS DE SUENO
@@ -62,12 +61,12 @@ class DreamReport:
     """Reporte completo de un sueno."""
     duration: int  # Steps del sueno
     dream_type: DreamType
-    fragments: List[DreamFragment]
+    fragments: list[DreamFragment]
     dominant_archetype: Archetype
     narrative: str  # Historia completa
-    insights: List[str]  # Posibles significados
-    archetype_journey: List[Tuple[str, float]]  # Transiciones
-    consolidation_effects: Dict  # Cambios en memoria
+    insights: list[str]  # Posibles significados
+    archetype_journey: list[tuple[str, float]]  # Transiciones
+    consolidation_effects: dict  # Cambios en memoria
 
 
 # =============================================================================
@@ -202,9 +201,9 @@ class DreamNarrativeGenerator:
             return str(random.choice(self.transitions[key]))
 
         # Transicion generica
-        return f"El escenario cambia... ahora..."
+        return "El escenario cambia... ahora..."
 
-    def generate_insight(self, dominant: Archetype, journey: List[Archetype]) -> List[str]:
+    def generate_insight(self, dominant: Archetype, journey: list[Archetype]) -> list[str]:
         """Genera insights basados en el sueno."""
         insights = []
 
@@ -245,7 +244,7 @@ class DreamSystem:
         # Estado del sueno
         self.is_dreaming = False
         self.dream_depth = 0  # 0=superficie, 1=profundo
-        self.current_dream: List[DreamFragment] = []
+        self.current_dream: list[DreamFragment] = []
 
     def enter_dream(self) -> str:
         """Inicia el modo sueno."""
@@ -254,7 +253,7 @@ class DreamSystem:
         self.current_dream = []
         return "Cerrando los ojos... entrando al mundo de los suenos..."
 
-    def exit_dream(self) -> Optional[DreamReport]:
+    def exit_dream(self) -> DreamReport | None:
         """Sale del modo sueno y genera reporte."""
         self.is_dreaming = False
 
@@ -265,7 +264,7 @@ class DreamSystem:
         dream_type = self._determine_dream_type()
 
         # Arquetipo dominante
-        archetype_counts: Dict[Archetype, int] = {}
+        archetype_counts: dict[Archetype, int] = {}
         for frag in self.current_dream:
             archetype_counts[frag.archetype] = archetype_counts.get(frag.archetype, 0) + 1
         dominant = max(archetype_counts, key=lambda k: archetype_counts[k])
@@ -294,7 +293,7 @@ class DreamSystem:
         self.current_dream = []
         return report
 
-    def dream_step(self) -> Optional[DreamFragment]:
+    def dream_step(self) -> DreamFragment | None:
         """
         Ejecuta un paso del sueno.
 
@@ -462,7 +461,7 @@ class DreamSystem:
 
         return "\n".join(narrative_parts)
 
-    def _apply_consolidation(self) -> Dict:
+    def _apply_consolidation(self) -> dict:
         """
         Aplica efectos de consolidacion de memoria.
 
@@ -500,18 +499,18 @@ class DreamingPsyche:
     Extension de MemoryAwarePsyche con capacidad de sonar.
     """
 
-    def __init__(self, n_cells: int = 100, memory_path: Optional[str] = None):
+    def __init__(self, n_cells: int = 100, memory_path: str | None = None):
         from zeta_memory import MemoryAwarePsyche
 
         self.base = MemoryAwarePsyche(n_cells=n_cells, memory_path=memory_path)
         self.dream_system = DreamSystem(self.base.psyche.psyche, self.base.memory)
 
         # Historial de suenos
-        self.dream_history: List[DreamReport] = []
+        self.dream_history: list[DreamReport] = []
 
-    def process(self, user_input: str) -> Dict[Any, Any]:
+    def process(self, user_input: str) -> dict[Any, Any]:
         """Procesa input (delegado a base)."""
-        result: Dict[Any, Any] = self.base.process(user_input)
+        result: dict[Any, Any] = self.base.process(user_input)
         return result
 
     def dream(self, duration: int = 50, verbose: bool = True) -> DreamReport:

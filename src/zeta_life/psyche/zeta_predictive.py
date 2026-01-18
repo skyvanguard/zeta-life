@@ -1,5 +1,4 @@
 #!/usr/bin/env python
-# -*- coding: utf-8 -*-
 """
 ZetaPredictivePsyche: Sistema de Consciencia con Predicción Jerárquica
 
@@ -11,24 +10,24 @@ Implementa Predictive Processing (teoría de Friston) sobre el sistema de arquet
 La consciencia emerge de la capacidad de predecir y de saber cuándo fallará.
 """
 
-import sys
 import os
+import sys
 
 if sys.platform == 'win32':
     os.system('')  # Enable ANSI on Windows
 
+from collections import deque
+from dataclasses import dataclass, field
+from enum import Enum
+from typing import Deque, Dict, List, Optional, Tuple
+
+import numpy as np
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-import numpy as np
-from collections import deque
-from dataclasses import dataclass, field
-from typing import Dict, List, Tuple, Optional, Deque
-from enum import Enum
 
 # Importar sistema base
-from .zeta_psyche import ZetaPsyche, Archetype, ZetaModulator, get_zeta_zeros
-
+from .zeta_psyche import Archetype, ZetaModulator, ZetaPsyche, get_zeta_zeros
 
 # =============================================================================
 # NIVEL 1: STIMULUS PREDICTOR
@@ -49,7 +48,7 @@ class StimulusPredictor(nn.Module):
         self.hidden_dim = hidden_dim
 
         # Historial de estímulos
-        self.stimulus_history: Deque[torch.Tensor] = deque(maxlen=history_len)
+        self.stimulus_history: deque[torch.Tensor] = deque(maxlen=history_len)
 
         # Inicializar historial con ceros
         for _ in range(history_len):
@@ -71,7 +70,7 @@ class StimulusPredictor(nn.Module):
         )
 
         # Estadísticas de error
-        self.error_history: Deque[float] = deque(maxlen=100)
+        self.error_history: deque[float] = deque(maxlen=100)
 
     def predict(self, state: torch.Tensor) -> torch.Tensor:
         """
@@ -95,7 +94,7 @@ class StimulusPredictor(nn.Module):
         # Softmax para obtener distribución
         return F.softmax(output, dim=-1)
 
-    def compute_error(self, predicted: torch.Tensor, real: torch.Tensor) -> Dict:
+    def compute_error(self, predicted: torch.Tensor, real: torch.Tensor) -> dict:
         """
         Calcula error entre predicción y realidad.
 
@@ -190,7 +189,7 @@ class StatePredictor(nn.Module):
         })
 
         # Estadísticas
-        self.error_history: Deque[torch.Tensor] = deque(maxlen=100)
+        self.error_history: deque[torch.Tensor] = deque(maxlen=100)
 
     def predict(
         self,
@@ -256,7 +255,7 @@ class StatePredictor(nn.Module):
         bias: torch.Tensor = self.archetype_biases[dominant_name]
         return pred + bias * dominant_weight * 0.5
 
-    def compute_error(self, predicted: torch.Tensor, real: torch.Tensor) -> Dict:
+    def compute_error(self, predicted: torch.Tensor, real: torch.Tensor) -> dict:
         """Calcula error entre estado predicho y real."""
         error = real - predicted
         surprise = torch.norm(error).item() ** 2
@@ -289,8 +288,8 @@ class MetaPredictor(nn.Module):
         self.hidden_dim = hidden_dim
 
         # Historiales
-        self.error_history: Deque[torch.Tensor] = deque(maxlen=error_history_len)
-        self.surprise_history: Deque[float] = deque(maxlen=error_history_len)
+        self.error_history: deque[torch.Tensor] = deque(maxlen=error_history_len)
+        self.surprise_history: deque[float] = deque(maxlen=error_history_len)
 
         # Inicializar
         for _ in range(error_history_len):
@@ -323,14 +322,14 @@ class MetaPredictor(nn.Module):
         )
 
         # Métricas de calibración
-        self.calibration_history: Deque[float] = deque(maxlen=100)
+        self.calibration_history: deque[float] = deque(maxlen=100)
 
     def predict(
         self,
         state: torch.Tensor,
         volatility: float,
         stage: int
-    ) -> Tuple[torch.Tensor, torch.Tensor]:
+    ) -> tuple[torch.Tensor, torch.Tensor]:
         """
         Predice el error que cometerá el Nivel 2.
 
@@ -370,7 +369,7 @@ class MetaPredictor(nn.Module):
         error_pred: torch.Tensor,
         error_real: torch.Tensor,
         confidence: torch.Tensor
-    ) -> Dict:
+    ) -> dict:
         """
         Calcula meta-error y calibración.
 
@@ -419,10 +418,10 @@ class PredictiveConsciousnessMetrics:
     def __init__(self, window: int = 50) -> None:
         self.window = window
 
-        self.error_pred_history: Deque[torch.Tensor] = deque(maxlen=window)
-        self.error_real_history: Deque[torch.Tensor] = deque(maxlen=window)
-        self.confidence_history: Deque[float] = deque(maxlen=window)
-        self.meta_surprise_history: Deque[float] = deque(maxlen=window)
+        self.error_pred_history: deque[torch.Tensor] = deque(maxlen=window)
+        self.error_real_history: deque[torch.Tensor] = deque(maxlen=window)
+        self.confidence_history: deque[float] = deque(maxlen=window)
+        self.meta_surprise_history: deque[float] = deque(maxlen=window)
 
     def update(
         self,
@@ -525,7 +524,7 @@ class PredictiveConsciousnessMetrics:
             0.20 * self.predictive_depth
         )
 
-    def to_dict(self) -> Dict:
+    def to_dict(self) -> dict:
         """Retorna métricas como diccionario."""
         return {
             'awareness': self.awareness,
@@ -554,11 +553,11 @@ class ArchetypeInfluenceComputer:
         'meta_error_low': 0.1,
     }
 
-    def __init__(self, thresholds: Optional[Dict] = None) -> None:
+    def __init__(self, thresholds: dict | None = None) -> None:
         self.thresholds = thresholds or self.DEFAULT_THRESHOLDS
 
         # Error histórico por arquetipo
-        self.error_by_archetype: Dict[Archetype, Deque] = {
+        self.error_by_archetype: dict[Archetype, deque] = {
             arch: deque(maxlen=50) for arch in Archetype
         }
 
@@ -632,12 +631,12 @@ class ArchetypeInfluenceComputer:
 
         return delta
 
-    def get_best_predictor_archetype(self) -> Optional[Archetype]:
+    def get_best_predictor_archetype(self) -> Archetype | None:
         """Retorna el arquetipo con menor error histórico promedio."""
         if not any(len(q) > 0 for q in self.error_by_archetype.values()):
             return None
 
-        mean_errors: Dict[Archetype, float] = {}
+        mean_errors: dict[Archetype, float] = {}
         for arch, errors in self.error_by_archetype.items():
             if len(errors) > 0:
                 mean_errors[arch] = float(np.mean(list(errors)))
@@ -692,13 +691,13 @@ class ZetaPredictivePsyche(nn.Module):
 
         # Estado
         self.t = 0
-        self.last_predictions: Dict = {}
-        self.consciousness_history: List[float] = []
+        self.last_predictions: dict = {}
+        self.consciousness_history: list[float] = []
 
         # Volatilidad (varianza de estados recientes)
-        self.state_history: Deque[torch.Tensor] = deque(maxlen=20)
+        self.state_history: deque[torch.Tensor] = deque(maxlen=20)
 
-    def step(self, stimulus: Optional[torch.Tensor] = None) -> Dict:
+    def step(self, stimulus: torch.Tensor | None = None) -> dict:
         """
         Ejecuta un paso completo del sistema.
 
@@ -741,7 +740,7 @@ class ZetaPredictivePsyche(nn.Module):
             'observation': self.psyche.observe_self(),
         }
 
-    def _phase_predict(self) -> Dict:
+    def _phase_predict(self) -> dict:
         """Fase 1: Generar predicciones antes del estímulo."""
         state = self.psyche.global_state.clone()
 
@@ -775,7 +774,7 @@ class ZetaPredictivePsyche(nn.Module):
         self.last_predictions = predictions
         return predictions
 
-    def _phase_reality(self, stimulus: torch.Tensor) -> Dict:
+    def _phase_reality(self, stimulus: torch.Tensor) -> dict:
         """Fase 2: Procesar estímulo real y obtener estado resultante."""
         # Estado antes
         state_before = self.psyche.global_state.clone()
@@ -795,7 +794,7 @@ class ZetaPredictivePsyche(nn.Module):
             'state_after': state_after,
         }
 
-    def _phase_update(self, predictions: Dict, reality: Dict) -> Dict:
+    def _phase_update(self, predictions: dict, reality: dict) -> dict:
         """Fase 3: Calcular errores y actualizar sistema."""
 
         # ─── Error Nivel 1 ───
@@ -901,7 +900,7 @@ class ZetaPredictivePsyche(nn.Module):
             0.65 * pred_consciousness
         )
 
-    def observe(self) -> Dict:
+    def observe(self) -> dict:
         """Observación completa del estado del sistema."""
         base_obs = self.psyche.observe_self()
 
@@ -932,7 +931,7 @@ def run_predictive_experiment(
     n_cells: int = 100,
     n_steps: int = 300,
     stimulus_pattern: str = 'mixed'
-) -> Dict:
+) -> dict:
     """
     Ejecuta experimento del sistema predictivo.
 
@@ -942,7 +941,7 @@ def run_predictive_experiment(
         stimulus_pattern: 'random', 'cyclic', 'sudden', 'mixed'
     """
     print(f'\n{"="*70}')
-    print(f'  EXPERIMENTO: Sistema Predictivo de Consciencia')
+    print('  EXPERIMENTO: Sistema Predictivo de Consciencia')
     print(f'{"="*70}')
     print(f'  Células: {n_cells}')
     print(f'  Pasos: {n_steps}')
@@ -953,7 +952,7 @@ def run_predictive_experiment(
     system = ZetaPredictivePsyche(n_cells=n_cells)
 
     # Historiales
-    history: Dict[str, List] = {
+    history: dict[str, list] = {
         'consciousness': [],
         'awareness': [],
         'calibration': [],
@@ -1033,7 +1032,7 @@ def run_predictive_experiment(
     trend = system.get_consciousness_trend()
 
     print(f'\n{"="*70}')
-    print(f'  RESULTADOS')
+    print('  RESULTADOS')
     print(f'{"="*70}')
     print(f'  Consciencia promedio: {np.mean(history["consciousness"]):.3f}')
     print(f'  Consciencia máxima:   {np.max(history["consciousness"]):.3f}')
@@ -1051,7 +1050,7 @@ def run_predictive_experiment(
     }
 
 
-def visualize_predictive_system(results: Dict, save_path: str = 'zeta_predictive_consciousness.png'):
+def visualize_predictive_system(results: dict, save_path: str = 'zeta_predictive_consciousness.png'):
     """Visualiza los resultados del sistema predictivo."""
     try:
         import matplotlib.pyplot as plt

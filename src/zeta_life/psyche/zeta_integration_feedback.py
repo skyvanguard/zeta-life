@@ -1,9 +1,12 @@
 # ZetaIntegrationFeedback: Sistema de Retroalimentacion Metrica-Psique
 from dataclasses import dataclass
-from typing import Any, Dict, Tuple, Optional
+from typing import Any, Dict, Optional, Tuple
+
 import torch
-from .zeta_psyche import ZetaPsyche, Archetype
+
 from .zeta_individuation import IndividuationStage, IntegrationMetrics
+from .zeta_psyche import Archetype, ZetaPsyche
+
 
 @dataclass
 class FeedbackEffect:
@@ -27,7 +30,7 @@ class IntegrationFeedback:
     }
     def __init__(self, smoothing_factor: float = 0.1) -> None:
         self.smoothing_factor = smoothing_factor
-        self._previous_effects: Dict[Archetype, FeedbackEffect] = {}
+        self._previous_effects: dict[Archetype, FeedbackEffect] = {}
     def compute_archetype_influence(self, archetype: Archetype, metrics: IntegrationMetrics, stage: IndividuationStage) -> FeedbackEffect:
         params = self.ARCHETYPE_PARAMS[archetype]
         cooperation = self.STAGE_COOPERATION[stage]
@@ -38,7 +41,7 @@ class IntegrationFeedback:
         repulsion_reduction = metric_value * (0.5 + 0.5 * cooperation)
         cooperation_bonus = cooperation * metrics.self_coherence * 0.3
         return FeedbackEffect(archetype, influence_modifier, repulsion_reduction, cooperation_bonus)
-    def apply_feedback(self, psyche: ZetaPsyche, metrics: IntegrationMetrics, stage: IndividuationStage) -> Dict[Archetype, FeedbackEffect]:
+    def apply_feedback(self, psyche: ZetaPsyche, metrics: IntegrationMetrics, stage: IndividuationStage) -> dict[Archetype, FeedbackEffect]:
         effects = {}
         for archetype in Archetype:
             effect = self.compute_archetype_influence(archetype, metrics, stage)
@@ -55,7 +58,7 @@ class IntegrationFeedback:
         return effects
     def _smooth(self, old_value: float, new_value: float) -> float:
         return old_value + self.smoothing_factor * (new_value - old_value)
-    def _apply_to_psyche_cells(self, psyche: ZetaPsyche, effects: Dict[Archetype, FeedbackEffect], stage: IndividuationStage) -> None:
+    def _apply_to_psyche_cells(self, psyche: ZetaPsyche, effects: dict[Archetype, FeedbackEffect], stage: IndividuationStage) -> None:
         cooperation = self.STAGE_COOPERATION[stage]
         for cell in psyche.cells:
             dominant_idx = torch.argmax(cell.position.detach()).item()
@@ -74,7 +77,7 @@ class IntegrationFeedback:
                 noise_reduction = 1.0 - metrics.self_coherence * 0.1 * cooperation
                 mean_val = psyche.global_state.mean()
                 psyche.global_state = mean_val + noise_reduction * (psyche.global_state - mean_val)
-    def get_archetype_dynamics(self, metrics: IntegrationMetrics, stage: IndividuationStage) -> Dict[str, float]:
+    def get_archetype_dynamics(self, metrics: IntegrationMetrics, stage: IndividuationStage) -> dict[str, float]:
         cooperation = self.STAGE_COOPERATION[stage]
         return {"cooperation_level": cooperation, "overall_integration": metrics.self_coherence * cooperation}
 
@@ -89,10 +92,10 @@ class IntegrationWorkFeedback:
     }
     def __init__(self, intensity: float = 1.0) -> None:
         self.intensity = intensity
-    def apply_work_effect(self, work_type: str, psyche: ZetaPsyche, metrics: IntegrationMetrics, stage: IndividuationStage) -> Tuple[str, float]:
+    def apply_work_effect(self, work_type: str, psyche: ZetaPsyche, metrics: IntegrationMetrics, stage: IndividuationStage) -> tuple[str, float]:
         if work_type not in self.WORK_EFFECTS:
             return f"Unknown: {work_type}", 0.0
-        effect: Dict[str, Any] = dict(self.WORK_EFFECTS[work_type])  # type: ignore[call-overload]
+        effect: dict[str, Any] = dict(self.WORK_EFFECTS[work_type])  # type: ignore[call-overload]
         cooperation = IntegrationFeedback.STAGE_COOPERATION.get(stage, 0.5)
         effectiveness = 0.5 + 0.5 * cooperation
         target = effect["target"]
@@ -114,5 +117,5 @@ class IntegrationWorkFeedback:
         setattr(metrics, metric_name, new_value)
         return f"{work_type} applied with effectiveness {effectiveness:.2f}", effectiveness
 
-def create_feedback_system(smoothing_factor: float = 0.1, work_intensity: float = 1.0) -> Tuple[IntegrationFeedback, IntegrationWorkFeedback]:
+def create_feedback_system(smoothing_factor: float = 0.1, work_intensity: float = 1.0) -> tuple[IntegrationFeedback, IntegrationWorkFeedback]:
     return IntegrationFeedback(smoothing_factor), IntegrationWorkFeedback(work_intensity)

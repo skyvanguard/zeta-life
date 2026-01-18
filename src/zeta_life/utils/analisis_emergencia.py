@@ -1,16 +1,18 @@
-# -*- coding: utf-8 -*-
 """
 Analisis de Comportamientos Emergentes
 """
-import sys
 import os
+import sys
+
 if sys.platform == 'win32':
     os.system('')
 
-import torch
-import numpy as np
 from collections import defaultdict
+
+import numpy as np
+import torch
 from zeta_attentive_predictive import ZetaAttentivePredictive
+
 
 def analizar_emergencia():
     print("\n" + "=" * 70)
@@ -203,7 +205,7 @@ def analizar_emergencia():
     from collections import Counter
     threat_counts = Counter(archs_during_threat)
 
-    print(f"\n  Durante amenazas altas:")
+    print("\n  Durante amenazas altas:")
     arch_names = ['PERSONA', 'SOMBRA', 'ANIMA', 'ANIMUS']
     for arch_idx, count in sorted(threat_counts.items(), key=lambda x: -x[1]):
         pct = count / len(archs_during_threat) * 100 if len(archs_during_threat) > 0 else 0
@@ -214,7 +216,7 @@ def analizar_emergencia():
     archs_during_opp = dominant[high_opp_idx]
     opp_counts = Counter(archs_during_opp)
 
-    print(f"\n  Durante oportunidades altas:")
+    print("\n  Durante oportunidades altas:")
     for arch_idx, count in sorted(opp_counts.items(), key=lambda x: -x[1]):
         pct = count / len(archs_during_opp) * 100 if len(archs_during_opp) > 0 else 0
         print(f"    {arch_names[arch_idx]}: {pct:.1f}%")
@@ -246,7 +248,7 @@ def analizar_emergencia():
     print(f"  Desviacion estandar:         {np.std(consciousness):.4f}")
 
     if peaks:
-        print(f"  Periodicidades detectadas:")
+        print("  Periodicidades detectadas:")
         for period, strength in peaks[:3]:
             print(f"    Periodo ~{period} pasos (fuerza: {strength:.3f})")
         print("\n  >> EMERGENTE: Consciencia muestra RITMOS endogenos")

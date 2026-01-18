@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """
 ZetaOnlineLearning: Entrenamiento Online del Sistema de Atencion
 =================================================================
@@ -10,18 +9,20 @@ Implementa aprendizaje online basado en el Free Energy Principle:
 
 Fecha: 3 Enero 2026
 """
-import sys
 import os
+import sys
+
 if sys.platform == 'win32':
     os.system('')
 
+from collections import deque
+from typing import Dict, List, Optional, Tuple
+
+import numpy as np
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
 import torch.optim as optim
-import numpy as np
-from collections import deque
-from typing import Dict, List, Optional, Tuple
 
 from .zeta_attentive_predictive import ZetaAttentivePredictive
 
@@ -76,10 +77,10 @@ class OnlineLearner:
         )
 
         # Historiales para analisis
-        self.loss_history: List[float] = []
-        self.learning_events: List[Dict] = []
+        self.loss_history: list[float] = []
+        self.learning_events: list[dict] = []
 
-    def compute_loss(self, result: Dict) -> torch.Tensor:
+    def compute_loss(self, result: dict) -> torch.Tensor:
         """
         Calcula la perdida total basada en errores de prediccion.
 
@@ -113,7 +114,7 @@ class OnlineLearner:
 
         return torch.tensor(total_loss, requires_grad=True)
 
-    def learning_step(self, result: Dict) -> Dict:
+    def learning_step(self, result: dict) -> dict:
         """
         Ejecuta un paso de aprendizaje online.
 
@@ -177,7 +178,7 @@ class OnlineLearner:
 
         return learning_info
 
-    def get_learning_stats(self) -> Dict:
+    def get_learning_stats(self) -> dict:
         """Retorna estadisticas de aprendizaje."""
         if not self.learning_events:
             return {'events': 0, 'avg_loss': 0, 'learning_rate': 0}
@@ -217,7 +218,7 @@ class HebbianLearner:
         self.context_names = ['threat', 'opportunity', 'emotional', 'cognitive']
         self.arch_names = ['PERSONA', 'SOMBRA', 'ANIMA', 'ANIMUS']
 
-    def update(self, result: Dict) -> Dict:
+    def update(self, result: dict) -> dict:
         """
         Actualiza asociaciones basado en co-activacion.
 
@@ -267,9 +268,9 @@ class HebbianLearner:
         entropy = -torch.sum(matrix * torch.log(matrix + eps), dim=1)
         return entropy.mean()
 
-    def get_learned_associations(self) -> Dict[str, Tuple[str, float]]:
+    def get_learned_associations(self) -> dict[str, tuple[str, float]]:
         """Retorna las asociaciones aprendidas."""
-        result: Dict[str, Tuple[str, float]] = {}
+        result: dict[str, tuple[str, float]] = {}
         for i, ctx in enumerate(self.context_names):
             best_arch_idx = int(self.association_matrix[i].argmax().item())
             best_arch = self.arch_names[best_arch_idx]
@@ -278,7 +279,7 @@ class HebbianLearner:
         return result
 
 
-def demo_online_learning() -> Tuple[ZetaAttentivePredictive, OnlineLearner, HebbianLearner]:
+def demo_online_learning() -> tuple[ZetaAttentivePredictive, OnlineLearner, HebbianLearner]:
     """Demuestra el aprendizaje online."""
 
     print("\n" + "=" * 70)

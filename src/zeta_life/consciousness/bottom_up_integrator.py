@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """
 BottomUpIntegrator: Agregación de información de niveles inferiores a superiores.
 
@@ -11,23 +10,24 @@ La consciencia emerge de este proceso de agregación.
 Fecha: 2026-01-03
 """
 
+from dataclasses import dataclass
+from typing import Dict, List, Optional, Tuple
+
+import numpy as np
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-import numpy as np
-from typing import List, Dict, Optional, Tuple
-from dataclasses import dataclass
+
+from ..psyche.zeta_conscious_self import ConsciousnessIndex
+from ..psyche.zeta_individuation import IndividuationStage
 
 # Importar del sistema existente
 from ..psyche.zeta_psyche import Archetype
-from ..psyche.zeta_individuation import IndividuationStage
-from ..psyche.zeta_conscious_self import ConsciousnessIndex
+from .cluster import Cluster, ClusterPsyche
 
 # Importar de módulos nuevos
 from .micro_psyche import ConsciousCell, MicroPsyche, unbiased_argmax
-from .cluster import Cluster, ClusterPsyche
 from .organism_consciousness import OrganismConsciousness
-
 
 # =============================================================================
 # BOTTOM-UP INTEGRATOR
@@ -119,7 +119,7 @@ class BottomUpIntegrator(nn.Module):
 
     def aggregate_cells_to_cluster(
         self,
-        cells: List[ConsciousCell]
+        cells: list[ConsciousCell]
     ) -> ClusterPsyche:
         """
         Agrega micro-psiques de células en psique de cluster.
@@ -140,7 +140,7 @@ class BottomUpIntegrator(nn.Module):
             return ClusterPsyche.create_empty()
 
         # 1. Calcular pesos de células
-        weight_list: List[float] = []
+        weight_list: list[float] = []
         for cell in cells:
             importance = self.compute_cell_importance(cell)
             weight = importance * cell.energy * cell.psyche.phi_local
@@ -192,7 +192,7 @@ class BottomUpIntegrator(nn.Module):
             integration_level=integration_level
         )
 
-    def update_all_cluster_psyches(self, clusters: List[Cluster]) -> None:
+    def update_all_cluster_psyches(self, clusters: list[Cluster]) -> None:
         """
         Actualiza la psique de todos los clusters.
 
@@ -244,8 +244,8 @@ class BottomUpIntegrator(nn.Module):
 
     def aggregate_clusters_to_organism(
         self,
-        clusters: List[Cluster],
-        prev_consciousness: Optional[OrganismConsciousness] = None
+        clusters: list[Cluster],
+        prev_consciousness: OrganismConsciousness | None = None
     ) -> OrganismConsciousness:
         """
         Agrega psiques de clusters en consciencia de organismo.
@@ -271,7 +271,7 @@ class BottomUpIntegrator(nn.Module):
             return OrganismConsciousness.create_initial()
 
         # 1. Calcular pesos de clusters (basado en importancia × tamaño)
-        weight_list: List[float] = []
+        weight_list: list[float] = []
         for cluster in valid_clusters:
             importance = self.compute_cluster_importance(cluster)
             # Peso proporcional a tamaño para preservar distribución
@@ -328,7 +328,7 @@ class BottomUpIntegrator(nn.Module):
             vertical_coherence=vertical_coherence
         )
 
-    def _compute_inter_cluster_integration(self, clusters: List[Cluster]) -> float:
+    def _compute_inter_cluster_integration(self, clusters: list[Cluster]) -> float:
         """
         Calcula integración real entre clusters.
 
@@ -377,7 +377,7 @@ class BottomUpIntegrator(nn.Module):
 
         return integration
 
-    def _compute_phi_global(self, clusters: List[Cluster]) -> float:
+    def _compute_phi_global(self, clusters: list[Cluster]) -> float:
         """
         Calcula Φ global del organismo.
 
@@ -416,7 +416,7 @@ class BottomUpIntegrator(nn.Module):
 
     def _compute_vertical_coherence(
         self,
-        clusters: List[Cluster],
+        clusters: list[Cluster],
         organism_state: torch.Tensor,
         organism_dominant: Archetype
     ) -> float:
@@ -450,7 +450,7 @@ class BottomUpIntegrator(nn.Module):
         # 1. CELL-TO-CLUSTER ALIGNMENT
         # ¿Las células se alinean con su cluster?
         # =====================================================================
-        cell_to_cluster_scores: List[float] = []
+        cell_to_cluster_scores: list[float] = []
         for cluster in valid_clusters:
             if cluster.psyche is None:
                 continue
@@ -470,7 +470,7 @@ class BottomUpIntegrator(nn.Module):
         # 2. CLUSTER-TO-ORGANISM ALIGNMENT
         # ¿Los clusters se alinean con el organismo?
         # =====================================================================
-        cluster_to_org_scores: List[float] = []
+        cluster_to_org_scores: list[float] = []
         for cluster in valid_clusters:
             if cluster.psyche is None:
                 continue
@@ -553,10 +553,10 @@ class BottomUpIntegrator(nn.Module):
 
     def _compute_consciousness_index(
         self,
-        clusters: List[Cluster],
+        clusters: list[Cluster],
         phi_global: float,
         vertical_coherence: float,
-        prev_index: Optional[ConsciousnessIndex] = None
+        prev_index: ConsciousnessIndex | None = None
     ) -> ConsciousnessIndex:
         """
         Calcula el índice de consciencia desde los clusters.
@@ -607,10 +607,10 @@ class BottomUpIntegrator(nn.Module):
 
     def integrate(
         self,
-        cells: List[ConsciousCell],
-        clusters: List[Cluster],
-        prev_consciousness: Optional[OrganismConsciousness] = None
-    ) -> Tuple[List[Cluster], OrganismConsciousness]:
+        cells: list[ConsciousCell],
+        clusters: list[Cluster],
+        prev_consciousness: OrganismConsciousness | None = None
+    ) -> tuple[list[Cluster], OrganismConsciousness]:
         """
         Realiza integración bottom-up completa.
 
@@ -635,8 +635,8 @@ class BottomUpIntegrator(nn.Module):
 
     def compute_integration_quality(
         self,
-        cells: List[ConsciousCell],
-        clusters: List[Cluster],
+        cells: list[ConsciousCell],
+        clusters: list[Cluster],
         organism: OrganismConsciousness
     ) -> float:
         """

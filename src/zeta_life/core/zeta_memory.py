@@ -1,5 +1,4 @@
 #!/usr/bin/env python
-# -*- coding: utf-8 -*-
 """
 ZetaPsyche Memory: Sistema de memoria a largo plazo.
 
@@ -12,17 +11,18 @@ La memoria usa el estado arquetipico como "color emocional" para
 facilitar el recuerdo por similitud afectiva.
 """
 
-import sys
 import io
 import json
-import torch
-import torch.nn.functional as F
-import numpy as np
-from dataclasses import dataclass, field, asdict
-from typing import Dict, List, Tuple, Optional, Any
+import os
+import sys
+from dataclasses import asdict, dataclass, field
 from datetime import datetime
 from enum import Enum
-import os
+from typing import Any, Dict, List, Optional, Tuple
+
+import numpy as np
+import torch
+import torch.nn.functional as F
 
 # Fix Windows console encoding
 if sys.platform == 'win32':
@@ -34,7 +34,6 @@ if sys.platform == 'win32':
 # Use Vertex from local module to avoid circular import with psyche
 # Vertex has backwards-compatible aliases: PERSONA, SOMBRA, ANIMA, ANIMUS
 from .vertex import Vertex as Archetype
-
 
 # =============================================================================
 # ESTRUCTURAS DE MEMORIA
@@ -55,11 +54,11 @@ class EpisodicMemory:
     timestamp: str
     user_input: str
     response: str
-    archetype_state: List[float]  # [PERSONA, SOMBRA, ANIMA, ANIMUS]
+    archetype_state: list[float]  # [PERSONA, SOMBRA, ANIMA, ANIMUS]
     dominant: str
     emotional_intensity: float  # 0-1, que tan "intenso" fue el momento
     consciousness_level: float
-    tags: List[str] = field(default_factory=list)
+    tags: list[str] = field(default_factory=list)
 
     def to_dict(self) -> dict:
         return asdict(self)
@@ -83,7 +82,7 @@ class SemanticMemory:
     Por ejemplo: "miedo" -> SOMBRA con fuerza 0.8
     """
     concept: str
-    archetype_weights: List[float]
+    archetype_weights: list[float]
     strength: float  # 0-1, que tan fuerte es la asociacion
     frequency: int  # Cuantas veces se ha reforzado
     last_accessed: str
@@ -95,7 +94,7 @@ class SemanticMemory:
     def from_dict(cls, data: dict) -> 'SemanticMemory':
         return cls(**data)
 
-    def reinforce(self, new_weights: List[float], alpha: float = 0.3) -> None:
+    def reinforce(self, new_weights: list[float], alpha: float = 0.3) -> None:
         """Refuerza la asociacion con nuevos pesos."""
         for i in range(4):
             self.archetype_weights[i] = (
@@ -114,9 +113,9 @@ class ProceduralMemory:
 
     Almacena secuencias de estados que llevaron a resultados positivos.
     """
-    trigger_pattern: List[str]  # Palabras clave que activan este patron
+    trigger_pattern: list[str]  # Palabras clave que activan este patron
     response_style: str  # Tipo de respuesta preferida
-    archetype_sequence: List[List[float]]  # Secuencia de estados
+    archetype_sequence: list[list[float]]  # Secuencia de estados
     success_rate: float  # Que tan exitoso ha sido este patron
     usage_count: int
 
@@ -143,13 +142,13 @@ class ZetaMemorySystem:
     - Olvido gradual de memorias no accesadas
     """
 
-    def __init__(self, memory_path: Optional[str] = None) -> None:
+    def __init__(self, memory_path: str | None = None) -> None:
         self.memory_path: str = memory_path or "zeta_memories.json"
 
         # Memorias
-        self.episodic: List[EpisodicMemory] = []
-        self.semantic: Dict[str, SemanticMemory] = {}
-        self.procedural: List[ProceduralMemory] = []
+        self.episodic: list[EpisodicMemory] = []
+        self.semantic: dict[str, SemanticMemory] = {}
+        self.procedural: list[ProceduralMemory] = []
 
         # Parametros
         self.max_episodic = 1000  # Maximo de memorias episodicas
@@ -157,7 +156,7 @@ class ZetaMemorySystem:
         self.forgetting_rate = 0.01  # Tasa de olvido por sesion
 
         # Buffer de corto plazo (se consolida periodicamente)
-        self.short_term_buffer: List[EpisodicMemory] = []
+        self.short_term_buffer: list[EpisodicMemory] = []
         self.buffer_size = 10
 
         # Cargar memorias existentes
@@ -167,7 +166,7 @@ class ZetaMemorySystem:
         """Carga memorias desde archivo."""
         if os.path.exists(self.memory_path):
             try:
-                with open(self.memory_path, 'r', encoding='utf-8') as f:
+                with open(self.memory_path, encoding='utf-8') as f:
                     data = json.load(f)
 
                 self.episodic = [
@@ -214,7 +213,7 @@ class ZetaMemorySystem:
         archetype_state: torch.Tensor,
         dominant: Archetype,
         consciousness: float,
-        tags: Optional[List[str]] = None
+        tags: list[str] | None = None
     ) -> None:
         """
         Almacena un episodio en memoria de corto plazo.
@@ -318,7 +317,7 @@ class ZetaMemorySystem:
         state: torch.Tensor,
         n: int = 5,
         min_similarity: float = 0.5
-    ) -> List[EpisodicMemory]:
+    ) -> list[EpisodicMemory]:
         """
         Recuerda episodios similares al estado actual.
         Busqueda por similitud emocional.
@@ -342,7 +341,7 @@ class ZetaMemorySystem:
 
         return [m for m, _ in memories_with_sim[:n]]
 
-    def recall_by_concept(self, concept: str) -> Optional[SemanticMemory]:
+    def recall_by_concept(self, concept: str) -> SemanticMemory | None:
         """Recuerda asociacion semantica de un concepto."""
         concept = concept.lower()
         return self.semantic.get(concept)
@@ -351,7 +350,7 @@ class ZetaMemorySystem:
         self,
         text: str,
         n: int = 3
-    ) -> List[EpisodicMemory]:
+    ) -> list[EpisodicMemory]:
         """
         Recuerda episodios que contengan palabras similares.
         """
@@ -408,7 +407,7 @@ class ZetaMemorySystem:
     # INTROSPECCION
     # =========================================================================
 
-    def get_memory_summary(self) -> Dict:
+    def get_memory_summary(self) -> dict:
         """Resumen del estado de la memoria."""
         archetype_counts = {a.name: 0 for a in Archetype}
 
@@ -424,7 +423,7 @@ class ZetaMemorySystem:
             'avg_intensity': np.mean([m.emotional_intensity for m in self.episodic]) if self.episodic else 0,
         }
 
-    def get_recent_context(self, n: int = 5) -> List[Dict]:
+    def get_recent_context(self, n: int = 5) -> list[dict]:
         """Obtiene contexto de conversaciones recientes."""
         recent = sorted(
             self.episodic + self.short_term_buffer,
@@ -442,7 +441,7 @@ class ZetaMemorySystem:
             for m in recent
         ]
 
-    def format_memories_for_context(self, memories: List[EpisodicMemory]) -> str:
+    def format_memories_for_context(self, memories: list[EpisodicMemory]) -> str:
         """Formatea memorias como contexto legible."""
         if not memories:
             return ""
@@ -463,7 +462,7 @@ class MemoryAwarePsyche:
     Extension de ConversationalPsyche con memoria a largo plazo.
     """
 
-    def __init__(self, n_cells: int = 100, memory_path: Optional[str] = None) -> None:
+    def __init__(self, n_cells: int = 100, memory_path: str | None = None) -> None:
         # Importar aqui para evitar circular import
         from zeta_psyche_voice import ConversationalPsyche
 
@@ -475,7 +474,7 @@ class MemoryAwarePsyche:
         self.recall_similar_memories = True
         self.context_window = 3  # Memorias a considerar
 
-    def process(self, user_input: str) -> Dict:
+    def process(self, user_input: str) -> dict:
         """
         Procesa input con memoria.
 
@@ -520,7 +519,7 @@ class MemoryAwarePsyche:
         ]
         response['semantic_influence'] = semantic_mod.tolist()
 
-        result: Dict[Any, Any] = response
+        result: dict[Any, Any] = response
         return result
 
     def _apply_semantic_modulation(self, modulation: torch.Tensor) -> None:
@@ -528,7 +527,7 @@ class MemoryAwarePsyche:
         # Aplicar como estimulo suave
         self.psyche.psyche.communicate(modulation)
 
-    def _extract_tags(self, text: str) -> List[str]:
+    def _extract_tags(self, text: str) -> list[str]:
         """Extrae tags del texto para categorizar la memoria."""
         tags = []
 
@@ -559,7 +558,7 @@ class MemoryAwarePsyche:
 
         return tags
 
-    def recall_similar(self, n: int = 5) -> List[Dict]:
+    def recall_similar(self, n: int = 5) -> list[dict]:
         """Recuerda memorias similares al estado actual."""
         current_state = self.psyche.psyche.observe_self()['population_distribution']
         memories = self.memory.recall_by_state(current_state, n=n)
@@ -628,7 +627,7 @@ def run_memory_cli() -> None:
     print("\n  [Inicializando consciencia...]")
     for _ in range(20):
         psyche.psyche.psyche.step()
-    print(f"  [Listo. Memorias cargadas.]")
+    print("  [Listo. Memorias cargadas.]")
     print()
 
     try:
@@ -698,7 +697,7 @@ def run_memory_cli() -> None:
 
             # Mostrar si hay memorias relevantes
             if response.get('memories'):
-                print(f"\n  [Recuerdo algo similar...]")
+                print("\n  [Recuerdo algo similar...]")
 
             print(f"\nPsyche [{symbol} {dominant}]: {text}\n")
 

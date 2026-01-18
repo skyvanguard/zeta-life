@@ -1,5 +1,4 @@
 #!/usr/bin/env python
-# -*- coding: utf-8 -*-
 """
 ZetaPsyche Society: Sistema Multi-Psyche.
 
@@ -14,16 +13,17 @@ Permite observar:
 Basado en teoria de sistemas complejos y psicologia social.
 """
 
-import sys
 import io
 import random
+import sys
+from dataclasses import dataclass, field
+from enum import Enum
+from typing import Dict, List, Optional, Tuple
+
+import matplotlib.pyplot as plt
+import numpy as np
 import torch
 import torch.nn.functional as F
-import numpy as np
-from dataclasses import dataclass, field
-from typing import Dict, List, Tuple, Optional
-from enum import Enum
-import matplotlib.pyplot as plt
 
 # Fix Windows console encoding
 if sys.platform == 'win32':
@@ -33,9 +33,8 @@ if sys.platform == 'win32':
     except Exception:
         pass
 
-from ..psyche.zeta_psyche import ZetaPsyche, Archetype, SymbolSystem
-from ..psyche.zeta_psyche_voice import ArchetypalVoice, EXPANDED_VOCABULARY
-
+from ..psyche.zeta_psyche import Archetype, SymbolSystem, ZetaPsyche
+from ..psyche.zeta_psyche_voice import EXPANDED_VOCABULARY, ArchetypalVoice
 
 # =============================================================================
 # TIPOS DE RELACION SOCIAL
@@ -65,8 +64,8 @@ class SocialPsyche:
     expressiveness: float  # Que tanto expresa su estado (0-1)
 
     # Estado social
-    relationships: Dict[int, RelationType] = field(default_factory=dict)
-    interaction_history: List[Tuple[int, torch.Tensor]] = field(default_factory=list)
+    relationships: dict[int, RelationType] = field(default_factory=dict)
+    interaction_history: list[tuple[int, torch.Tensor]] = field(default_factory=list)
 
     def get_state(self) -> torch.Tensor:
         """Obtiene estado arquetipico actual."""
@@ -106,7 +105,7 @@ class PersonalityGenerator:
     }
 
     @classmethod
-    def generate(cls, id: int, bias: Optional[Archetype] = None) -> SocialPsyche:
+    def generate(cls, id: int, bias: Archetype | None = None) -> SocialPsyche:
         """Genera una psique con personalidad unica."""
         # Bias aleatorio si no se especifica
         if bias is None:
@@ -148,14 +147,14 @@ class PsycheSociety:
     """
 
     def __init__(self, n_members: int = 5):
-        self.members: List[SocialPsyche] = []
+        self.members: list[SocialPsyche] = []
         self.symbols = SymbolSystem()
         self.voice = ArchetypalVoice()
         self.vocabulary = EXPANDED_VOCABULARY
 
         # Historial
-        self.collective_history: List[Dict] = []
-        self.interaction_log: List[Dict] = []
+        self.collective_history: list[dict] = []
+        self.interaction_log: list[dict] = []
 
         # Crear miembros con diferentes biases
         archetypes = list(Archetype)
@@ -191,8 +190,8 @@ class PsycheSociety:
 
     def get_collective_state(self) -> torch.Tensor:
         """Estado colectivo (promedio ponderado por expresividad)."""
-        states_list: List[torch.Tensor] = []
-        weights_list: List[float] = []
+        states_list: list[torch.Tensor] = []
+        weights_list: list[float] = []
 
         for member in self.members:
             states_list.append(member.get_expressed_state())
@@ -227,7 +226,7 @@ class PsycheSociety:
     # INTERACCIONES
     # =========================================================================
 
-    def interact(self, member1_id: int, member2_id: int) -> Dict:
+    def interact(self, member1_id: int, member2_id: int) -> dict:
         """
         Interaccion entre dos miembros.
         Se influyen mutuamente segun sus estados y relacion.
@@ -277,7 +276,7 @@ class PsycheSociety:
 
         return interaction
 
-    def broadcast_stimulus(self, stimulus: torch.Tensor, source_id: Optional[int] = None) -> None:
+    def broadcast_stimulus(self, stimulus: torch.Tensor, source_id: int | None = None) -> None:
         """
         Envia un estimulo a todos los miembros.
         Si hay source_id, ese miembro no recibe (es el emisor).
@@ -287,7 +286,7 @@ class PsycheSociety:
                 # Influencia reducida por ser broadcast
                 member.receive_influence(stimulus, strength=0.1)
 
-    def group_discussion(self, topic: str, rounds: int = 5) -> List[Dict]:
+    def group_discussion(self, topic: str, rounds: int = 5) -> list[dict]:
         """
         Simula una discusion grupal sobre un tema.
         """
@@ -319,7 +318,7 @@ class PsycheSociety:
                     input_text='reflection'
                 )
 
-                exchanges_list: List[Dict] = round_data['exchanges']  # type: ignore[assignment]
+                exchanges_list: list[dict] = round_data['exchanges']  # type: ignore[assignment]
                 exchanges_list.append({
                     'speaker': member.name,
                     'symbol': symbol,
@@ -377,7 +376,7 @@ class PsycheSociety:
             'dominant': self.get_dominant_collective().name,
         })
 
-    def simulate(self, steps: int = 50, verbose: bool = True) -> Dict:
+    def simulate(self, steps: int = 50, verbose: bool = True) -> dict:
         """
         Ejecuta simulacion completa.
         """
@@ -411,7 +410,7 @@ class PsycheSociety:
 
         # Estado colectivo
         collective = self.get_collective_state()
-        lines.append(f"\n  Estado Colectivo:")
+        lines.append("\n  Estado Colectivo:")
         lines.append(f"    PERSONA: {collective[0]*100:5.1f}%")
         lines.append(f"    SOMBRA:  {collective[1]*100:5.1f}%")
         lines.append(f"    ANIMA:   {collective[2]*100:5.1f}%")
@@ -651,7 +650,7 @@ def run_society_cli():
 
             else:
                 # Broadcast a toda la sociedad
-                print(f"\n  [Broadcast a la sociedad...]")
+                print("\n  [Broadcast a la sociedad...]")
                 stimulus = society._topic_to_stimulus(user_input)
                 society.broadcast_stimulus(stimulus)
 
@@ -690,7 +689,7 @@ if __name__ == '__main__':
         print("\n  [Simulando 50 pasos...]")
         results = society.simulate(steps=50, verbose=True)
 
-        print(f"\n  [Resultados]")
+        print("\n  [Resultados]")
         print(f"    Polarizacion final: {results['final_polarization']:.2f}")
         print(f"    Dominante final: {results['final_dominant'].name}")
         print(f"    Interacciones: {results['interactions']}")

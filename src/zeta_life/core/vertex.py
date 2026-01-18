@@ -11,10 +11,10 @@ Correspondence Map:
     V3 (index 3) ←→ EXPLORER ←→ ANIMUS
 """
 
+import json
 from dataclasses import dataclass, field
 from enum import Enum
 from typing import Dict, Optional
-import json
 
 
 class Vertex(Enum):
@@ -65,7 +65,7 @@ class BehaviorVector:
     attraction: float = 1.0
     exploration: float = 0.0
     opposition: float = 0.0
-    
+
     def to_dict(self) -> dict:
         """Convert to dictionary for serialization."""
         return {
@@ -74,11 +74,11 @@ class BehaviorVector:
             'exploration': self.exploration,
             'opposition': self.opposition,
         }
-    
+
     def to_list(self) -> list:
         """Convert to list [field_response, attraction, exploration, opposition]."""
         return [self.field_response, self.attraction, self.exploration, self.opposition]
-    
+
     @classmethod
     def from_dict(cls, d: dict) -> 'BehaviorVector':
         """Create from dictionary."""
@@ -88,7 +88,7 @@ class BehaviorVector:
             exploration=d.get('exploration', 0.0),
             opposition=d.get('opposition', 0.0),
         )
-    
+
     @classmethod
     def from_list(cls, lst: list) -> 'BehaviorVector':
         """Create from list [field_response, attraction, exploration, opposition]."""
@@ -107,14 +107,14 @@ class VertexBehaviors:
     This class manages the parametric behaviors for all four vertices,
     allowing different configurations for experiments and controls.
     """
-    behaviors: Dict[Vertex, BehaviorVector] = field(default_factory=dict)
-    
+    behaviors: dict[Vertex, BehaviorVector] = field(default_factory=dict)
+
     def __post_init__(self):
         """Ensure all vertices have behaviors."""
         for v in Vertex:
             if v not in self.behaviors:
                 self.behaviors[v] = BehaviorVector()
-    
+
     @classmethod
     def default(cls) -> 'VertexBehaviors':
         """Default configuration preserving current dynamics.
@@ -128,31 +128,31 @@ class VertexBehaviors:
         """
         return cls({
             Vertex.V0: BehaviorVector(
-                field_response=1.3, 
-                attraction=1.0, 
-                exploration=0.0, 
+                field_response=1.3,
+                attraction=1.0,
+                exploration=0.0,
                 opposition=0.0
             ),
             Vertex.V1: BehaviorVector(
-                field_response=1.0, 
-                attraction=1.0, 
-                exploration=0.0, 
+                field_response=1.0,
+                attraction=1.0,
+                exploration=0.0,
                 opposition=0.3
             ),
             Vertex.V2: BehaviorVector(
-                field_response=1.0, 
-                attraction=1.1, 
-                exploration=0.0, 
+                field_response=1.0,
+                attraction=1.1,
+                exploration=0.0,
                 opposition=0.0
             ),
             Vertex.V3: BehaviorVector(
-                field_response=1.0, 
-                attraction=1.0, 
-                exploration=0.2, 
+                field_response=1.0,
+                attraction=1.0,
+                exploration=0.2,
                 opposition=0.0
             ),
         })
-    
+
     @classmethod
     def uniform(cls) -> 'VertexBehaviors':
         """All vertices behave identically.
@@ -161,7 +161,7 @@ class VertexBehaviors:
         All vertices have neutral behavior vectors.
         """
         return cls({v: BehaviorVector() for v in Vertex})
-    
+
     @classmethod
     def from_json(cls, path: str) -> 'VertexBehaviors':
         """Load behavior configuration from JSON file.
@@ -175,16 +175,16 @@ class VertexBehaviors:
             }
         }
         """
-        with open(path, 'r', encoding='utf-8') as f:
+        with open(path, encoding='utf-8') as f:
             data = json.load(f)
-        
+
         behaviors = {}
         for k, v in data.get('behaviors', {}).items():
             vertex = Vertex[k] if isinstance(k, str) else Vertex(k)
             behaviors[vertex] = BehaviorVector.from_dict(v)
-        
+
         return cls(behaviors)
-    
+
     def to_json(self, path: str) -> None:
         """Save behavior configuration to JSON file."""
         data = {
@@ -195,11 +195,11 @@ class VertexBehaviors:
         }
         with open(path, 'w', encoding='utf-8') as f:
             json.dump(data, f, indent=2)
-    
+
     def get(self, vertex: Vertex) -> BehaviorVector:
         """Get behavior vector for a vertex."""
         return self.behaviors.get(vertex, BehaviorVector())
-    
+
     def __getitem__(self, vertex: Vertex) -> BehaviorVector:
         """Allow dict-like access: behaviors[Vertex.V0]."""
         return self.get(vertex)

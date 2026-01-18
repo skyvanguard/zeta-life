@@ -4,10 +4,11 @@ This module provides the geometric foundation for the psyche state space.
 All operations are semantically neutral - vertices are V0-V3, not archetypes.
 """
 
+from typing import Dict, Optional
+
+import numpy as np
 import torch
 import torch.nn.functional as F
-import numpy as np
-from typing import Dict, Optional
 
 from .vertex import Vertex
 
@@ -29,7 +30,7 @@ class TetrahedralSpace:
         V0 ↔ V1
         V2 ↔ V3
     """
-    
+
     def __init__(self) -> None:
         # Vertices of regular tetrahedron in 3D
         self.vertices = torch.tensor([
@@ -38,17 +39,17 @@ class TetrahedralSpace:
             [-1.0, 1.0, -1.0],    # V2
             [-1.0, -1.0, 1.0],    # V3
         ], dtype=torch.float32)
-        
+
         # Normalize to unit sphere
         self.vertices = F.normalize(self.vertices, dim=1)
-        
+
         # Center of tetrahedron (integrated state)
         self.center = self.vertices.mean(dim=0)
-        
+
         # Compute geometric complements once
         self._complement_map = self._compute_geometric_complements()
-    
-    def _compute_geometric_complements(self) -> Dict[Vertex, Vertex]:
+
+    def _compute_geometric_complements(self) -> dict[Vertex, Vertex]:
         """Define complement pairs for the tetrahedron.
 
         In a regular tetrahedron, all vertices are equidistant. Therefore,
@@ -72,7 +73,7 @@ class TetrahedralSpace:
             Vertex.V2: Vertex.V3,
             Vertex.V3: Vertex.V2,
         }
-    
+
     def get_complement(self, vertex: Vertex) -> Vertex:
         """Returns geometrically opposite vertex (max distance).
         
@@ -80,11 +81,11 @@ class TetrahedralSpace:
         geometry-derived pairs.
         """
         return self._complement_map[vertex]
-    
+
     def get_complement_index(self, vertex: Vertex) -> int:
         """Returns index of geometrically opposite vertex."""
         return self._complement_map[vertex].value
-    
+
     def barycentric_to_3d(self, weights: torch.Tensor) -> torch.Tensor:
         """Convert barycentric coordinates to 3D position.
         
@@ -96,7 +97,7 @@ class TetrahedralSpace:
         """
         weights = F.softmax(weights, dim=-1)
         return torch.matmul(weights, self.vertices)
-    
+
     def position_to_barycentric(self, position: torch.Tensor) -> torch.Tensor:
         """Approximate barycentric coordinates from 3D position.
         
@@ -111,22 +112,22 @@ class TetrahedralSpace:
         dists = torch.cdist(position.unsqueeze(0), self.vertices).squeeze(0)
         weights = 1.0 / (dists + 1e-6)
         return F.softmax(weights, dim=-1)
-    
+
     def get_dominant_vertex(self, weights: torch.Tensor) -> Vertex:
         """Returns the dominant vertex (highest weight)."""
         idx = weights.argmax().item()
         return Vertex(int(idx))
-    
-    def get_vertex_blend(self, weights: torch.Tensor) -> Dict[Vertex, float]:
+
+    def get_vertex_blend(self, weights: torch.Tensor) -> dict[Vertex, float]:
         """Returns the blend of vertices as dictionary."""
         weights = F.softmax(weights, dim=-1)
         return {Vertex(i): w.item() for i, w in enumerate(weights)}
-    
+
     def distance_to_center(self, weights: torch.Tensor) -> float:
         """Distance to center (integrated state). Lower = more integrated."""
         pos = self.barycentric_to_3d(weights)
         return float(torch.norm(pos - self.center).item())
-    
+
     def integration_score(self, weights: torch.Tensor) -> float:
         """
         Integration score based on entropy.
@@ -139,7 +140,7 @@ class TetrahedralSpace:
         entropy = -torch.sum(weights * torch.log(weights + 1e-8))
         max_entropy = np.log(4)  # log(4) for 4 vertices
         return float((entropy / max_entropy).item())
-    
+
     def geodesic_distance(self, w1: torch.Tensor, w2: torch.Tensor) -> float:
         """Geodesic distance between two states in barycentric space.
         
@@ -151,7 +152,7 @@ class TetrahedralSpace:
 
 
 # Singleton instance for convenience
-_default_space: Optional[TetrahedralSpace] = None
+_default_space: TetrahedralSpace | None = None
 
 def get_tetrahedral_space() -> TetrahedralSpace:
     """Get the default tetrahedral space instance."""

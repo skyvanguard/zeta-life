@@ -4,12 +4,14 @@
 Evolucion de OrganismCell: reemplaza ZetaMemoryGatedSimple por ZetaLSTMCell
 para capturar dependencias temporales mas complejas.
 """
-from typing import Dict, Iterator, Optional
+from collections.abc import Iterator
+from typing import Dict, Optional
 
+import numpy as np
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-import numpy as np
+
 from ..core.zeta_rnn import ZetaLSTMCell, ZetaMemoryLayer
 
 
@@ -53,8 +55,8 @@ class OrganismCellLSTM(nn.Module):
         )
 
         # Estado LSTM persistente (inicializado en reset())
-        self.h: Optional[torch.Tensor] = None
-        self.c: Optional[torch.Tensor] = None
+        self.h: torch.Tensor | None = None
+        self.c: torch.Tensor | None = None
         self.t: int = 0  # timestep para ZetaLSTMCell
 
         # Detector de rol: MASS (0), FORCE (1), CORRUPT (2)
@@ -198,8 +200,8 @@ class OrganismCellLSTMPool:
         self.cell = OrganismCellLSTM(state_dim, hidden_dim, M, sigma, zeta_weight)
 
         # Estados LSTM individuales por celula
-        self.h_states: Dict[int, torch.Tensor] = {}  # cell_id -> h tensor
-        self.c_states: Dict[int, torch.Tensor] = {}  # cell_id -> c tensor
+        self.h_states: dict[int, torch.Tensor] = {}  # cell_id -> h tensor
+        self.c_states: dict[int, torch.Tensor] = {}  # cell_id -> c tensor
         self.t: int = 0
 
     def reset(self, device=None) -> None:
