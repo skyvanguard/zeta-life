@@ -63,10 +63,10 @@ full = [
 zeta-chat = "zeta_life.demos.chat_psyche:main"
 
 [project.urls]
-Homepage = "https://github.com/fruiz/zeta-life"
+Homepage = "https://github.com/skyvanguard/zeta-life"
 Documentation = "https://zeta-life.readthedocs.io"
-Repository = "https://github.com/fruiz/zeta-life"
-Issues = "https://github.com/fruiz/zeta-life/issues"
+Repository = "https://github.com/skyvanguard/zeta-life"
+Issues = "https://github.com/skyvanguard/zeta-life/issues"
 
 [tool.setuptools.packages.find]
 where = ["src"]

@@ -8,7 +8,7 @@ Welcome to Zeta-Life! This guide will help you get up and running quickly.
 
 ```bash
 # Clone the repository
-git clone https://github.com/fruizvillar/zeta-life.git
+git clone https://github.com/skyvanguard/zeta-life.git
 cd zeta-life
 
 # Install with all dependencies

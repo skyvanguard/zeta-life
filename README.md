@@ -2,7 +2,7 @@
 
 **Artificial Consciousness through the Riemann Zeta Function**
 
-[![CI](https://github.com/fruiz/zeta-life/actions/workflows/ci.yml/badge.svg)](https://github.com/fruiz/zeta-life/actions/workflows/ci.yml)
+[![CI](https://github.com/skyvanguard/zeta-life/actions/workflows/ci.yml/badge.svg)](https://github.com/skyvanguard/zeta-life/actions/workflows/ci.yml)
 [![Python 3.10+](https://img.shields.io/badge/python-3.10+-blue.svg)](https://www.python.org/downloads/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Code style: ruff](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/astral-sh/ruff/main/assets/badge/v2.json)](https://github.com/astral-sh/ruff)
@@ -98,7 +98,7 @@ Cellular automata where the traditional Moore neighborhood is replaced with a ze
 
 ```bash
 # Clone the repository
-git clone https://github.com/fruiz/zeta-life.git
+git clone https://github.com/skyvanguard/zeta-life.git
 cd zeta-life
 
 # Install with pip
@@ -243,7 +243,7 @@ This project represents 10+ years of interdisciplinary research:
   author = {Francisco Ruiz},
   title = {Zeta Life: Artificial Consciousness through the Riemann Zeta Function},
   year = {2024},
-  url = {https://github.com/fruiz/zeta-life}
+  url = {https://github.com/skyvanguard/zeta-life}
 }
 ```
 
