@@ -112,3 +112,10 @@ docs/_build_v3/
 docs/_build*/
 docs/serve_docs.bat
 tmpclaude-*
+
+# Personal/private data
+personal/
+notas_extracted/
+
+# Type checking cache
+.mypy_cache/
