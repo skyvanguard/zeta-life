@@ -5,7 +5,7 @@ Evolucion de OrganismCell: reemplaza ZetaMemoryGatedSimple por ZetaLSTMCell
 para capturar dependencias temporales mas complejas.
 """
 from collections.abc import Iterator
-from typing import Dict, Optional
+from typing import Optional
 
 import numpy as np
 import torch
@@ -13,7 +13,6 @@ import torch.nn as nn
 import torch.nn.functional as F
 
 from ..core.zeta_rnn import ZetaLSTMCell, ZetaMemoryLayer
-
 
 class OrganismCellLSTM(nn.Module):
     """Celula con memoria LSTM enriquecida con kernel zeta.
@@ -183,7 +182,6 @@ class OrganismCellLSTM(nn.Module):
 
         return new_state, role, memory_info
 
-
 class OrganismCellLSTMPool:
     """Pool de celdas LSTM para el organismo.
 
@@ -262,7 +260,6 @@ class OrganismCellLSTMPool:
     def load_state_dict(self, state_dict) -> None:
         """Carga state dict."""
         self.cell.load_state_dict(state_dict)
-
 
 if __name__ == '__main__':
     print('=' * 70)

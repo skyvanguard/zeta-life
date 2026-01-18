@@ -16,7 +16,7 @@ if sys.platform == 'win32':
     os.system('')
 
 from collections import deque
-from typing import Dict, List, Optional, Tuple
+from typing import Optional
 
 import numpy as np
 import torch
@@ -25,7 +25,6 @@ import torch.nn.functional as F
 import torch.optim as optim
 
 from .zeta_attentive_predictive import ZetaAttentivePredictive
-
 
 class OnlineLearner:
     """
@@ -190,7 +189,6 @@ class OnlineLearner:
             'recent_loss': np.mean(self.loss_history[-50:]) if self.loss_history else 0,
         }
 
-
 class HebbianLearner:
     """
     Aprendizaje Hebbiano simple para las conexiones arquetipales.
@@ -277,7 +275,6 @@ class HebbianLearner:
             strength = float(self.association_matrix[i, best_arch_idx].item())
             result[ctx] = (best_arch, strength)
         return result
-
 
 def demo_online_learning() -> tuple[ZetaAttentivePredictive, OnlineLearner, HebbianLearner]:
     """Demuestra el aprendizaje online."""
@@ -404,7 +401,6 @@ def demo_online_learning() -> tuple[ZetaAttentivePredictive, OnlineLearner, Hebb
     print("=" * 70 + "\n")
 
     return system, online_learner, hebbian_learner
-
 
 if __name__ == "__main__":
     demo_online_learning()

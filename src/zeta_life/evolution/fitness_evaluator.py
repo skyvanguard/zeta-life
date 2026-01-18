@@ -6,12 +6,11 @@ fitness scores based on self-evidence criteria.
 """
 
 from dataclasses import dataclass
-from typing import Any, Dict, Optional, Tuple
+from typing import Any, Optional
 
 import numpy as np
 
 from .config_space import PARAM_RANGES, EvolvableConfig
-
 
 @dataclass
 class FitnessResult:
@@ -23,7 +22,6 @@ class FitnessResult:
     metrics: dict[str, float]     # Raw metrics from simulation
     valid_config: bool            # Whether config was valid
     error: str | None = None   # Error message if failed
-
 
 def validate_config(config: dict[str, Any]) -> tuple[bool, str]:
     """Validate that config has all required keys within valid ranges."""
@@ -41,7 +39,6 @@ def validate_config(config: dict[str, Any]) -> tuple[bool, str]:
             return False, f"{key}={val} outside range [{min_val}, {max_val}]"
 
     return True, "OK"
-
 
 def evaluate_self_evidence(metrics: dict[str, float]) -> dict[str, bool]:
     """
@@ -80,7 +77,6 @@ def evaluate_self_evidence(metrics: dict[str, float]) -> dict[str, bool]:
         'smooth_transition': deg_var > 0.02,
     }
 
-
 def calculate_fitness(criteria: dict[str, bool],
                       metrics: dict[str, float]) -> float:
     """
@@ -114,7 +110,6 @@ def calculate_fitness(criteria: dict[str, bool],
     fitness = 0.70 * binary_score + 0.30 * continuous_score
 
     return round(fitness, 4)
-
 
 def evaluate_config(config: dict[str, Any],
                     n_runs: int = 5,
@@ -184,7 +179,6 @@ def evaluate_config(config: dict[str, Any],
         metrics=metrics,
         valid_config=True
     )
-
 
 def quick_evaluate(config: dict[str, Any]) -> tuple[float, int]:
     """

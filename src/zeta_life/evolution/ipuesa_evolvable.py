@@ -7,7 +7,7 @@ allowing evolutionary optimization of hyperparameters.
 
 from dataclasses import dataclass, field
 from enum import Enum
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any, Optional
 
 import numpy as np
 
@@ -23,7 +23,6 @@ class DegradationState(Enum):
     IMPAIRED = 'impaired'
     CRITICAL = 'critical'
     COLLAPSED = 'collapsed'
-
 
 @dataclass
 class EvolvableMicroModule:
@@ -49,7 +48,6 @@ class EvolvableMicroModule:
         if self.age > 50 and not self.consolidated:
             self.strength *= 0.98
 
-
 @dataclass
 class MetaPolicy:
     """WHO the agent is."""
@@ -62,7 +60,6 @@ class MetaPolicy:
         return np.array([self.risk_aversion, self.exploration_rate,
                         self.memory_depth, self.prediction_weight])
 
-
 @dataclass
 class CognitiveArchitecture:
     """HOW the agent processes."""
@@ -71,7 +68,6 @@ class CognitiveArchitecture:
     attention_prediction: float = 0.34
     memory_update_rate: float = 0.1
     perceptual_gain: float = 1.0
-
 
 @dataclass
 class EvolvableAgent:
@@ -139,7 +135,6 @@ class EvolvableAgent:
         else:
             return DegradationState.COLLAPSED
 
-
 @dataclass
 class ClusterState:
     """Cluster state for agent grouping."""
@@ -148,7 +143,6 @@ class ClusterState:
     specialization: float = 0.0
     size: int = 0
 
-
 @dataclass
 class PerturbationWave:
     """A wave of perturbation in the storm."""
@@ -156,7 +150,6 @@ class PerturbationWave:
     base_damage: float
     step: int
     residual_factor: float = 0.05
-
 
 # =============================================================================
 # CORE FUNCTIONS (Parameterized)
@@ -215,7 +208,6 @@ def gradual_damage(agent: EvolvableAgent, damage: float,
     agent.residual_damage = min(config.residual_cap, agent.residual_damage)
 
     return effective_damage
-
 
 def gradual_recovery(agent: EvolvableAgent, cluster: ClusterState,
                      config: EvolvableConfig) -> tuple[float, bool]:
@@ -282,7 +274,6 @@ def gradual_recovery(agent: EvolvableAgent, cluster: ClusterState,
 
     return recovery, success
 
-
 def spread_modules(agents: list[EvolvableAgent], cluster_id: int,
                    config: EvolvableConfig) -> int:
     """
@@ -323,7 +314,6 @@ def spread_modules(agents: list[EvolvableAgent], cluster_id: int,
 
     return spread_count
 
-
 def consolidate_modules(agent: EvolvableAgent, config: EvolvableConfig):
     """Consolidate successful modules."""
     to_remove = []
@@ -344,7 +334,6 @@ def consolidate_modules(agent: EvolvableAgent, config: EvolvableConfig):
     for m in to_remove:
         if m in agent.modules:
             agent.modules.remove(m)
-
 
 def create_proactive_module(agent: EvolvableAgent, config: EvolvableConfig) -> bool:
     """Create proactive module based on threat anticipation."""
@@ -376,7 +365,6 @@ def create_proactive_module(agent: EvolvableAgent, config: EvolvableConfig) -> b
 
     return False
 
-
 def update_temporal_anticipation(agent: EvolvableAgent, damage: float):
     """Update threat anticipation based on recent damage."""
     agent.threat_history.append(damage)
@@ -393,7 +381,6 @@ def update_temporal_anticipation(agent: EvolvableAgent, damage: float):
     # Update threat buffer
     agent.threat_buffer = 0.7 * agent.threat_buffer + 0.3 * damage
 
-
 def update_cluster(cluster: ClusterState, agents: list[EvolvableAgent]):
     """Update cluster state based on member agents."""
     members = [a for a in agents if a.cluster_id == cluster.cluster_id and a.is_alive()]
@@ -409,7 +396,6 @@ def update_cluster(cluster: ClusterState, agents: list[EvolvableAgent]):
         cluster.cohesion = 1.0 - np.std(ics)
     else:
         cluster.cohesion = 0.5
-
 
 # =============================================================================
 # STORM GENERATION
@@ -441,7 +427,6 @@ def create_storm(damage_multiplier: float, n_steps: int = 150) -> list[Perturbat
 
     return waves
 
-
 def apply_wave_damage(agent: EvolvableAgent, wave: PerturbationWave,
                       config: EvolvableConfig, step: int) -> float:
     """Apply wave-specific damage to agent."""
@@ -464,7 +449,6 @@ def apply_wave_damage(agent: EvolvableAgent, wave: PerturbationWave,
 
     return gradual_damage(agent, damage, config)
 
-
 # =============================================================================
 # SIMULATION RUNNER
 # =============================================================================
@@ -482,11 +466,9 @@ def create_agents(n_agents: int, n_clusters: int,
         agents.append(agent)
     return agents
 
-
 def create_clusters(n_clusters: int) -> list[ClusterState]:
     """Create cluster states."""
     return [ClusterState(cluster_id=i) for i in range(n_clusters)]
-
 
 def run_single_simulation(agents: list[EvolvableAgent],
                           clusters: list[ClusterState],
@@ -588,7 +570,6 @@ def run_single_simulation(agents: list[EvolvableAgent],
         'proactive_created': proactive_total,
     }
 
-
 def run_baseline_simulation(n_agents: int, n_clusters: int,
                             n_steps: int, seed: int,
                             damage_multiplier: float) -> dict[str, float]:
@@ -628,7 +609,6 @@ def run_baseline_simulation(n_agents: int, n_clusters: int,
 
     alive = len([a for a in agents if a.is_alive()])
     return {'baseline_survival': alive / n_agents}
-
 
 def run_ipuesa_with_config(config: dict[str, Any],
                            n_agents: int = 24,
@@ -703,7 +683,6 @@ def run_ipuesa_with_config(config: dict[str, Any],
         aggregated['no_embedding_survival'] = 0.0
 
     return aggregated
-
 
 if __name__ == '__main__':
     # Quick test

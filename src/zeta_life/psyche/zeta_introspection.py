@@ -17,7 +17,7 @@ import sys
 from dataclasses import dataclass, field
 from datetime import datetime
 from enum import Enum, auto
-from typing import Dict, List, Optional, Tuple
+from typing import Optional
 
 if sys.platform == 'win32':
     try:
@@ -38,7 +38,6 @@ from .zeta_individuation import (
 # Importar sistemas existentes
 from .zeta_psyche import Archetype, PsycheInterface, ZetaPsyche
 
-
 class InsightType(Enum):
     """Tipos de insights que puede generar la psique."""
     OBSERVACION = auto()      # Observación simple del estado
@@ -47,7 +46,6 @@ class InsightType(Enum):
     COMPRENSION = auto()      # Comprensión profunda
     PREDICCION = auto()       # Anticipación del futuro
     PARADOJA = auto()         # Reconocimiento de contradicciones
-
 
 @dataclass
 class PsychicMoment:
@@ -71,7 +69,6 @@ class PsychicMoment:
             'self_luminosity': self.self_luminosity
         }
 
-
 @dataclass
 class Insight:
     """Un insight generado por introspección."""
@@ -89,7 +86,6 @@ class Insight:
             'archetype': self.related_archetype.name if self.related_archetype else None,
             'timestamp': self.timestamp
         }
-
 
 class ArchetypeVoices:
     """
@@ -165,7 +161,6 @@ class ArchetypeVoices:
         """Genera una frase en la voz del arquetipo."""
         voice = cls.get_voice(archetype)
         return str(np.random.choice(voice['phrases']))
-
 
 class StateExplainer:
     """
@@ -294,7 +289,6 @@ class StateExplainer:
   Su sombra: {voice['shadow_aspect']}.
 """
         return explanation.strip()
-
 
 class TrajectoryNarrator:
     """
@@ -462,7 +456,6 @@ class TrajectoryNarrator:
                 patterns.append("La integración ha disminuido - puede indicar regresión.")
 
         return patterns if patterns else ["No se detectan patrones significativos."]
-
 
 class InsightGenerator:
     """
@@ -655,7 +648,6 @@ class InsightGenerator:
                 )
 
         return None
-
 
 class IntrospectivePsyche:
     """
@@ -904,7 +896,6 @@ class IntrospectivePsyche:
         except FileNotFoundError:
             pass
 
-
 def interactive_session() -> None:
     """Sesión interactiva con introspección."""
     print("\n" + "="*60)
@@ -1009,7 +1000,6 @@ def interactive_session() -> None:
                 insight = intro['new_insights'][0]
                 print(f"\n  Insight: {insight['content']}")
 
-
 def run_test() -> None:
     """Test del sistema de introspección."""
     print("\n" + "="*60)
@@ -1083,7 +1073,6 @@ def run_test() -> None:
     print("\n" + "="*60)
     print("  FIN TEST")
     print("="*60)
-
 
 if __name__ == '__main__':
     import sys

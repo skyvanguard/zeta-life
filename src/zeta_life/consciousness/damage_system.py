@@ -13,7 +13,7 @@ The DamageSystem implements:
 - Module spreading within clusters
 """
 
-from typing import TYPE_CHECKING, List, Optional, Tuple
+from typing import TYPE_CHECKING, Optional
 
 import numpy as np
 
@@ -21,7 +21,6 @@ from .resilience import MODULE_TYPES, CellResilience, MicroModule
 
 if TYPE_CHECKING:
     from .micro_psyche import ConsciousCell
-
 
 class DamageSystem:
     """

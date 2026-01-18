@@ -22,7 +22,7 @@ if sys.platform == 'win32':
 from collections import deque
 from dataclasses import dataclass, field
 from enum import Enum
-from typing import Deque, Dict, List, Optional, Tuple
+from typing import Optional
 
 import numpy as np
 import torch
@@ -105,7 +105,6 @@ class IntegratedConsciousnessMetrics:
 
         return float(np.corrcoef(att, pred)[0, 1])
 
-
 # =============================================================================
 # MODULADOR DE ATENCION PREDICTIVA
 # =============================================================================
@@ -173,7 +172,6 @@ class AttentionPredictionModulator(nn.Module):
             'archetype_weights': archetype_weights,
             'level_weights': level_weights
         }
-
 
 # =============================================================================
 # SISTEMA COMPLETO: ATENCION + PREDICCION
@@ -458,7 +456,6 @@ class ZetaAttentivePredictive(nn.Module):
             'step': self.t,
         }
 
-
 # =============================================================================
 # DEMO Y EXPERIMENTOS
 # =============================================================================
@@ -590,7 +587,6 @@ def run_integrated_experiment(
         'trend': trend,
     }
 
-
 def compare_with_without_attention(n_steps: int = 200):
     """
     Compara el sistema con y sin atencion.
@@ -639,7 +635,6 @@ def compare_with_without_attention(n_steps: int = 200):
         'with_attention': consciousness_with_att,
         'improvement': mejora
     }
-
 
 def demo_attention_scenarios():
     """
@@ -692,7 +687,6 @@ def demo_attention_scenarios():
         print()
 
     print(f'{"="*70}\n')
-
 
 # =============================================================================
 # MAIN

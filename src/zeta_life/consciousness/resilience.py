@@ -11,7 +11,7 @@ Components:
 """
 
 from dataclasses import dataclass, field
-from typing import List, Optional
+from typing import Optional
 
 import numpy as np
 
@@ -35,7 +35,6 @@ MODULE_TYPES = [
     'residual_cleaner',       # Clear accumulated residual damage
     'anticipation_enhancer',  # Improve threat prediction
 ]
-
 
 @dataclass
 class MicroModule:
@@ -103,7 +102,6 @@ class MicroModule:
             activations=0,
             contribution=0.0,
         )
-
 
 @dataclass
 class CellResilience:

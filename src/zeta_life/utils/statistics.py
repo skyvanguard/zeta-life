@@ -7,11 +7,10 @@ Provides functions for:
 - Statistical tests
 """
 
-from typing import Dict, List, Optional, Tuple
+from typing import Optional
 
 import numpy as np
 from scipy import stats
-
 
 def compute_confidence_interval(
     data: list[float],
@@ -43,7 +42,6 @@ def compute_confidence_interval(
     margin = t_crit * se
     return float(mean), float(mean - margin), float(mean + margin)
 
-
 def compute_effect_size(
     group1: list[float],
     group2: list[float]
@@ -74,7 +72,6 @@ def compute_effect_size(
         return 0.0
 
     return float((np.mean(arr2) - np.mean(arr1)) / pooled_std)
-
 
 def compare_conditions(
     condition1: list[float],
@@ -123,7 +120,6 @@ def compare_conditions(
 
     return result
 
-
 def format_ci(
     mean: float,
     lower: float,
@@ -132,7 +128,6 @@ def format_ci(
 ) -> str:
     """Format confidence interval as string."""
     return f"{mean:.{decimals}f} [{lower:.{decimals}f}, {upper:.{decimals}f}]"
-
 
 def summarize_distribution(data: list[float]) -> dict:
     """
@@ -155,7 +150,6 @@ def summarize_distribution(data: list[float]) -> dict:
         'ci_95_upper': ci_hi,
         'ci_formatted': format_ci(mean, ci_lo, ci_hi),
     }
-
 
 def is_significantly_different(
     condition1: list[float],

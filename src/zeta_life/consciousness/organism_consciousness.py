@@ -10,7 +10,7 @@ Fecha: 2026-01-03
 from dataclasses import dataclass, field
 from datetime import datetime
 from enum import Enum
-from typing import Dict, List, Optional, Tuple
+from typing import Optional
 
 import numpy as np
 import torch
@@ -232,7 +232,6 @@ class OrganismConsciousness:
             vertical_coherence=vertical_coherence
         )
 
-
 # =============================================================================
 # FUNCIONES AUXILIARES
 # =============================================================================
@@ -267,7 +266,6 @@ def _integration_to_stage(integration: float, phi: float) -> IndividuationStage:
         return IndividuationStage.EMERGENCIA_SELF
     else:
         return IndividuationStage.SELF_REALIZADO
-
 
 def _compute_consciousness_index(
     clusters: list[Cluster],
@@ -322,7 +320,6 @@ def _compute_consciousness_index(
         stability=stability,
         meta_awareness=meta_awareness
     )
-
 
 # =============================================================================
 # HIERARCHICAL METRICS
@@ -489,7 +486,6 @@ class HierarchicalMetrics:
             insight_rate=0.0  # Calculado externamente
         )
 
-
 def _compute_bottom_up_flow(cells: list[ConsciousCell], clusters: list[Cluster]) -> float:
     """Calcula calidad del flujo bottom-up."""
     if not cells or not clusters:
@@ -504,7 +500,6 @@ def _compute_bottom_up_flow(cells: list[ConsciousCell], clusters: list[Cluster])
 
     return total_rep / len(cells)
 
-
 def _compute_top_down_flow(cells: list[ConsciousCell], organism: OrganismConsciousness) -> float:
     """Calcula calidad del flujo top-down."""
     if not cells:
@@ -517,7 +512,6 @@ def _compute_top_down_flow(cells: list[ConsciousCell], organism: OrganismConscio
 
     alignments = [c.psyche.alignment_with(organism.global_archetype) for c in responsive]
     return float(np.mean(alignments))
-
 
 def _compute_horizontal_flow(clusters: list[Cluster]) -> float:
     """Calcula flujo horizontal entre clusters."""
@@ -538,7 +532,6 @@ def _compute_horizontal_flow(clusters: list[Cluster]) -> float:
                 total_pairs += 1
 
     return interactions / max(1, total_pairs)
-
 
 # =============================================================================
 # TESTS BÁSICOS

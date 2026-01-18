@@ -11,7 +11,7 @@ import matplotlib
 matplotlib.use('Agg')  # Backend no interactivo
 
 import warnings
-from typing import List, Optional, Tuple
+from typing import Optional
 
 import matplotlib.pyplot as plt
 import numpy as np
@@ -25,7 +25,6 @@ try:
 except ImportError:
     HAS_MPMATH = False
     warnings.warn("mpmath no disponible. Usando aproximaciones de ceros de zeta.")
-
 
 def get_zeta_zeros(M: int) -> list[float]:
     """
@@ -58,7 +57,6 @@ def get_zeta_zeros(M: int) -> list[float]:
                 n = k + 1
                 zeros.append(2 * np.pi * n / np.log(n + 2))
             return zeros
-
 
 class ZetaKernel:
     """
@@ -103,7 +101,6 @@ class ZetaKernel:
             return self.evaluate(x) + self.evaluate(y)
         else:
             raise ValueError(f"Modo desconocido: {mode}")
-
 
 class ZetaGameOfLife:
     """
@@ -289,7 +286,6 @@ class ZetaGameOfLife:
 
         return distances, np.array(correlations)
 
-
 class ZetaVisualizer:
     """Visualización del Game of Life con kernel zeta."""
 
@@ -390,7 +386,6 @@ class ZetaVisualizer:
         plt.show()
         return anim
 
-
 def compare_random_vs_zeta(rows: int = 100, cols: int = 100, steps: int = 100) -> plt.Figure:
     """
     Compara la evolución de Game of Life con inicialización aleatoria
@@ -457,7 +452,6 @@ def compare_random_vs_zeta(rows: int = 100, cols: int = 100, steps: int = 100) -
     plt.tight_layout()
 
     return fig
-
 
 def demo() -> None:
     """Demostración completa del sistema."""
@@ -527,7 +521,6 @@ def demo() -> None:
     print("Demostración completada.")
     print("Archivos generados en el directorio actual.")
     print("=" * 60)
-
 
 if __name__ == "__main__":
     demo()

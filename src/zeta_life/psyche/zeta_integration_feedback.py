@@ -1,12 +1,11 @@
 # ZetaIntegrationFeedback: Sistema de Retroalimentacion Metrica-Psique
 from dataclasses import dataclass
-from typing import Any, Dict, Optional, Tuple
+from typing import Any, Optional
 
 import torch
 
 from .zeta_individuation import IndividuationStage, IntegrationMetrics
 from .zeta_psyche import Archetype, ZetaPsyche
-
 
 @dataclass
 class FeedbackEffect:

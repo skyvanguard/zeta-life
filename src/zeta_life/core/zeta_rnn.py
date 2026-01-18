@@ -9,7 +9,7 @@ Where: m_t = (1/N) * sum_j(phi(gamma_j) * h_{t-1} * cos(gamma_j * t))
 The zeta zeros gamma_j create oscillators that capture long-range temporal dependencies.
 """
 
-from typing import Any, Dict, List, Literal, Optional, Tuple, Union, overload
+from typing import Any, Literal, Optional, Union, overload
 
 import numpy as np
 import torch
@@ -23,7 +23,6 @@ try:
 except ImportError:
     HAS_MPMATH = False
 
-
 def get_zeta_zeros(M: int) -> list[float]:
     """Get first M non-trivial zeros of Riemann zeta function."""
     if HAS_MPMATH:
@@ -36,7 +35,6 @@ def get_zeta_zeros(M: int) -> list[float]:
         if M <= len(known):
             return known[:M]
         return known + [2 * np.pi * n / np.log(n + 2) for n in range(len(known) + 1, M + 1)]
-
 
 class ZetaMemoryLayer(nn.Module):
     """
@@ -107,7 +105,6 @@ class ZetaMemoryLayer(nn.Module):
         m_t = weights * h
 
         return m_t
-
 
 class ZetaLSTMCell(nn.Module):
     """
@@ -186,7 +183,6 @@ class ZetaLSTMCell(nn.Module):
         h_enhanced = h_new + self.zeta_weight * m_t
 
         return h_enhanced, c_new
-
 
 class ZetaLSTM(nn.Module):
     """
@@ -291,7 +287,6 @@ class ZetaLSTM(nn.Module):
         c_n = torch.stack(c, dim=0)
 
         return output, (h_n, c_n)
-
 
 class ZetaSequenceGenerator:
     """
@@ -398,7 +393,6 @@ class ZetaSequenceGenerator:
     def get_max_lag(self) -> int:
         """Return maximum lag used in sequence generation."""
         return max(self.lags)
-
 
 class ZetaLSTMExperiment:
     """
@@ -555,7 +549,6 @@ class ZetaLSTMExperiment:
 
         return results
 
-
 def demo_zeta_lstm():
     """
     Full demonstration of ZetaLSTM vs vanilla LSTM.
@@ -658,7 +651,6 @@ def demo_zeta_lstm():
     print("=" * 70)
 
     return results
-
 
 if __name__ == "__main__":
     demo_zeta_lstm()

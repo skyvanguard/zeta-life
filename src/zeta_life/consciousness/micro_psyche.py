@@ -11,7 +11,7 @@ Fecha: 2026-01-03
 from collections import deque
 from dataclasses import dataclass, field
 from enum import Enum
-from typing import TYPE_CHECKING, Deque, List, Optional, Tuple
+from typing import TYPE_CHECKING, Optional
 
 import numpy as np
 import torch
@@ -30,7 +30,6 @@ if TYPE_CHECKING:
 
 # Backwards compatibility alias
 Archetype = Vertex
-
 
 # =============================================================================
 # UTILIDADES
@@ -60,7 +59,6 @@ def unbiased_argmax(tensor: torch.Tensor, tolerance: float = 0.01) -> int:
     else:
         # Selección aleatoria entre candidatos empatados
         return int(candidates[np.random.randint(len(candidates))].item())
-
 
 # =============================================================================
 # MICRO-PSIQUE
@@ -256,7 +254,6 @@ class MicroPsyche:
             phi_local=0.5
         )
 
-
 # =============================================================================
 # CONSCIOUS CELL
 # =============================================================================
@@ -265,7 +262,6 @@ def _create_default_resilience() -> 'CellResilience':
     """Factory function to create default CellResilience (avoids circular import)."""
     from .resilience import CellResilience
     return CellResilience()
-
 
 @dataclass
 class ConsciousCell:
@@ -441,7 +437,6 @@ class ConsciousCell:
             cluster_weight=1.0
         )
 
-
 # =============================================================================
 # UTILIDADES
 # =============================================================================
@@ -477,7 +472,6 @@ def compute_local_phi(cell: ConsciousCell, neighbors: list[ConsciousCell]) -> fl
     phi = similarity * (1.0 - min(1.0, variance * 2))
 
     return max(0.0, min(1.0, phi))
-
 
 def apply_psyche_contagion(
     cell: ConsciousCell,
@@ -532,7 +526,6 @@ def apply_psyche_contagion(
 
     # Aplicar influencia con tasa efectiva
     cell.psyche.update_state(weighted_avg, blend_factor=effective_rate)
-
 
 # =============================================================================
 # TESTS BÁSICOS

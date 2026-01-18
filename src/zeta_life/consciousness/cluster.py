@@ -10,7 +10,7 @@ Fecha: 2026-01-03
 
 from dataclasses import dataclass, field
 from enum import Enum
-from typing import TYPE_CHECKING, Dict, List, Optional, Tuple
+from typing import TYPE_CHECKING, Optional
 
 import numpy as np
 import torch
@@ -26,7 +26,6 @@ from .micro_psyche import ConsciousCell, MicroPsyche, compute_local_phi, unbiase
 # Type hint for resilience config
 if TYPE_CHECKING:
     from .resilience import MicroModule
-
 
 # =============================================================================
 # CLUSTER PSYCHE
@@ -173,7 +172,6 @@ class ClusterPsyche:
             prediction_error=prediction_error,
             integration_level=integration_level
         )
-
 
 # =============================================================================
 # CLUSTER
@@ -481,7 +479,6 @@ class Cluster:
 
         return cluster
 
-
 # =============================================================================
 # UTILIDADES DE CLUSTERING
 # =============================================================================
@@ -524,7 +521,6 @@ def find_cluster_neighbors(
                 if dist < threshold:
                     cluster.neighbors.append(other.id)
 
-
 def compute_inter_cluster_coherence(clusters: list[Cluster]) -> float:
     """
     Calcula coherencia entre clusters (diversidad de especializaciones).
@@ -553,7 +549,6 @@ def compute_inter_cluster_coherence(clusters: list[Cluster]) -> float:
 
     return diversity_score * 0.5 + avg_phi * 0.5
 
-
 def merge_clusters(cluster_a: Cluster, cluster_b: Cluster) -> Cluster:
     """
     Fusiona dos clusters en uno.
@@ -570,7 +565,6 @@ def merge_clusters(cluster_a: Cluster, cluster_b: Cluster) -> Cluster:
         cluster_id=cluster_a.id,  # Mantiene ID del primero
         cells=merged_cells
     )
-
 
 def split_cluster(
     cluster: Cluster,
@@ -611,7 +605,6 @@ def split_cluster(
         new_clusters.append(new_cluster)
 
     return new_clusters
-
 
 # =============================================================================
 # TESTS BÁSICOS

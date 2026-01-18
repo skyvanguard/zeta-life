@@ -30,7 +30,7 @@ import random
 from collections import deque
 from dataclasses import dataclass, field
 from enum import Enum
-from typing import Dict, List, Optional, Tuple
+from typing import Optional
 
 import numpy as np
 import torch
@@ -52,7 +52,6 @@ class ConsolidationType(Enum):
     PRUNING = 2         # Eliminar memorias irrelevantes
     INTEGRATION = 3     # Integrar memorias conflictivas
 
-
 @dataclass
 class DreamMemory:
     """Memoria seleccionada para replay durante sueno."""
@@ -60,7 +59,6 @@ class DreamMemory:
     importance: float
     replay_count: int = 0
     consolidated: bool = False
-
 
 @dataclass
 class ConsolidationReport:
@@ -73,7 +71,6 @@ class ConsolidationReport:
     insights: list[str]
     consciousness_before: float
     consciousness_after: float
-
 
 # =============================================================================
 # SELECTOR DE MEMORIAS PARA REPLAY
@@ -146,7 +143,6 @@ class MemorySelector:
 
         return selected
 
-
 # =============================================================================
 # GENERADOR DE SUENOS CON ATENCION
 # =============================================================================
@@ -210,7 +206,6 @@ class AttentiveDreamGenerator:
             base_narrative = "VIVIDO: " + base_narrative
 
         return str(base_narrative)
-
 
 # =============================================================================
 # CONSOLIDADOR DE SUENOS
@@ -474,7 +469,6 @@ class DreamConsolidator:
 
         return report
 
-
 # =============================================================================
 # SISTEMA COMPLETO CON CICLOS DE SUENO
 # =============================================================================
@@ -558,7 +552,6 @@ class ConsciousSystemWithDreams:
             'learning_events': len(self.online_learner.learning_events),
             'steps_since_dream': self.steps_since_dream,
         }
-
 
 # =============================================================================
 # DEMO
@@ -683,7 +676,6 @@ def demo_dream_consolidation():
     print("=" * 70 + "\n")
 
     return system, report
-
 
 if __name__ == "__main__":
     demo_dream_consolidation()

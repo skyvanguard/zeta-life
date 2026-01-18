@@ -7,12 +7,10 @@ Implementation of the behavior algorithm from research notes:
 - A^3 + V -> B^3 + A: Transformation with vital potential
 - B = AA* - A*A: Net role (difference between emitting and receiving)
 """
-from typing import List, Tuple
 
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-
 
 class BehaviorEngine(nn.Module):
     """Implements the behavior algorithm from research notes.

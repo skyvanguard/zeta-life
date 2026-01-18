@@ -12,8 +12,7 @@ Usage:
     damage_system = DamageSystem(config)
 """
 
-from typing import Any, Dict
-
+from typing import Any
 
 def _deep_update(base: dict, updates: dict) -> dict:
     """Recursively update nested dict."""
@@ -23,7 +22,6 @@ def _deep_update(base: dict, updates: dict) -> dict:
         else:
             base[key] = value
     return base
-
 
 def create_hierarchical_config(
     base_config: dict = None,
@@ -141,7 +139,6 @@ def create_hierarchical_config(
         },
     }
 
-
 def _get_default_evolved_config() -> dict:
     """
     Default evolved configuration (fitness=0.9993, 8/8 criteria).
@@ -188,7 +185,6 @@ def _get_default_evolved_config() -> dict:
         "module_cap": 6.001043522753437,
         "min_activations": 4.56680960109646,
     }
-
 
 # ═══════════════════════════════════════════════════════════════════════
 # PRESETS
@@ -240,7 +236,6 @@ PRESETS = {
     },
 }
 
-
 def get_preset_config(preset_name: str) -> dict[str, Any]:
     """
     Get configuration by preset name.
@@ -276,11 +271,9 @@ def get_preset_config(preset_name: str) -> dict[str, Any]:
 
     return config
 
-
 def list_presets() -> dict[str, str]:
     """List available presets with descriptions."""
     return {name: preset['description'] for name, preset in PRESETS.items()}
-
 
 def get_preset_info(preset_name: str) -> dict:
     """Get detailed info about a preset."""

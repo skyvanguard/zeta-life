@@ -6,10 +6,9 @@ human-readable names. It is NEVER used in calculations.
 
 import json
 import os
-from typing import Any, Dict, Optional
+from typing import Any, Optional
 
 from ..core.vertex import Vertex
-
 
 class NarrativeMapper:
     """Optional layer for visualization/demo. Never used in calculations.

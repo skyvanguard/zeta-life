@@ -1,7 +1,7 @@
 # zeta_organism.py
 """ZetaOrganism: Organismo artificial con inteligencia colectiva."""
 from dataclasses import dataclass, field
-from typing import Dict, List, Optional, Tuple
+from typing import Optional
 
 import numpy as np
 import torch
@@ -11,7 +11,6 @@ from .behavior_engine import BehaviorEngine
 from .cell_state import CellRole, CellState
 from .force_field import ForceField
 from .organism_cell import OrganismCell
-
 
 @dataclass
 class CellEntity:
@@ -25,7 +24,6 @@ class CellEntity:
     @property
     def role_idx(self) -> int:
         return int(self.role.argmax().item())
-
 
 class ZetaOrganism(nn.Module):
     """Organismo artificial distribuido."""

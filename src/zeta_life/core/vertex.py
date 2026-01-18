@@ -14,8 +14,7 @@ Correspondence Map:
 import json
 from dataclasses import dataclass, field
 from enum import Enum
-from typing import Dict, Optional
-
+from typing import Optional
 
 class Vertex(Enum):
     """Abstract vertices of the tetrahedral state space.
@@ -36,7 +35,6 @@ class Vertex(Enum):
     SOMBRA = 1
     ANIMA = 2
     ANIMUS = 3
-
 
 @dataclass
 class BehaviorVector:
@@ -98,7 +96,6 @@ class BehaviorVector:
             exploration=lst[2] if len(lst) > 2 else 0.0,
             opposition=lst[3] if len(lst) > 3 else 0.0,
         )
-
 
 @dataclass
 class VertexBehaviors:
@@ -203,7 +200,6 @@ class VertexBehaviors:
     def __getitem__(self, vertex: Vertex) -> BehaviorVector:
         """Allow dict-like access: behaviors[Vertex.V0]."""
         return self.get(vertex)
-
 
 # Backwards compatibility alias (deprecated)
 # This allows gradual migration from Archetype to Vertex

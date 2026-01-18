@@ -18,7 +18,7 @@ import random
 import sys
 from dataclasses import dataclass, field
 from enum import Enum
-from typing import Dict, List, Optional, Tuple
+from typing import Optional
 
 import matplotlib.pyplot as plt
 import numpy as np
@@ -47,7 +47,6 @@ class RelationType(Enum):
     RIVAL = 2        # Tienden a oponerse
     MENTOR = 3       # Uno influye mas al otro
     ESPEJO = 4       # Reflejan aspectos del otro
-
 
 # =============================================================================
 # INDIVIDUO EN LA SOCIEDAD
@@ -87,7 +86,6 @@ class SocialPsyche:
         # El estado del otro actua como estimulo
         self.psyche.communicate(other_state * effective_strength +
                                 self.get_state() * (1 - effective_strength))
-
 
 # =============================================================================
 # GENERADOR DE PERSONALIDADES
@@ -135,7 +133,6 @@ class PersonalityGenerator:
             openness=random.uniform(0.3, 0.8),
             expressiveness=random.uniform(0.4, 0.9),
         )
-
 
 # =============================================================================
 # SOCIEDAD DE PSIQUES
@@ -539,7 +536,6 @@ class PsycheSociety:
         print(f"\n  Visualizacion guardada: {save_path}")
         plt.close()
 
-
 # =============================================================================
 # CLI MULTI-PSYCHE
 # =============================================================================
@@ -664,7 +660,6 @@ def run_society_cli():
 
     except KeyboardInterrupt:
         print("\n\n  [Interrumpido]\n")
-
 
 # =============================================================================
 # MAIN

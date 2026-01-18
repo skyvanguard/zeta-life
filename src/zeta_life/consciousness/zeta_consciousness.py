@@ -27,7 +27,7 @@ import sys
 from dataclasses import dataclass, field
 from datetime import datetime
 from enum import Enum, auto
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any, Optional
 
 if sys.platform == 'win32':
     try:
@@ -92,7 +92,6 @@ class ConsciousnessMode(Enum):
     REFLECTING = auto()     # Reflexionando, introspección profunda
     SOCIALIZING = auto()    # Interactuando con otras psiques
 
-
 @dataclass
 class ConsciousnessState:
     """Estado completo de la consciencia."""
@@ -122,7 +121,6 @@ class ConsciousnessState:
             'dream_count': self.dream_count,
             'timestamp': self.timestamp
         }
-
 
 class ZetaConsciousness:
     """
@@ -718,7 +716,6 @@ class ZetaConsciousness:
         # Cargar memoria
         # Memoria ya se carga en el constructor de ZetaMemorySystem
 
-
 # =============================================================================
 # SOCIEDAD DE CONSCIENCIAS
 # =============================================================================
@@ -772,7 +769,6 @@ class ConsciousnessSociety:
 
         return discussion
 
-
 # =============================================================================
 # CLI INTERACTIVO
 # =============================================================================
@@ -815,7 +811,6 @@ def print_help() -> None:
 ╚══════════════════════════════════════════════════════════════════╝
 """
     print(help_text)
-
 
 def interactive_session() -> None:
     """Sesión interactiva completa."""
@@ -970,7 +965,6 @@ def interactive_session() -> None:
             if response['self_message']:
                 print(f"\n  Self: \"{response['self_message']}\"")
 
-
 def run_test() -> None:
     """Test completo del sistema unificado."""
     print("""
@@ -1029,7 +1023,6 @@ def run_test() -> None:
     for f in ["test_consciousness_state.json", "consciousness_memory.json"]:
         if os.path.exists(f):
             os.remove(f)
-
 
 if __name__ == '__main__':
     if '--test' in sys.argv:

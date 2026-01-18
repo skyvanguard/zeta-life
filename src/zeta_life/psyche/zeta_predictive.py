@@ -19,7 +19,7 @@ if sys.platform == 'win32':
 from collections import deque
 from dataclasses import dataclass, field
 from enum import Enum
-from typing import Deque, Dict, List, Optional, Tuple
+from typing import Optional
 
 import numpy as np
 import torch
@@ -124,7 +124,6 @@ class StimulusPredictor(nn.Module):
     def update_history(self, stimulus: torch.Tensor) -> None:
         """Añade estímulo al historial."""
         self.stimulus_history.append(stimulus.detach().clone())
-
 
 # =============================================================================
 # NIVEL 2: STATE PREDICTOR
@@ -268,7 +267,6 @@ class StatePredictor(nn.Module):
             'error_abs': torch.abs(error),
         }
 
-
 # =============================================================================
 # NIVEL 3: META PREDICTOR
 # =============================================================================
@@ -399,7 +397,6 @@ class MetaPredictor(nn.Module):
         """Actualiza historiales."""
         self.error_history.append(error_L2.detach().clone())
         self.surprise_history.append(surprise)
-
 
 # =============================================================================
 # MÉTRICAS DE CONSCIENCIA PREDICTIVA
@@ -534,7 +531,6 @@ class PredictiveConsciousnessMetrics:
             'consciousness_index': self.get_consciousness_index(),
         }
 
-
 # =============================================================================
 # COMPUTADOR DE INFLUENCIA ARQUETIPAL
 # =============================================================================
@@ -651,7 +647,6 @@ class ArchetypeInfluenceComputer:
         dominant_idx = state.argmax().item()
         dominant_arch = Archetype(dominant_idx)
         self.error_by_archetype[dominant_arch].append(error)
-
 
 # =============================================================================
 # ZETA PREDICTIVE PSYCHE - SISTEMA PRINCIPAL
@@ -922,7 +917,6 @@ class ZetaPredictivePsyche(nn.Module):
 
         return float(np.mean(recent) - np.mean(older))
 
-
 # =============================================================================
 # DEMO Y VISUALIZACIÓN
 # =============================================================================
@@ -1049,7 +1043,6 @@ def run_predictive_experiment(
         'trend': trend,
     }
 
-
 def visualize_predictive_system(results: dict, save_path: str = 'zeta_predictive_consciousness.png'):
     """Visualiza los resultados del sistema predictivo."""
     try:
@@ -1134,7 +1127,6 @@ def visualize_predictive_system(results: dict, save_path: str = 'zeta_predictive
     except ImportError:
         print('matplotlib no disponible para visualización')
         return None
-
 
 # =============================================================================
 # MAIN

@@ -18,7 +18,7 @@ matplotlib.use('Agg')
 
 import warnings
 from collections import deque
-from typing import Any, Dict, List, Optional, Tuple, Union
+from typing import Any, Optional, Union
 
 import matplotlib.pyplot as plt
 import numpy as np
@@ -31,7 +31,6 @@ try:
     HAS_MPMATH = True
 except ImportError:
     HAS_MPMATH = False
-
 
 def get_zeta_zeros(M: int) -> list[float]:
     """Obtiene los primeros M ceros de ζ(s)."""
@@ -50,7 +49,6 @@ def get_zeta_zeros(M: int) -> list[float]:
             n = k + 1
             zeros.append(2 * np.pi * n / np.log(n + 2))
         return zeros
-
 
 class ZetaLaplaceOperator:
     """
@@ -113,7 +111,6 @@ class ZetaLaplaceOperator:
 
         return result
 
-
 class ZetaSpectralFilter:
     """
     Filtro espectral basado en los ceros de zeta.
@@ -173,7 +170,6 @@ class ZetaSpectralFilter:
         filtered_spectrum = spectrum * self.transfer_function
         filtered: np.ndarray = np.real(ifft2(filtered_spectrum))
         return filtered
-
 
 class ZetaFullSystem:
     """
@@ -398,7 +394,6 @@ class ZetaFullSystem:
 
         return lags, np.array(temporal_corr)
 
-
 def visualize_full_system(game: ZetaFullSystem):
     """Visualización completa del sistema."""
     fig = plt.figure(figsize=(18, 14))
@@ -505,7 +500,6 @@ def visualize_full_system(game: ZetaFullSystem):
 
     return fig
 
-
 def compare_memory_effects(rows=80, cols=80, steps=100):
     """
     Compara el sistema con y sin memoria temporal.
@@ -558,7 +552,6 @@ def compare_memory_effects(rows=80, cols=80, steps=100):
     plt.tight_layout()
     return fig
 
-
 def analyze_alpha_beta_space(rows=60, cols=60, steps=50):
     """
     Explora el espacio de parámetros (alpha, beta).
@@ -594,7 +587,6 @@ def analyze_alpha_beta_space(rows=60, cols=60, steps=50):
     ax.legend()
 
     return fig
-
 
 def demo_fase3():
     """Demostración completa de Fase 3."""
@@ -667,7 +659,6 @@ def demo_fase3():
     print("=" * 70)
 
     return game
-
 
 if __name__ == "__main__":
     demo_fase3()

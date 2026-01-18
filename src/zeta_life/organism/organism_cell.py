@@ -1,6 +1,6 @@
 # organism_cell.py
 """Celula del organismo con NCA + Resonant."""
-from typing import Optional, Tuple
+from typing import Optional
 
 import numpy as np
 import torch
@@ -44,7 +44,6 @@ except ImportError:
             gate = self.gate_net(x)
             memory = gate * zeta_mod
             return memory, gate
-
 
 class OrganismCell(nn.Module):
     """Celula individual del organismo artificial.
@@ -189,7 +188,6 @@ class OrganismCell(nn.Module):
         role = self.detect_role(new_state)
 
         return new_state, role
-
 
 if __name__ == '__main__':
     print('=' * 70)

@@ -11,7 +11,7 @@ Fecha: 2026-01-03
 """
 
 from dataclasses import dataclass
-from typing import Dict, List, Optional, Tuple
+from typing import Optional
 
 import numpy as np
 import torch
@@ -591,7 +591,6 @@ class TopDownModulator(nn.Module):
             alignments.append((alignment + 1) / 2)  # Normalizar a [0, 1]
 
         return float(np.mean(alignments))
-
 
 # =============================================================================
 # TESTS BÁSICOS

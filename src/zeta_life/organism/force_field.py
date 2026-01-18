@@ -1,12 +1,10 @@
 # force_field.py
 """Campo de fuerzas con propagacion zeta."""
-from typing import List, Tuple
 
 import numpy as np
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-
 
 def get_zeta_zeros(M: int) -> list[float]:
     """Primeros M ceros no triviales de zeta."""

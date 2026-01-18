@@ -28,7 +28,7 @@ from collections import deque
 from dataclasses import dataclass, field
 from datetime import datetime
 from enum import Enum
-from typing import Dict, List, Optional, Tuple
+from typing import Optional
 
 import numpy as np
 import torch
@@ -106,7 +106,6 @@ class ConsciousnessIndex:
             'total': self.compute_total()
         }
 
-
 # =============================================================================
 # MEMORIA DE ATRACTORES (para emergencia de identidad)
 # =============================================================================
@@ -120,7 +119,6 @@ class StoredAttractor:
     visit_count: int = 1         # Veces visitado
     last_visit: int = 0          # Ultimo paso visitado
     strength: float = 1.0        # Fuerza del atractor (crece con visitas)
-
 
 class AttractorMemory:
     """
@@ -342,7 +340,6 @@ class AttractorMemory:
         else:
             return f"Identidad emergente: {primary}"
 
-
 # =============================================================================
 # MODULADOR DE INDIVIDUACION
 # =============================================================================
@@ -395,7 +392,6 @@ class IndividuationModulator:
         """Determina si debe generarse un insight."""
         return (surprise * attention) > self.insight_threshold
 
-
 # =============================================================================
 # SISTEMA DE INSIGHTS
 # =============================================================================
@@ -409,7 +405,6 @@ class Insight:
     content: str
     depth: float  # Profundidad del insight (0-1)
     source: str   # Origen: 'prediction', 'attention', 'dream', 'integration'
-
 
 class InsightGenerator:
     """Genera insights basados en el estado del sistema."""
@@ -471,7 +466,6 @@ class InsightGenerator:
             depth=depth,
             source=source
         )
-
 
 # =============================================================================
 # SISTEMA CONSCIENTE INTEGRADO
@@ -1116,7 +1110,6 @@ class ZetaConsciousSelf(nn.Module):
         """Carga estado."""
         self.individuation.load(path)
 
-
 # =============================================================================
 # DEMO
 # =============================================================================
@@ -1231,7 +1224,6 @@ def demo_conscious_self() -> 'ZetaConsciousSelf':
     print("\n" + "=" * 70)
 
     return system
-
 
 if __name__ == "__main__":
     demo_conscious_self()

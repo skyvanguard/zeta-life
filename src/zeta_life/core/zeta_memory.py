@@ -18,7 +18,7 @@ import sys
 from dataclasses import asdict, dataclass, field
 from datetime import datetime
 from enum import Enum
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any, Optional
 
 import numpy as np
 import torch
@@ -72,7 +72,6 @@ class EpisodicMemory:
         my_state = torch.tensor(self.archetype_state)
         return F.cosine_similarity(my_state.unsqueeze(0), state.unsqueeze(0)).item()
 
-
 @dataclass
 class SemanticMemory:
     """
@@ -105,7 +104,6 @@ class SemanticMemory:
         self.strength = min(1.0, self.strength + 0.1)
         self.last_accessed = datetime.now().isoformat()
 
-
 @dataclass
 class ProceduralMemory:
     """
@@ -125,7 +123,6 @@ class ProceduralMemory:
     @classmethod
     def from_dict(cls, data: dict) -> 'ProceduralMemory':
         return cls(**data)
-
 
 # =============================================================================
 # SISTEMA DE MEMORIA COMPLETO
@@ -452,7 +449,6 @@ class ZetaMemorySystem:
 
         return "\n".join(lines)
 
-
 # =============================================================================
 # PSYCHE CON MEMORIA
 # =============================================================================
@@ -598,7 +594,6 @@ class MemoryAwarePsyche:
         """Olvida la sesion actual (limpia buffer sin consolidar)."""
         self.memory.short_term_buffer = []
 
-
 # =============================================================================
 # CLI CON MEMORIA
 # =============================================================================
@@ -705,7 +700,6 @@ def run_memory_cli() -> None:
         print("\n\n  [Guardando memorias...]")
         psyche.save()
         print("  [Interrumpido]\n")
-
 
 # =============================================================================
 # MAIN

@@ -15,7 +15,7 @@ import matplotlib
 matplotlib.use('Agg')
 
 import warnings
-from typing import List, Optional, Tuple
+from typing import Optional
 
 import matplotlib.pyplot as plt
 import numpy as np
@@ -28,7 +28,6 @@ try:
 except ImportError:
     HAS_MPMATH = False
     warnings.warn("mpmath no disponible. Usando aproximaciones.")
-
 
 def get_zeta_zeros(M: int) -> list[float]:
     """Obtiene los primeros M ceros de ζ(s)."""
@@ -46,7 +45,6 @@ def get_zeta_zeros(M: int) -> list[float]:
             n = k + 1
             zeros.append(2 * np.pi * n / np.log(n + 2))
         return zeros
-
 
 class ZetaNeighborhoodKernel:
     """
@@ -141,7 +139,6 @@ class ZetaNeighborhoodKernel:
 
         plt.tight_layout()
         return fig
-
 
 class ZetaWeightedGoL:
     """
@@ -294,7 +291,6 @@ class ZetaWeightedGoL:
 
         return distances, np.array(correlations)
 
-
 def compare_moore_vs_zeta(rows=100, cols=100, steps=100, seed=42):
     """
     Compara evolución con kernel Moore clásico vs kernel zeta.
@@ -411,7 +407,6 @@ def compare_moore_vs_zeta(rows=100, cols=100, steps=100, seed=42):
 
     return fig, zeta_game
 
-
 def analyze_parameter_sensitivity(rows=80, cols=80, steps=50):
     """
     Analiza cómo los parámetros del kernel zeta afectan la evolución.
@@ -490,7 +485,6 @@ def analyze_parameter_sensitivity(rows=80, cols=80, steps=50):
 
     return fig
 
-
 def demo_fase2():
     """Demostración completa de Fase 2."""
     print("=" * 60)
@@ -541,7 +535,6 @@ def demo_fase2():
     print("=" * 60)
 
     return game
-
 
 if __name__ == "__main__":
     demo_fase2()

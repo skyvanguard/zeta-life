@@ -5,7 +5,7 @@ Evolucion de ZetaOrganism: usa OrganismCellLSTMPool para que cada celula
 mantenga su propio estado LSTM con memoria zeta.
 """
 from dataclasses import dataclass
-from typing import Dict, List, Optional
+from typing import Optional
 
 import numpy as np
 import torch
@@ -15,7 +15,6 @@ from .behavior_engine import BehaviorEngine
 from .cell_state import CellRole, CellState
 from .force_field import ForceField
 from .organism_cell_lstm import OrganismCellLSTMPool
-
 
 @dataclass
 class CellEntityLSTM:
@@ -31,7 +30,6 @@ class CellEntityLSTM:
     @property
     def role_idx(self) -> int:
         return int(self.role.argmax().item())
-
 
 class ZetaOrganismLSTM(nn.Module):
     """Organismo con memoria LSTM-zeta por celula.
@@ -294,7 +292,6 @@ class ZetaOrganismLSTM(nn.Module):
 
         self._update_grids()
         return len(damaged)
-
 
 if __name__ == '__main__':
     print('=' * 70)

@@ -7,7 +7,6 @@ from typing import Optional
 
 import torch
 
-
 class CellRole(Enum):
     MASS = 0      # Mi - sigue a Fi
     FORCE = 1     # Fi - atrae masas

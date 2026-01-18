@@ -15,7 +15,7 @@ from collections import deque
 from collections.abc import Callable
 from dataclasses import dataclass, field
 from datetime import datetime
-from typing import Dict, List, Optional, Tuple
+from typing import Optional
 
 import matplotlib.pyplot as plt
 import numpy as np
@@ -88,7 +88,6 @@ class SimulationConfig:
     resilience_preset: str = 'optimal'  # Preset: demo, optimal, stress, validation
     resilience_config: dict | None = None  # Custom config (overrides preset)
 
-
 # =============================================================================
 # REGISTRO DE MÉTRICAS
 # =============================================================================
@@ -150,7 +149,6 @@ class SimulationMetrics:
             'total_modules': self.total_modules,
             'modules_spread': self.modules_spread,
         }
-
 
 # =============================================================================
 # SIMULACIÓN JERÁRQUICA
@@ -834,7 +832,6 @@ class HierarchicalSimulation:
 
         print(f"Métricas guardadas en: {filepath}")
 
-
 # =============================================================================
 # EXPERIMENTOS DE VALIDACIÓN
 # =============================================================================
@@ -884,7 +881,6 @@ def run_emergence_experiment(
         'simulation': sim,
         'summary': summary
     }
-
 
 def run_perturbation_experiment(
     n_steps: int = 200,
@@ -945,7 +941,6 @@ def run_perturbation_experiment(
         'avg_recovery': avg_recovery
     }
 
-
 def run_archetype_bias_experiment(
     dominant_archetype: Archetype = Archetype.PERSONA,
     bias_strength: float = 0.5,
@@ -1000,7 +995,6 @@ def run_archetype_bias_experiment(
         'bias_matches_dominant': matches,
         'final_dominant': final_dominant
     }
-
 
 # =============================================================================
 # MAIN

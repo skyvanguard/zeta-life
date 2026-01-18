@@ -22,7 +22,7 @@ from collections.abc import Callable
 from dataclasses import dataclass, field
 from datetime import datetime
 from enum import Enum, auto
-from typing import Any, Dict, List, Optional, Tuple, TypedDict
+from typing import Any, Optional, TypedDict
 
 if sys.platform == 'win32':
     try:
@@ -37,13 +37,11 @@ import torch.nn as nn
 # Importar sistema base
 from .zeta_psyche import Archetype, PsycheInterface, TetrahedralSpace, ZetaPsyche
 
-
 class DefenseMechanism(TypedDict):
     """Type definition for defense mechanism entries."""
     description: str
     blocks: list[Archetype]
     strength: float
-
 
 class IntegrationWorkEntry(TypedDict):
     """Type definition for integration work entries."""
@@ -52,7 +50,6 @@ class IntegrationWorkEntry(TypedDict):
     description: str
     prompts: list[str]
     integration_potential: float
-
 
 class IndividuationStage(Enum):
     """Etapas del proceso de individuación."""
@@ -64,7 +61,6 @@ class IndividuationStage(Enum):
     INTEGRACION_ANIMA = auto()    # Equilibrio de polaridades
     EMERGENCIA_SELF = auto()      # El centro comienza a manifestarse
     SELF_REALIZADO = auto()       # Individuación lograda (nunca permanente)
-
 
 @dataclass
 class IntegrationMetrics:
@@ -91,7 +87,6 @@ class IntegrationMetrics:
             'overall': self.overall_integration()
         }
 
-
 @dataclass
 class IndividuationEvent:
     """Evento significativo en el proceso de individuación."""
@@ -103,7 +98,6 @@ class IndividuationEvent:
     integration_delta: float   # Cambio en integración
     resistance: float          # Nivel de resistencia encontrada
 
-
 @dataclass
 class SelfManifestation:
     """Manifestación del Self en un momento dado."""
@@ -112,7 +106,6 @@ class SelfManifestation:
     luminosity: float          # Intensidad de la manifestación (0-1)
     symbol: str                # Símbolo asociado (mandala, etc)
     message: str | None     # Mensaje del Self si hay
-
 
 class ResistanceSystem:
     """
@@ -192,7 +185,6 @@ class ResistanceSystem:
                 del self.active_defenses[defense_name]
                 return True
         return False
-
 
 class IntegrationWork:
     """
@@ -289,7 +281,6 @@ class IntegrationWork:
             IndividuationStage.SELF_REALIZADO: ['mandala_meditation']
         }
         return stage_works.get(stage, ['dream_analysis'])
-
 
 class SelfSystem:
     """
@@ -435,7 +426,6 @@ class SelfSystem:
         messages = messages_by_state[(high_lum, high_stab)]
 
         return str(np.random.choice(messages))
-
 
 class IndividuationProcess:
     """
@@ -782,7 +772,6 @@ class IndividuationProcess:
         except FileNotFoundError:
             return False
 
-
 class IndividuatingPsyche:
     """
     Psique completa con proceso de individuación integrado.
@@ -822,7 +811,6 @@ class IndividuatingPsyche:
     def load(self) -> None:
         """Carga estado."""
         self.individuation.load()
-
 
 def visualize_individuation(process: IndividuationProcess, save_path: str = "individuation_progress.png") -> str | None:
     """Visualiza el progreso de individuación."""
@@ -922,7 +910,6 @@ def visualize_individuation(process: IndividuationProcess, save_path: str = "ind
     except ImportError:
         return None
 
-
 def interactive_session() -> None:
     """Sesión interactiva de individuación."""
     print("\n" + "="*60)
@@ -1012,7 +999,6 @@ def interactive_session() -> None:
             if self_info['message']:
                 print(f"  Mensaje del Self: \"{self_info['message']}\"")
 
-
 def run_test() -> None:
     """Test del sistema de individuación."""
     print("\n" + "="*60)
@@ -1066,7 +1052,6 @@ def run_test() -> None:
     print("\n" + "="*60)
     print("  FIN TEST")
     print("="*60)
-
 
 if __name__ == '__main__':
     import sys

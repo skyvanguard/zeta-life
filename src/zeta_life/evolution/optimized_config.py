@@ -57,11 +57,9 @@ OPTIMIZED_CONFIG = {
     "min_activations": 4.56680960109646,
 }
 
-
 def get_optimized_config() -> EvolvableConfig:
     """Get the evolved optimized configuration."""
     return EvolvableConfig.from_dict(OPTIMIZED_CONFIG)
-
 
 def get_optimized_dict() -> dict:
     """Get the optimized configuration as a dictionary."""

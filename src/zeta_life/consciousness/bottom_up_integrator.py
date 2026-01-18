@@ -11,7 +11,7 @@ Fecha: 2026-01-03
 """
 
 from dataclasses import dataclass
-from typing import Dict, List, Optional, Tuple
+from typing import Optional
 
 import numpy as np
 import torch
@@ -666,7 +666,6 @@ class BottomUpIntegrator(nn.Module):
                 total_representation += (sim + 1) / 2  # Normalizar a [0, 1]
 
         return total_representation / len(cells) if cells else 0.0
-
 
 # =============================================================================
 # TESTS BÁSICOS

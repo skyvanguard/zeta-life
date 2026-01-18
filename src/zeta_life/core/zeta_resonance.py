@@ -10,13 +10,12 @@ Inspirado por:
 - "El orden oculto solo existe si los ceros estan en linea critica"
 """
 
-from typing import List, Optional, Tuple
+from typing import Optional
 
 import numpy as np
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-
 
 def get_zeta_zeros(M: int = 15) -> list[float]:
     """Primeros M ceros no triviales de zeta (parte imaginaria)."""
@@ -27,7 +26,6 @@ def get_zeta_zeros(M: int = 15) -> list[float]:
         67.079811, 69.546402, 72.067158, 75.704691, 77.144840
     ]
     return zeros[:M]
-
 
 class ZetaSpectrumAnalyzer(nn.Module):
     """
@@ -85,7 +83,6 @@ class ZetaSpectrumAnalyzer(nn.Module):
         resonance = torch.sigmoid(resonance - 0.5)  # threshold adaptativo
 
         return resonance.unsqueeze(1)  # [batch, 1]
-
 
 class TensionMarkerDetector(nn.Module):
     """
@@ -148,7 +145,6 @@ class TensionMarkerDetector(nn.Module):
 
         return tension
 
-
 class ZetaMemoryGated(nn.Module):
     """
     Memoria zeta con gate basado en resonancia y tension.
@@ -200,7 +196,6 @@ class ZetaMemoryGated(nn.Module):
         m_t = gate * m_raw
 
         return m_t
-
 
 class ZetaMemoryGatedSimple(nn.Module):
     """
@@ -265,7 +260,6 @@ class ZetaMemoryGatedSimple(nn.Module):
         memory = gate * zeta_mod
 
         return memory, gate
-
 
 class ZetaLSTMResonant(nn.Module):
     """
@@ -358,7 +352,6 @@ class ZetaLSTMResonant(nn.Module):
             'avg_tension': np.mean(self.last_tensions) if self.last_tensions else 0
         }
 
-
 # Version simplificada para comparacion rapida
 class ZetaLSTMResonantSimple(nn.Module):
     """
@@ -415,7 +408,6 @@ class ZetaLSTMResonantSimple(nn.Module):
             outputs.append(h)
 
         return torch.stack(outputs, dim=1), (h.unsqueeze(0), c.unsqueeze(0))
-
 
 if __name__ == '__main__':
     print('='*70)

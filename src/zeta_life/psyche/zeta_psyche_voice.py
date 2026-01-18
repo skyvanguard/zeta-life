@@ -10,7 +10,7 @@ import io
 import random
 import sys
 from enum import Enum
-from typing import Dict, List, Optional, Tuple
+from typing import Optional
 
 import torch
 import torch.nn.functional as F
@@ -181,7 +181,6 @@ EXPANDED_VOCABULARY = {
     'entiendo': [0.2, 0.1, 0.3, 0.4],
     'no entiendo': [0.2, 0.4, 0.2, 0.2],
 }
-
 
 # =============================================================================
 # PLANTILLAS DE RESPUESTA POR ARQUETIPO
@@ -440,7 +439,6 @@ BLEND_RESPONSES = {
     ],
 }
 
-
 # =============================================================================
 # GENERADOR DE VOZ ARQUETIPICA
 # =============================================================================
@@ -678,7 +676,6 @@ class ArchetypalVoice:
 
         return 'reflection'
 
-
 # =============================================================================
 # VOZ ORGANICA - DESCRIPCIONES INTERNAS DEL ORGANISMO
 # =============================================================================
@@ -848,7 +845,6 @@ ORGANIC_VOCABULARY = {
     'energia': [0.2, 0.2, 0.3, 0.3],
 }
 
-
 class OrganicVoice:
     """
     Genera descripciones desde la perspectiva interna del organismo.
@@ -1013,7 +1009,6 @@ class OrganicVoice:
         if len(self.last_descriptions) > self.max_history:
             self.last_descriptions.pop(0)
 
-
 # =============================================================================
 # INTERFAZ DE CONVERSACION MEJORADA
 # =============================================================================
@@ -1139,7 +1134,6 @@ class ConversationalPsyche:
 
         return '\n'.join(lines)
 
-
 # =============================================================================
 # CLI INTERACTIVO
 # =============================================================================
@@ -1207,7 +1201,6 @@ def run_interactive_cli():
             break
         except EOFError:
             break
-
 
 # =============================================================================
 # MAIN

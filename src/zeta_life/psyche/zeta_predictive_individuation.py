@@ -20,7 +20,7 @@ if sys.platform == 'win32':
     sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding='utf-8', errors='replace')
 
 from dataclasses import dataclass
-from typing import Dict, Optional
+from typing import Optional
 
 import numpy as np
 import torch
@@ -40,7 +40,6 @@ from .zeta_predictive import (
 
 # Importar sistemas base
 from .zeta_psyche import Archetype, PsycheInterface, ZetaPsyche
-
 
 @dataclass
 class FullConsciousnessMetrics:
@@ -124,7 +123,6 @@ class FullConsciousnessMetrics:
             },
             'total_consciousness': self.total_consciousness(),
         }
-
 
 class PredictiveIndividuation:
     """
@@ -357,7 +355,6 @@ class PredictiveIndividuation:
         """Carga estado."""
         self.individuation.load(path)
 
-
 class FullConsciousPsyche:
     """
     Interfaz unificada para el sistema completo de consciencia.
@@ -409,7 +406,6 @@ class FullConsciousPsyche:
     def load(self) -> None:
         """Carga estado."""
         self.full_system.load()
-
 
 # =============================================================================
 # DEMO INTERACTIVA
@@ -479,7 +475,6 @@ def interactive_session() -> None:
             if result['self']['message']:
                 print(f"  Mensaje: \"{result['self']['message']}\"")
 
-
 def run_demo() -> None:
     """Demo rápida del sistema."""
     print("\n" + "="*70)
@@ -523,7 +518,6 @@ def run_demo() -> None:
     print("\n" + "="*70)
     print("  DEMO COMPLETADA")
     print("="*70)
-
 
 if __name__ == '__main__':
     import sys

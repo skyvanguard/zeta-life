@@ -17,7 +17,7 @@ import matplotlib
 matplotlib.use('Agg')
 
 import warnings
-from typing import List, Optional, Tuple
+from typing import Optional
 
 import matplotlib.pyplot as plt
 import numpy as np
@@ -41,7 +41,6 @@ try:
 except ImportError:
     HAS_MPMATH = False
 
-
 def get_zeta_zeros(M: int) -> list[float]:
     """Obtiene los primeros M ceros de zeta."""
     if HAS_MPMATH:
@@ -53,7 +52,6 @@ def get_zeta_zeros(M: int) -> list[float]:
         if M <= len(known):
             return known[:M]
         return known + [2 * np.pi * n / np.log(n + 2) for n in range(len(known) + 1, M + 1)]
-
 
 if HAS_TORCH:
 
@@ -101,7 +99,6 @@ if HAS_TORCH:
             padding = self.R
             return F.conv2d(x, self.zeta_kernel, padding=padding, groups=self.in_channels)  # type: ignore[arg-type]
 
-
     class SobelFilter(nn.Module):
         """Filtros Sobel para detectar gradientes."""
 
@@ -121,7 +118,6 @@ if HAS_TORCH:
             gx = F.conv2d(x, self.sobel_x, padding=1, groups=self.in_channels)  # type: ignore[arg-type]
             gy = F.conv2d(x, self.sobel_y, padding=1, groups=self.in_channels)  # type: ignore[arg-type]
             return torch.cat([gx, gy], dim=1)
-
 
     class ZetaNCA(nn.Module):
         """
@@ -245,7 +241,6 @@ if HAS_TORCH:
             cx, cy = height // 2, width // 2
             x[:, 3, cx, cy] = 1.0  # Alpha = 1
             return x
-
 
     class ZetaNCATrainer:
         """
@@ -451,7 +446,6 @@ if HAS_TORCH:
 
             return fig
 
-
 def create_simple_target(size: int = 64) -> "np.ndarray":
     """
     Crea un target simple (circulo con patron).
@@ -472,7 +466,6 @@ def create_simple_target(size: int = 64) -> "np.ndarray":
                 target[i, j, 3] = 1.0  # Alpha
 
     return target
-
 
 def create_zeta_pattern_target(size: int = 64, M: int = 10, sigma: float = 0.1) -> "np.ndarray":
     """
@@ -501,7 +494,6 @@ def create_zeta_pattern_target(size: int = 64, M: int = 10, sigma: float = 0.1) 
                 target[i, j, 3] = 1.0 if r < size // 3 else max(0, 1 - (r - size//3) / 10)
 
     return target
-
 
 def demo_zeta_nca() -> tuple["ZetaNCA", "ZetaNCATrainer"] | None:
     """
@@ -586,7 +578,6 @@ def demo_zeta_nca() -> tuple["ZetaNCA", "ZetaNCATrainer"] | None:
     print("=" * 70)
 
     return model, trainer
-
 
 if __name__ == "__main__":
     demo_zeta_nca()

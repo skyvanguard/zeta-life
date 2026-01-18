@@ -6,7 +6,7 @@ and the EvolvableConfig dataclass for type-safe configuration.
 """
 
 from dataclasses import asdict, dataclass, field
-from typing import Any, Dict, Tuple
+from typing import Any
 
 # Parameter ranges: (min, max) for each evolvable parameter
 PARAM_RANGES: dict[str, tuple[float, float]] = {
@@ -48,7 +48,6 @@ PARAM_RANGES: dict[str, tuple[float, float]] = {
     'module_cap': (4, 10),
     'min_activations': (2, 6),
 }
-
 
 @dataclass
 class EvolvableConfig:
@@ -144,11 +143,9 @@ class EvolvableConfig:
                 d[key] = max(min_val, min(max_val, d[key]))
         return EvolvableConfig.from_dict(d)
 
-
 def get_baseline_config() -> EvolvableConfig:
     """Get the baseline configuration (SYNTH-v2 defaults)."""
     return EvolvableConfig()
-
 
 def get_config_as_flat_dict(config: EvolvableConfig) -> dict[str, float]:
     """Get only the evolvable parameters as a flat dict."""

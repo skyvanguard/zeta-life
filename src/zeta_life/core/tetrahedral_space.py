@@ -4,14 +4,13 @@ This module provides the geometric foundation for the psyche state space.
 All operations are semantically neutral - vertices are V0-V3, not archetypes.
 """
 
-from typing import Dict, Optional
+from typing import Optional
 
 import numpy as np
 import torch
 import torch.nn.functional as F
 
 from .vertex import Vertex
-
 
 class TetrahedralSpace:
     """
@@ -149,7 +148,6 @@ class TetrahedralSpace:
         p1 = self.barycentric_to_3d(w1)
         p2 = self.barycentric_to_3d(w2)
         return float(torch.norm(p1 - p2).item())
-
 
 # Singleton instance for convenience
 _default_space: TetrahedralSpace | None = None

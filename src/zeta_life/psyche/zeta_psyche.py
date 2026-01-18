@@ -27,7 +27,7 @@ if sys.platform == 'win32':
 
 from dataclasses import dataclass, field
 from enum import Enum
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any, Optional
 
 import matplotlib.pyplot as plt
 import numpy as np
@@ -64,7 +64,6 @@ ARCHETYPE_DESCRIPTIONS = {
     Vertex.V2: "El lado emocional, receptivo, interno",
     Vertex.V3: "El lado racional, activo, logos",
 }
-
 
 # =============================================================================
 # ESPACIO TETRAEDRICO
@@ -141,7 +140,6 @@ class TetrahedralSpace:
         result: float = (entropy / max_entropy).item()
         return result
 
-
 # =============================================================================
 # CEROS DE ZETA PARA MODULACION
 # =============================================================================
@@ -153,7 +151,6 @@ def get_zeta_zeros(M: int = 15) -> torch.Tensor:
              52.970321, 56.446248, 59.347044, 60.831779, 65.112544,
              67.079811, 69.546402, 72.067158, 75.704691, 77.144840]
     return torch.tensor(zeros[:M], dtype=torch.float32)
-
 
 class ZetaModulator(nn.Module):
     """Modula la dinamica usando ceros de Riemann."""
@@ -188,7 +185,6 @@ class ZetaModulator(nn.Module):
         """Retorna el patron de resonancia actual."""
         return self.phi * torch.cos(self.gammas * self.t * 0.1)  # type: ignore[operator, arg-type]
 
-
 # =============================================================================
 # CELULA PSIQUICA
 # =============================================================================
@@ -210,7 +206,6 @@ class PsychicCell:
     def get_trajectory(self) -> torch.Tensor:
         """Retorna la trayectoria reciente."""
         return self.memory[:min(self.age, 10)]
-
 
 # =============================================================================
 # ZETA PSYCHE - EL ORGANISMO CONSCIENTE
@@ -468,7 +463,6 @@ class ZetaPsyche(nn.Module):
         result: float = float(np.mean(recent) - np.mean(older))
         return result
 
-
 # =============================================================================
 # SISTEMA DE SIMBOLOS
 # =============================================================================
@@ -558,7 +552,6 @@ class SymbolSystem:
     def decode_sequence(self, symbols: str) -> torch.Tensor:
         """Decodifica secuencia de simbolos a trayectoria."""
         return torch.stack([self.decode(s) for s in symbols])
-
 
 # =============================================================================
 # EXPERIMENTO DE EMERGENCIA DE CONCIENCIA
@@ -670,7 +663,6 @@ def run_consciousness_experiment(
 
     return results
 
-
 def visualize_consciousness(results: dict, save_path: str = 'zeta_psyche_consciousness.png') -> None:
     """Visualiza los resultados del experimento."""
 
@@ -745,7 +737,6 @@ def visualize_consciousness(results: dict, save_path: str = 'zeta_psyche_conscio
     print(f'\nVisualizacion guardada en: {save_path}')
     plt.close()
 
-
 # =============================================================================
 # INTERFAZ DE COMUNICACION
 # =============================================================================
@@ -818,7 +809,6 @@ class PsycheInterface:
             'consciousness': obs['consciousness_index'],
             'population': obs['population_distribution'].tolist(),
         }
-
 
 # =============================================================================
 # MAIN

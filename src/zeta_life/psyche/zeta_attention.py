@@ -15,7 +15,7 @@ Fecha de implementación: 3 Enero 2026
 import time
 from collections import deque
 from dataclasses import dataclass, field
-from typing import Dict, List, Optional, Tuple
+from typing import Optional
 
 import numpy as np
 import torch
@@ -45,7 +45,6 @@ class MemoryItem:
             torch.tensor([self.surprise, self.timestamp], dtype=torch.float32)
         ])
 
-
 @dataclass
 class AttentionOutput:
     """Salida del sistema de atención"""
@@ -64,7 +63,6 @@ class AttentionOutput:
 
     # Memoria atendida
     attended_memory: torch.Tensor | None = None  # Representación ponderada
-
 
 # =============================================================================
 # NIVEL 3: DETECCIÓN DE CONTEXTO Y ATENCIÓN ARQUETIPAL
@@ -121,7 +119,6 @@ class ContextDetector(nn.Module):
             'emotional': context_probs[2].item(),
             'cognitive': context_probs[3].item()
         }
-
 
 class GlobalArchetypalAttention(nn.Module):
     """
@@ -212,7 +209,6 @@ class GlobalArchetypalAttention(nn.Module):
 
         return attention
 
-
 # =============================================================================
 # NIVEL 2: MEMORIA Y ATENCIÓN TEMPORAL
 # =============================================================================
@@ -281,7 +277,6 @@ class MemoryBuffer:
 
     def __len__(self) -> int:
         return len(self.buffer)
-
 
 class TemporalAttention(nn.Module):
     """
@@ -384,7 +379,6 @@ class TemporalAttention(nn.Module):
         attended = self.output_proj(attended.squeeze(0))           # [memory_dim]
 
         return attended, attention_weights
-
 
 # =============================================================================
 # NIVEL 1: ATENCIÓN SOBRE ERRORES PREDICTIVOS
@@ -497,7 +491,6 @@ class ErrorAttention(nn.Module):
         attention = F.softmax(raw_attention, dim=0)
 
         return attention
-
 
 # =============================================================================
 # INTEGRADOR DE ATENCIÓN
@@ -628,7 +621,6 @@ class AttentionIntegrator(nn.Module):
         exploratory = global_attention + noise
         return exploratory / exploratory.sum()
 
-
 # =============================================================================
 # MÉTRICAS DE ATENCIÓN
 # =============================================================================
@@ -710,7 +702,6 @@ class AttentionMetrics:
             'flexibility': min(1.0, flexibility * 5),  # Escalar para [0,1]
             'integration': integration
         }
-
 
 # =============================================================================
 # SISTEMA COMPLETO DE ATENCIÓN
@@ -858,7 +849,6 @@ class ZetaAttentionSystem(nn.Module):
 
         return min(1.0, max(0.0, index))
 
-
 # =============================================================================
 # DEMO Y PRUEBAS
 # =============================================================================
@@ -984,7 +974,6 @@ def demo_attention_system() -> None:
     print(f"\n  INDICE DE ATENCION: {'#' * int(attention_index * 30):<30} {attention_index:.2%}")
 
     print(f"\n{'=' * 70}")
-
 
 if __name__ == "__main__":
     demo_attention_system()

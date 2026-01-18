@@ -13,7 +13,7 @@ Fecha: 2026-01-03
 
 from dataclasses import dataclass
 from enum import Enum
-from typing import Dict, List, Optional, Tuple
+from typing import Optional
 
 import numpy as np
 import torch
@@ -38,7 +38,6 @@ class ClusteringStrategy(Enum):
     PSYCHE = 1       # Solo por similitud psíquica
     HYBRID = 2       # Combinación espacial + psíquica
     ADAPTIVE = 3     # Adapta pesos según coherencia
-
 
 @dataclass
 class ClusteringConfig:
@@ -66,7 +65,6 @@ class ClusteringConfig:
     split_coherence_threshold: float = 0.4   # Dividir si coherencia < umbral
     merge_similarity_threshold: float = 0.85  # Fusionar si similitud > umbral
     split_min_size: int = 8           # Mínimo de células para poder dividir
-
 
 # =============================================================================
 # CLUSTER ASSIGNER
@@ -912,7 +910,6 @@ class ClusterAssigner:
             'size_balance': balance,
             'overall_quality': (avg_coherence + avg_separation + balance) / 3
         }
-
 
 # =============================================================================
 # TESTS BÁSICOS

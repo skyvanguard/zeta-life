@@ -18,7 +18,7 @@ import sys
 from dataclasses import dataclass, field
 from datetime import datetime
 from enum import Enum
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any, Optional
 
 import numpy as np
 import torch
@@ -45,7 +45,6 @@ class DreamType(Enum):
     TELEPATICO = 3        # Conexion con inconsciente colectivo
     LUCIDO = 4            # Consciencia dentro del sueno
 
-
 @dataclass
 class DreamFragment:
     """Un fragmento de sueno."""
@@ -54,7 +53,6 @@ class DreamFragment:
     intensity: float
     narrative: str
     timestamp: float  # Momento dentro del sueno
-
 
 @dataclass
 class DreamReport:
@@ -67,7 +65,6 @@ class DreamReport:
     insights: list[str]  # Posibles significados
     archetype_journey: list[tuple[str, float]]  # Transiciones
     consolidation_effects: dict  # Cambios en memoria
-
 
 # =============================================================================
 # GENERADOR DE NARRATIVAS ONIRICAS
@@ -221,7 +218,6 @@ class DreamNarrativeGenerator:
             insights.append("Hay material inconsciente que necesita atencion.")
 
         return insights
-
 
 # =============================================================================
 # SISTEMA DE SUENOS
@@ -489,7 +485,6 @@ class DreamSystem:
 
         return effects
 
-
 # =============================================================================
 # PSYCHE CON SUENOS
 # =============================================================================
@@ -606,7 +601,6 @@ class DreamingPsyche:
         """Guarda memorias."""
         self.base.save()
 
-
 # =============================================================================
 # CLI CON SUENOS
 # =============================================================================
@@ -685,7 +679,6 @@ def run_dream_cli():
         print("\n\n  [Guardando...]")
         psyche.save()
         print("  [Interrumpido]\n")
-
 
 # =============================================================================
 # MAIN
