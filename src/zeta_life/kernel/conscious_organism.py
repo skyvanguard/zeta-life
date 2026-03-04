@@ -64,12 +64,14 @@ class ConsciousOrganism:
         embed_dim: int = 16,
         reflect_interval: int = 5,
         dream_interval: int = 50,
+        spawn_mutation_sigma: float = 0.5,
     ) -> None:
         self.obs_dim = obs_dim
         self.latent_dim = latent_dim
         self.embed_dim = embed_dim
         self.reflect_interval = reflect_interval
         self.dream_interval = dream_interval
+        self.spawn_mutation_sigma = spawn_mutation_sigma
         self.t: int = 0
         self._next_id: int = initial_kernels
 
@@ -178,18 +180,19 @@ class ConsciousOrganism:
         )
 
         # Inherit world model with mutation
+        sigma = self.spawn_mutation_sigma
         child_sd = child.world_model.state_dict()
         parent_sd = parent.world_model.state_dict()
         for key in child_sd:
             if key in parent_sd:
-                child_sd[key] = parent_sd[key] + torch.randn_like(parent_sd[key]) * 0.05
+                child_sd[key] = parent_sd[key] + torch.randn_like(parent_sd[key]) * sigma * 0.5
         child.world_model.load_state_dict(child_sd)
 
         # Inherit self model with mutation (identity DNA)
         child.self_model.load_state_dict(parent.self_model.state_dict())
         child.self_model.self_embedding.data = (
             parent.self_model.self_embedding.data.clone()
-            + torch.randn_like(parent.self_model.self_embedding.data) * 0.1
+            + torch.randn_like(parent.self_model.self_embedding.data) * sigma
         )
 
         # Copy slow memory (inherited knowledge)
