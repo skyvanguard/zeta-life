@@ -103,6 +103,7 @@ class ConsciousKernel:
         reflect_interval: int = 5,
         dream_interval: int = 50,
         save_interval: int = 100,
+        latent_weight: float = 0.0,
     ) -> None:
         self.obs_dim = obs_dim
         self.latent_dim = latent_dim
@@ -110,6 +111,7 @@ class ConsciousKernel:
         self.reflect_interval = reflect_interval
         self.dream_interval = dream_interval
         self.save_interval = save_interval
+        self.latent_weight = latent_weight
 
         # --- Core components ---
         self.world_model = WorldModel(obs_dim, latent_dim, obs_dim)
@@ -123,6 +125,15 @@ class ConsciousKernel:
             self.slow_memory,
             self.self_model,
         )
+
+        # --- Latent bias projection (fixed random -- natural diversity) ---
+        self._latent_to_action = torch.nn.Sequential(
+            torch.nn.Linear(latent_dim, latent_dim // 2),
+            torch.nn.ReLU(),
+            torch.nn.Linear(latent_dim // 2, obs_dim),
+        )
+        for p in self._latent_to_action.parameters():
+            p.requires_grad_(False)
 
         # --- State ---
         self.last_action = torch.zeros(obs_dim)
@@ -167,7 +178,12 @@ class ConsciousKernel:
         # predict() returns tensors with grad_fn for learning
         predicted_obs, _ = self.world_model.predict(self.last_action)
         predicted_self = self.self_model.predict_self(self.last_action)
-        actual_self = F.softmax(stimulus, dim=-1)
+        raw_self = F.softmax(stimulus, dim=-1)
+        if self.latent_weight > 0.0:
+            latent_bias = self._latent_to_action(self.world_model.latent_state.detach())
+            actual_self = F.softmax(raw_self + self.latent_weight * latent_bias, dim=-1)
+        else:
+            actual_self = raw_self
 
         # ---- 3. COMPARE ----
         # Build predictions/observations dicts for 4 channels

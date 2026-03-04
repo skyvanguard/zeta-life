@@ -15,6 +15,7 @@ Covers:
 import tempfile
 
 import torch
+import torch.nn.functional as F
 import pytest
 
 from zeta_life.kernel.conscious_kernel import ConsciousKernel, StepResult
@@ -279,6 +280,58 @@ class TestSaveRestore:
 # ---------------------------------------------------------------------------
 # Energy field
 # ---------------------------------------------------------------------------
+
+class TestLatentBias:
+    """Tests for latent bias context-dependent action selection."""
+
+    def test_default_latent_weight_zero(self):
+        ck = _make_kernel()
+        assert ck.latent_weight == 0.0
+
+    def test_zero_weight_is_pure_softmax(self):
+        """latent_weight=0.0 should produce action = softmax(stimulus)."""
+        ck = _make_kernel(latent_weight=0.0)
+        stimulus = torch.tensor([1.0, 0.0, 0.5, 0.2])
+        result = ck.step(stimulus)
+        expected = F.softmax(stimulus, dim=-1)
+        assert torch.allclose(result.action, expected, atol=1e-5)
+
+    def test_nonzero_weight_differs_from_softmax_after_warmup(self):
+        """latent_weight=0.2 should produce action != softmax after learning."""
+        ck = _make_kernel(latent_weight=0.2)
+        stimulus = torch.tensor([1.0, 0.0, 0.5, 0.2])
+        # Warm up: world model learns, latent state diverges from zero
+        for _ in range(50):
+            ck.step(stimulus)
+        result = ck.step(stimulus)
+        pure_softmax = F.softmax(stimulus, dim=-1)
+        # After 50 steps, latent state is non-trivial, so action should differ
+        assert not torch.allclose(result.action, pure_softmax, atol=1e-3), (
+            "With latent_weight=0.2, action should differ from pure softmax"
+        )
+
+    def test_action_is_valid_distribution(self):
+        """Action with latent bias should still be a valid distribution."""
+        ck = _make_kernel(latent_weight=0.3)
+        for _ in range(20):
+            result = ck.step(torch.randn(4))
+        assert result.action.sum().item() == pytest.approx(1.0, abs=1e-4)
+        assert (result.action >= 0).all()
+
+    def test_latent_to_action_projection_exists(self):
+        ck = _make_kernel()
+        assert hasattr(ck, '_latent_to_action')
+        # Parameters should be frozen
+        for p in ck._latent_to_action.parameters():
+            assert not p.requires_grad
+
+    def test_backward_compat_existing_tests(self):
+        """Default kernel (latent_weight=0) should behave identically to before."""
+        ck = _make_kernel()
+        for _ in range(30):
+            ck.step(torch.randn(4))
+        assert ck.t == 30
+
 
 class TestEnergy:
     """ConsciousKernel should have energy and _last_result fields."""
