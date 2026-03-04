@@ -185,6 +185,13 @@ class ConsciousOrganism:
                 child_sd[key] = parent_sd[key] + torch.randn_like(parent_sd[key]) * 0.05
         child.world_model.load_state_dict(child_sd)
 
+        # Inherit self model with mutation (identity DNA)
+        child.self_model.load_state_dict(parent.self_model.state_dict())
+        child.self_model.self_embedding.data = (
+            parent.self_model.self_embedding.data.clone()
+            + torch.randn_like(parent.self_model.self_embedding.data) * 0.1
+        )
+
         # Copy slow memory (inherited knowledge)
         child.slow_memory.load_state_dict(parent.slow_memory.state_dict())
 

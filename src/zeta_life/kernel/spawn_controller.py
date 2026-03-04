@@ -81,11 +81,14 @@ class SpawnController:
                 events.append(DeathEvent(kernel_id=kid))
                 deaths += 1
 
-        # MERGE: similar kernels fuse
+        # MERGE: similar kernels fuse (respecting min population)
         merged_ids: set[int] = set()
+        effective_n = n - deaths
         kids = list(kernels.keys())
         for i in range(len(kids)):
             for j in range(i + 1, len(kids)):
+                if effective_n - len(merged_ids) // 2 <= self.min_kernels:
+                    break
                 a_id, b_id = kids[i], kids[j]
                 if a_id in merged_ids or b_id in merged_ids:
                     continue
