@@ -130,6 +130,8 @@ class ConsciousOrganism:
         # 6. LIFECYCLE
         events = self.spawn_controller.evaluate(self.kernels)
         self._apply_events(events)
+        if events:
+            self.energy_pool.normalize(self.kernels)
 
         # 7. MEASURE
         self.state.update(self.kernels, self.gw)

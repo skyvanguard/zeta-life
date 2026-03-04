@@ -48,7 +48,7 @@ class OrganismState:
                     embeds[i].unsqueeze(0), embeds[j].unsqueeze(0)
                 ).item()
                 sims.append(sim)
-        self.diversity = 1.0 - (sum(sims) / max(len(sims), 1))
+        self.diversity = max(0.0, min(1.0, 1.0 - (sum(sims) / max(len(sims), 1))))
 
         # Coherence: avg cosine similarity of actions
         actions = [k.last_action for k in kernels.values()]

@@ -27,6 +27,11 @@ from .precision_controller import PrecisionController
 from .prediction_error import PredictionErrorEngine
 from .self_model import SelfModel
 from .world_model import WorldModel
+from .global_workspace import GlobalWorkspace, Proposal
+from .energy_pool import EnergyPool
+from .spawn_controller import SpawnController, SpawnEvent, MergeEvent, DeathEvent
+from .organism_state import OrganismState
+from .conscious_organism import ConsciousOrganism, OrganismStepResult
 
 __all__ = [
     'ConsciousKernel',
@@ -42,4 +47,14 @@ __all__ = [
     'DreamEngine',
     'DreamReport',
     'PersistenceLayer',
+    'GlobalWorkspace',
+    'Proposal',
+    'EnergyPool',
+    'SpawnController',
+    'SpawnEvent',
+    'MergeEvent',
+    'DeathEvent',
+    'OrganismState',
+    'ConsciousOrganism',
+    'OrganismStepResult',
 ]
