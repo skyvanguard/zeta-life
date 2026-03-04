@@ -179,16 +179,15 @@ class ConsciousOrganism:
             dream_interval=self.dream_interval,
         )
 
-        # Inherit world model with mutation
-        sigma = self.spawn_mutation_sigma
-        child_sd = child.world_model.state_dict()
-        parent_sd = parent.world_model.state_dict()
-        for key in child_sd:
-            if key in parent_sd:
-                child_sd[key] = parent_sd[key] + torch.randn_like(parent_sd[key]) * sigma * 0.5
-        child.world_model.load_state_dict(child_sd)
+        # Inherit world model near-perfectly (knowledge of the world)
+        child.world_model.load_state_dict(parent.world_model.state_dict())
+        # Tiny mutation to prevent identical twins
+        with torch.no_grad():
+            for p in child.world_model.parameters():
+                p.add_(torch.randn_like(p) * 0.01)
 
-        # Inherit self model with mutation (identity DNA)
+        # Inherit self model with identity mutation (personality DNA)
+        sigma = self.spawn_mutation_sigma
         child.self_model.load_state_dict(parent.self_model.state_dict())
         child.self_model.self_embedding.data = (
             parent.self_model.self_embedding.data.clone()

@@ -57,10 +57,10 @@ class SpawnController:
         self,
         min_kernels: int = 2,
         max_kernels: int = 10,
-        spawn_energy: float = 7.0,
+        spawn_energy: float = 8.0,
         death_energy: float = 1.0,
-        merge_similarity: float = 0.95,
-        min_age: int = 100,
+        merge_similarity: float = 0.90,
+        min_age: int = 200,
     ) -> None:
         self.min_kernels = min_kernels
         self.max_kernels = max_kernels
