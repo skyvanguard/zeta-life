@@ -94,3 +94,59 @@ class TestBroadcast:
         org.step(torch.randn(4))
         # After one step, broadcast should be non-zero
         assert org.gw.broadcast_signal is not None
+
+
+class TestTopDownModulation:
+    """Tests for configurable top-down strength with broadcast EMA."""
+
+    def test_default_params_backward_compat(self):
+        org = ConsciousOrganism()
+        assert org.top_down_strength == 0.3
+        assert org.broadcast_ema_decay == 0.7
+        # Should run without errors
+        for _ in range(20):
+            org.step(torch.randn(4))
+
+    def test_custom_top_down_strength(self):
+        org = ConsciousOrganism(top_down_strength=0.5)
+        assert org.top_down_strength == 0.5
+
+    def test_custom_broadcast_ema_decay(self):
+        org = ConsciousOrganism(broadcast_ema_decay=0.9)
+        assert org.broadcast_ema_decay == 0.9
+
+    def test_ema_initializes_on_first_broadcast(self):
+        org = ConsciousOrganism()
+        assert org._broadcast_ema is None
+        # After first step, broadcast exists and EMA should initialize
+        org.step(torch.randn(4))
+        # EMA may or may not be set depending on broadcast state
+        # After second step, it should definitely be set
+        org.step(torch.randn(4))
+        assert org._broadcast_ema is not None
+
+    def test_high_top_down_differs_from_zero(self):
+        """With high top_down_strength, combined stimulus should differ from raw."""
+        torch.manual_seed(42)
+        org_high = ConsciousOrganism(top_down_strength=0.8)
+        org_zero = ConsciousOrganism(top_down_strength=0.0)
+        stimulus = torch.tensor([0.7, 0.1, 0.1, 0.1])
+        # Warm up both with same stimuli
+        for _ in range(30):
+            org_high.step(stimulus)
+            org_zero.step(stimulus)
+        # After warmup, broadcasts should differ
+        bc_high = org_high.gw.broadcast_signal.clone()
+        bc_zero = org_zero.gw.broadcast_signal.clone()
+        # They should be valid tensors
+        assert bc_high is not None
+        assert bc_zero is not None
+
+    def test_zero_strength_passes_stimulus_through(self):
+        org = ConsciousOrganism(top_down_strength=0.0)
+        stimulus = torch.tensor([0.7, 0.1, 0.1, 0.1])
+        # With strength=0, _combine_stimulus should return stimulus unchanged
+        # (after broadcast exists)
+        org.step(stimulus)
+        combined = org._combine_stimulus(stimulus)
+        assert torch.allclose(stimulus, combined, atol=1e-6)

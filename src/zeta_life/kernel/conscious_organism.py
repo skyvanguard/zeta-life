@@ -65,6 +65,9 @@ class ConsciousOrganism:
         reflect_interval: int = 5,
         dream_interval: int = 50,
         spawn_mutation_sigma: float = 0.5,
+        top_down_strength: float = 0.3,
+        broadcast_ema_decay: float = 0.7,
+        latent_weight: float = 0.0,
     ) -> None:
         self.obs_dim = obs_dim
         self.latent_dim = latent_dim
@@ -72,6 +75,10 @@ class ConsciousOrganism:
         self.reflect_interval = reflect_interval
         self.dream_interval = dream_interval
         self.spawn_mutation_sigma = spawn_mutation_sigma
+        self.top_down_strength = top_down_strength
+        self.broadcast_ema_decay = broadcast_ema_decay
+        self.latent_weight = latent_weight
+        self._broadcast_ema: Tensor | None = None
         self.t: int = 0
         self._next_id: int = initial_kernels
 
@@ -85,6 +92,7 @@ class ConsciousOrganism:
                 embed_dim=embed_dim,
                 reflect_interval=reflect_interval,
                 dream_interval=dream_interval,
+                latent_weight=latent_weight,
             )
             k.energy = per_kernel_energy
             self.kernels[i] = k
@@ -150,12 +158,20 @@ class ConsciousOrganism:
         )
 
     def _combine_stimulus(self, stimulus: Tensor) -> Tensor:
-        """Combine external stimulus with GW broadcast."""
+        """Combine external stimulus with EMA-smoothed GW broadcast."""
         broadcast = self.gw.broadcast_signal
         if broadcast is None or broadcast.sum().item() == 0.0:
             return stimulus
-        alpha = 0.3 * self.state.coherence
-        combined = (1 - alpha) * stimulus + alpha * broadcast[:self.obs_dim]
+        broadcast_obs = broadcast[:self.obs_dim]
+        if self._broadcast_ema is None:
+            self._broadcast_ema = broadcast_obs.clone().detach()
+        else:
+            self._broadcast_ema = (
+                self.broadcast_ema_decay * self._broadcast_ema
+                + (1 - self.broadcast_ema_decay) * broadcast_obs.detach()
+            )
+        alpha = self.top_down_strength * self.state.coherence
+        combined = (1 - alpha) * stimulus + alpha * self._broadcast_ema
         return combined
 
     def _apply_events(self, events: list[LifecycleEvent]) -> None:
@@ -177,6 +193,7 @@ class ConsciousOrganism:
             embed_dim=self.embed_dim,
             reflect_interval=self.reflect_interval,
             dream_interval=self.dream_interval,
+            latent_weight=parent.latent_weight,
         )
 
         # Inherit world model near-perfectly (knowledge of the world)
