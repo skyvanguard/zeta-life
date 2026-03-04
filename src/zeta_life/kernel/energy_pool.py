@@ -72,6 +72,9 @@ class EnergyPool:
         """Enforce energy conservation by scaling all energies."""
         if not kernels:
             return
+        # Clamp to prevent runaway negatives
+        for k in kernels.values():
+            k.energy = max(k.energy, 0.1)
         total = sum(k.energy for k in kernels.values())
         if total <= 0:
             per_kernel = self.total_energy / len(kernels)
