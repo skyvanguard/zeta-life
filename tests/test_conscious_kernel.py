@@ -274,3 +274,27 @@ class TestSaveRestore:
 
             restored_param = next(ck2.world_model.parameters()).data
             assert torch.allclose(original_param, restored_param, atol=1e-5)
+
+
+# ---------------------------------------------------------------------------
+# Energy field
+# ---------------------------------------------------------------------------
+
+class TestEnergy:
+    """ConsciousKernel should have energy and _last_result fields."""
+
+    def test_has_energy_field(self):
+        ck = _make_kernel()
+        assert hasattr(ck, 'energy')
+        assert isinstance(ck.energy, float)
+
+    def test_default_energy(self):
+        ck = _make_kernel()
+        assert ck.energy == 5.0
+
+    def test_has_last_result(self):
+        ck = _make_kernel()
+        stimulus = torch.randn(4)
+        result = ck.step(stimulus)
+        assert ck._last_result is result
+        assert ck._last_result.free_energy == result.free_energy

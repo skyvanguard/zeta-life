@@ -127,6 +127,8 @@ class ConsciousKernel:
         # --- State ---
         self.last_action = torch.zeros(obs_dim)
         self.t: int = 0
+        self.energy: float = 5.0
+        self._last_result: StepResult | None = None
 
     # ------------------------------------------------------------------
     # Main loop
@@ -238,7 +240,7 @@ class ConsciousKernel:
             for ch in self.error_engine.channels
         }
 
-        return StepResult(
+        result = StepResult(
             free_energy=free_energy.item(),
             errors=errors_summary,
             action=action,
@@ -246,6 +248,8 @@ class ConsciousKernel:
             reflected=reflected,
             dreamed=dreamed,
         )
+        self._last_result = result
+        return result
 
     # ------------------------------------------------------------------
     # Persistence
