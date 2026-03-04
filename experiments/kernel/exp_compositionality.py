@@ -451,7 +451,8 @@ def save_plot(
 # Main experiment
 # ---------------------------------------------------------------------------
 
-def main(n_steps: int = 16000):
+def main(n_steps: int = 16000, latent_weight: float = 0.0,
+         top_down_strength: float = 0.3):
     phase1_steps = n_steps // 2
     phase2_steps = n_steps // 2
     context_trials = 10
@@ -462,6 +463,9 @@ def main(n_steps: int = 16000):
     print(f"  Phase 1: {phase1_steps} steps (vocabulary learning)")
     print(f"  Phase 2: {phase2_steps} steps (combination testing)")
     print(f"  Context trials: {context_trials}")
+    if latent_weight > 0 or top_down_strength != 0.3:
+        print(f"  latent_weight: {latent_weight}")
+        print(f"  top_down_strength: {top_down_strength}")
     print()
 
     # ===================================================================
@@ -471,7 +475,10 @@ def main(n_steps: int = 16000):
     print("  ORGANISM (multi-agent with Global Workspace)")
     print("-" * 70)
 
-    org = ConsciousOrganism(obs_dim=4, initial_kernels=2, total_energy=10.0)
+    org = ConsciousOrganism(
+        obs_dim=4, initial_kernels=2, total_energy=10.0,
+        latent_weight=latent_weight, top_down_strength=top_down_strength,
+    )
     start = time.time()
 
     print("\n  Phase 1: Learning vocabulary...")
@@ -493,7 +500,7 @@ def main(n_steps: int = 16000):
     print("  INDIVIDUAL KERNEL (single agent, no GW)")
     print("-" * 70)
 
-    kernel = ConsciousKernel(obs_dim=4)
+    kernel = ConsciousKernel(obs_dim=4, latent_weight=latent_weight)
     start = time.time()
 
     print("\n  Phase 1: Learning vocabulary...")
@@ -600,5 +607,10 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Compositionality analysis of proto-language")
     parser.add_argument("--steps", type=int, default=16000,
                        help="Total steps (split 50/50 between phases)")
+    parser.add_argument("--latent-weight", type=float, default=0.0,
+                       help="Latent bias weight for context-dependent action (0=off)")
+    parser.add_argument("--top-down-strength", type=float, default=0.3,
+                       help="Top-down modulation strength (0=off)")
     args = parser.parse_args()
-    main(n_steps=args.steps)
+    main(n_steps=args.steps, latent_weight=args.latent_weight,
+         top_down_strength=args.top_down_strength)
