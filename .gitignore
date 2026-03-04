@@ -119,3 +119,4 @@ notas_extracted/
 
 # Type checking cache
 .mypy_cache/
+.worktrees/
