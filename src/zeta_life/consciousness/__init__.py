@@ -53,4 +53,3 @@ from .resilience_config import (
     list_presets,
 )
 from .top_down_modulator import TopDownModulator
-from .zeta_consciousness import ConsciousnessState, ZetaConsciousness

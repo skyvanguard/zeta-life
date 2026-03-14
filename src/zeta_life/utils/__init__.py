@@ -2,7 +2,6 @@
 Utility functions for Zeta Life.
 """
 
-from .analisis_emergencia import *
 from .statistics import (
     compare_conditions,
     compute_confidence_interval,

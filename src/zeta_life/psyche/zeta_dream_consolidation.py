@@ -37,9 +37,265 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 
+import torch.optim as optim
+
 from .zeta_attention import AttentionOutput, MemoryItem
 from .zeta_attentive_predictive import ZetaAttentivePredictive
-from .zeta_online_learning import HebbianLearner, OnlineLearner
+
+
+# =============================================================================
+# ONLINE LEARNING (moved from zeta_online_learning.py)
+# =============================================================================
+
+class OnlineLearner:
+    """
+    Implementa aprendizaje online para el sistema de atencion.
+
+    Principio: Free Energy Minimization
+    - El cerebro minimiza la "energia libre" (error de prediccion)
+    - El aprendizaje ocurre continuamente, no en fases separadas
+    - Los errores son la senal de aprendizaje
+
+    Estrategias:
+    1. Hebbian: "Neuronas que disparan juntas, se conectan juntas"
+    2. Predictive: Minimizar error de prediccion
+    3. Attention-guided: Aprender mas de lo que atendemos
+    """
+
+    def __init__(
+        self,
+        system: ZetaAttentivePredictive,
+        learning_rate: float = 0.001,
+        momentum: float = 0.9,
+        attention_weight: float = 0.5,
+        surprise_threshold: float = 0.3
+    ) -> None:
+        self.system = system
+        self.lr = learning_rate
+        self.attention_weight = attention_weight
+        self.surprise_threshold = surprise_threshold
+
+        # Optimizadores para cada componente
+        self.optimizer_attention = optim.SGD(
+            self.system.attention.parameters(),
+            lr=learning_rate,
+            momentum=momentum
+        )
+
+        self.optimizer_predictive = optim.SGD(
+            list(self.system.predictive.L1.parameters()) +
+            list(self.system.predictive.L2.parameters()) +
+            list(self.system.predictive.L3.parameters()),
+            lr=learning_rate * 0.5,  # Mas conservador
+            momentum=momentum
+        )
+
+        self.optimizer_modulator = optim.SGD(
+            self.system.modulator.parameters(),
+            lr=learning_rate,
+            momentum=momentum
+        )
+
+        # Historiales para analisis
+        self.loss_history: list[float] = []
+        self.learning_events: list[dict] = []
+
+    def compute_loss(self, result: dict) -> torch.Tensor:
+        """
+        Calcula la perdida total basada en errores de prediccion.
+
+        La perdida tiene varios componentes:
+        1. Error de prediccion de estimulos (L1)
+        2. Error de prediccion de estados (L2)
+        3. Meta-error (L3)
+        4. Coherencia de atencion (queremos alta coherencia)
+        """
+        # Extraer errores
+        error_L1 = result['errors']['L1']['surprise']
+        error_L2 = result['errors']['L2']['surprise']
+        error_L3 = result['errors']['L3']['meta_surprise']
+
+        # Atencion sobre errores (precision-weighted)
+        error_attention = result['attention']['error']
+
+        # Perdida ponderada por atencion
+        # Aprendemos MAS de los errores que ATENDEMOS
+        weighted_error = (
+            error_attention[0] * error_L1 +
+            error_attention[1] * error_L2 +
+            error_attention[2] * error_L3
+        )
+
+        # Penalizar baja coherencia
+        coherence_loss = 1.0 - result['attention']['coherence']
+
+        # Perdida total
+        total_loss = weighted_error + 0.2 * coherence_loss
+
+        return torch.tensor(total_loss, requires_grad=True)
+
+    def learning_step(self, result: dict) -> dict:
+        """
+        Ejecuta un paso de aprendizaje online.
+
+        Solo aprende cuando:
+        1. La sorpresa es suficientemente alta (hay algo que aprender)
+        2. La atencion esta suficientemente enfocada (sabemos que aprender)
+        """
+        # Calcular sorpresa total
+        surprise = (
+            result['errors']['L1']['surprise'] +
+            result['errors']['L2']['surprise'] +
+            result['errors']['L3']['meta_surprise']
+        ) / 3.0
+
+        # Decidir si aprender
+        should_learn = surprise > self.surprise_threshold
+
+        learning_info = {
+            'step': self.system.t,
+            'surprise': surprise,
+            'learned': False,
+            'loss': 0.0
+        }
+
+        if should_learn:
+            # Calcular perdida
+            loss = self.compute_loss(result)
+
+            # Convertir a tensor si no lo es
+            if not isinstance(loss, torch.Tensor):
+                loss = torch.tensor(loss, requires_grad=True)
+
+            # Backward pass
+            self.optimizer_attention.zero_grad()
+            self.optimizer_predictive.zero_grad()
+            self.optimizer_modulator.zero_grad()
+
+            # Solo si el loss requiere grad
+            if loss.requires_grad:
+                loss.backward()
+
+                # Gradient clipping para estabilidad
+                torch.nn.utils.clip_grad_norm_(
+                    self.system.attention.parameters(), max_norm=1.0
+                )
+
+                # Actualizar pesos
+                self.optimizer_attention.step()
+                self.optimizer_modulator.step()
+
+                # Predictivo solo si el error es muy alto
+                if surprise > self.surprise_threshold * 1.5:
+                    self.optimizer_predictive.step()
+
+                learning_info['learned'] = True
+                learning_info['loss'] = loss.item()
+
+        self.loss_history.append(learning_info['loss'])
+        if learning_info['learned']:
+            self.learning_events.append(learning_info)
+
+        return learning_info
+
+    def get_learning_stats(self) -> dict:
+        """Retorna estadisticas de aprendizaje."""
+        if not self.learning_events:
+            return {'events': 0, 'avg_loss': 0, 'learning_rate': 0}
+
+        return {
+            'events': len(self.learning_events),
+            'avg_loss': np.mean([e['loss'] for e in self.learning_events]),
+            'learning_rate': len(self.learning_events) / max(1, len(self.loss_history)),
+            'recent_loss': np.mean(self.loss_history[-50:]) if self.loss_history else 0,
+        }
+
+class HebbianLearner:
+    """
+    Aprendizaje Hebbiano simple para las conexiones arquetipales.
+
+    "Neuronas que disparan juntas, se conectan juntas"
+
+    Cuando un arquetipo es atendido Y predice bien, reforzamos esa conexion.
+    """
+
+    def __init__(
+        self,
+        system: ZetaAttentivePredictive,
+        learning_rate: float = 0.01,
+        decay: float = 0.99
+    ) -> None:
+        self.system = system
+        self.lr = learning_rate
+        self.decay = decay
+
+        # Matriz de asociacion contexto -> arquetipo
+        # Inicialmente uniforme
+        self.association_matrix = torch.ones(4, 4) / 4  # [contexto, arquetipo]
+
+        # Nombres para debug
+        self.context_names = ['threat', 'opportunity', 'emotional', 'cognitive']
+        self.arch_names = ['PERSONA', 'SOMBRA', 'ANIMA', 'ANIMUS']
+
+    def update(self, result: dict) -> dict:
+        """
+        Actualiza asociaciones basado en co-activacion.
+
+        Si contexto X esta activo Y arquetipo Y es atendido Y el error es bajo,
+        reforzamos la conexion X -> Y.
+        """
+        # Extraer contexto y atencion
+        context = result['attention']['context']
+        attention = result['attention']['global'].detach()
+
+        # Error total (menor es mejor)
+        error = (
+            result['errors']['L1']['surprise'] +
+            result['errors']['L2']['surprise']
+        ) / 2.0
+
+        # Solo aprender si el error es bajo (la prediccion fue buena)
+        success_signal = max(0, 1.0 - error * 2)
+
+        # Vector de contexto
+        context_vec = torch.tensor([
+            context['threat'],
+            context['opportunity'],
+            context['emotional'],
+            context['cognitive']
+        ])
+
+        # Regla Hebbiana: delta_w = lr * pre * post * reward
+        # pre = contexto, post = atencion, reward = exito
+        delta = self.lr * torch.outer(context_vec, attention) * success_signal
+
+        # Actualizar con decaimiento
+        self.association_matrix = self.decay * self.association_matrix + delta
+
+        # Normalizar filas
+        self.association_matrix = self.association_matrix / self.association_matrix.sum(dim=1, keepdim=True)
+
+        return {
+            'success_signal': success_signal,
+            'delta_norm': delta.norm().item(),
+            'matrix_entropy': self._entropy(self.association_matrix).item()
+        }
+
+    def _entropy(self, matrix: torch.Tensor) -> torch.Tensor:
+        """Entropia promedio de las filas."""
+        eps = 1e-8
+        entropy = -torch.sum(matrix * torch.log(matrix + eps), dim=1)
+        return entropy.mean()
+
+    def get_learned_associations(self) -> dict[str, tuple[str, float]]:
+        """Retorna las asociaciones aprendidas."""
+        result: dict[str, tuple[str, float]] = {}
+        for i, ctx in enumerate(self.context_names):
+            best_arch_idx = int(self.association_matrix[i].argmax().item())
+            best_arch = self.arch_names[best_arch_idx]
+            strength = float(self.association_matrix[i, best_arch_idx].item())
+            result[ctx] = (best_arch, strength)
+        return result
 
 # =============================================================================
 # TIPOS DE CONSOLIDACION
