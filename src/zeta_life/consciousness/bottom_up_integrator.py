@@ -48,13 +48,17 @@ class BottomUpIntegrator(nn.Module):
         self,
         state_dim: int = 32,
         hidden_dim: int = 64,
-        n_archetypes: int = 4
+        n_archetypes: int = 4,
+        consciousness_alpha: float = 1.0,
+        use_formal_psi: bool = False
     ):
         super().__init__()
 
         self.state_dim = state_dim
         self.hidden_dim = hidden_dim
         self.n_archetypes = n_archetypes
+        self.consciousness_alpha = consciousness_alpha
+        self.use_formal_psi = use_formal_psi
 
         # Red para calcular importancia de cada célula en su cluster
         # Input: state[32] + archetype[4] = 36
@@ -245,7 +249,8 @@ class BottomUpIntegrator(nn.Module):
     def aggregate_clusters_to_organism(
         self,
         clusters: list[Cluster],
-        prev_consciousness: OrganismConsciousness | None = None
+        prev_consciousness: OrganismConsciousness | None = None,
+        cells: list[ConsciousCell] | None = None
     ) -> OrganismConsciousness:
         """
         Agrega psiques de clusters en consciencia de organismo.
@@ -314,7 +319,7 @@ class BottomUpIntegrator(nn.Module):
 
         # 8. Índice de consciencia
         consciousness_index = self._compute_consciousness_index(
-            valid_clusters, phi_global, vertical_coherence,
+            valid_clusters, cells or [], phi_global, vertical_coherence,
             prev_consciousness.consciousness_index if prev_consciousness else None
         )
 
@@ -554,12 +559,16 @@ class BottomUpIntegrator(nn.Module):
     def _compute_consciousness_index(
         self,
         clusters: list[Cluster],
+        cells: list[ConsciousCell],
         phi_global: float,
         vertical_coherence: float,
         prev_index: ConsciousnessIndex | None = None
     ) -> ConsciousnessIndex:
         """
         Calcula el índice de consciencia desde los clusters.
+
+        When use_formal_psi is enabled, also computes F_i, C, alpha
+        for the formal equation Psi = B^3 + Phi.
         """
         # Filter valid clusters
         valid_clusters = [c for c in clusters if c.psyche is not None]
@@ -592,13 +601,35 @@ class BottomUpIntegrator(nn.Module):
         # Meta-awareness: basado en vertical_coherence
         meta_awareness = vertical_coherence
 
+        # Formal equation parameters
+        F_i = 0.0
+        C_val = 0.0
+        alpha = self.consciousness_alpha
+
+        if self.use_formal_psi and cells:
+            # F_i: integration force from cell-level phi
+            # Use top-quartile phi_local as binding strength (hub cells)
+            phi_locals = sorted(
+                [c.psyche.phi_local for c in cells], reverse=True
+            )
+            top_k = max(1, len(phi_locals) // 4)
+            F_i = float(np.mean(phi_locals[:top_k]))
+
+            # C: coherence cost (noise/entropy opposing integration)
+            if coherences:
+                # Invert: high coherence = low cost
+                C_val = 1.0 - float(np.mean(coherences))
+
         return ConsciousnessIndex(
             predictive=predictive,
             attention=attention,
             integration=integration,
             self_luminosity=self_luminosity,
             stability=stability,
-            meta_awareness=meta_awareness
+            meta_awareness=meta_awareness,
+            F_i=F_i,
+            C=C_val,
+            alpha=alpha,
         )
 
     # =========================================================================
@@ -629,7 +660,9 @@ class BottomUpIntegrator(nn.Module):
         self.update_all_cluster_psyches(clusters)
 
         # Paso 2: Agregar en organismo
-        organism = self.aggregate_clusters_to_organism(clusters, prev_consciousness)
+        organism = self.aggregate_clusters_to_organism(
+            clusters, prev_consciousness, cells=cells
+        )
 
         return clusters, organism
 

@@ -351,6 +351,62 @@ class DamageSystem:
             return 0.0
         return sum(1 for c in cells if c.resilience.is_functional) / len(cells)
 
+    def compute_corruption_analysis(
+        self,
+        cells: list['ConsciousCell'],
+        F_i: float = 0.0,
+        alpha: float = 1.0,
+        alpha_s: float = 1.0,
+    ) -> dict:
+        """
+        Compute corruption analysis using Ec. 13.
+
+        Predicts how close the system is to collapse based on the ratio
+        of corrupted (non-functional) cells to total cells.
+
+        Args:
+            cells: All cells in the system
+            F_i: Integration force (from formal equations)
+            alpha: Coupling parameter
+            alpha_s: Corruption severity factor
+
+        Returns:
+            Dict with corruption_ratio, critical_ratio, margin_to_collapse,
+            stability_warning
+        """
+        from .formal_equations import compute_corruption_threshold
+
+        if not cells:
+            return {
+                'corruption_ratio': 0.0,
+                'critical_ratio': 1.0,
+                'margin_to_collapse': 1.0,
+                'stability_warning': 'STABLE',
+            }
+
+        M = len(cells)
+        M_corrupted = sum(1 for c in cells if not c.is_functional)
+        corruption_ratio = M_corrupted / M
+
+        critical_ratio = compute_corruption_threshold(F_i, alpha, M, alpha_s)
+        margin = critical_ratio - corruption_ratio
+
+        if margin > 0.3:
+            warning = 'STABLE'
+        elif margin > 0.1:
+            warning = 'WARNING'
+        elif margin > 0:
+            warning = 'CRITICAL'
+        else:
+            warning = 'COLLAPSING'
+
+        return {
+            'corruption_ratio': corruption_ratio,
+            'critical_ratio': critical_ratio,
+            'margin_to_collapse': margin,
+            'stability_warning': warning,
+        }
+
     def get_metrics(self, cells: list['ConsciousCell']) -> dict:
         """
         Calculate IPUESA-compatible metrics for a set of cells.

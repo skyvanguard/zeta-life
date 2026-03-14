@@ -73,6 +73,11 @@ class ConsciousnessIndex:
     stability: float = 0.0       # Estabilidad temporal
     meta_awareness: float = 0.0  # Consciencia de la consciencia
 
+    # Formal equation parameters (Psi = B^3 + Phi)
+    F_i: float = 0.0    # Integration force (binding strength)
+    C: float = 0.0       # Coherence cost (noise/entropy)
+    alpha: float = 1.0   # Coupling parameter
+
     # Pesos
     weights: dict[str, float] = field(default_factory=lambda: {
         'predictive': 0.20,
@@ -83,9 +88,10 @@ class ConsciousnessIndex:
         'meta_awareness': 0.10
     })
 
-    def compute_total(self) -> float:
-        """Calcula indice total de consciencia."""
-        total = (
+    @property
+    def phi(self) -> float:
+        """Weighted sum of components (current integrated information)."""
+        return (
             self.weights['predictive'] * self.predictive +
             self.weights['attention'] * self.attention +
             self.weights['integration'] * self.integration +
@@ -93,18 +99,58 @@ class ConsciousnessIndex:
             self.weights['stability'] * self.stability +
             self.weights['meta_awareness'] * self.meta_awareness
         )
-        return min(1.0, max(0.0, total))
+
+    @property
+    def phi_c(self) -> float:
+        """Critical threshold Phi_c = F_i / (alpha - C)."""
+        from ..consciousness.formal_equations import compute_phi_c
+        return compute_phi_c(self.F_i, self.alpha, self.C)
+
+    @property
+    def B(self) -> float:
+        """Binding factor B = (Phi - Phi_c) / Phi_c."""
+        from ..consciousness.formal_equations import compute_B
+        return compute_B(self.phi, self.phi_c)
+
+    @property
+    def psi(self) -> float:
+        """Consciousness Psi = B^3 + Phi (0 if subcritical)."""
+        from ..consciousness.formal_equations import compute_psi
+        return compute_psi(self.phi, self.phi_c)
+
+    def compute_psi_raw(self) -> float:
+        """Compute raw Psi without clamping. Cubic amplification is intentional."""
+        return self.psi
+
+    def compute_total(self) -> float:
+        """Calcula indice total de consciencia.
+
+        When F_i > 0 (formal equations active), returns psi clamped to [0, 1].
+        Otherwise returns the original weighted sum for backward compatibility.
+        """
+        if self.F_i > 0:
+            return min(1.0, max(0.0, self.psi))
+        return min(1.0, max(0.0, self.phi))
 
     def to_dict(self) -> dict:
-        return {
+        result = {
             'predictive': self.predictive,
             'attention': self.attention,
             'integration': self.integration,
             'self_luminosity': self.self_luminosity,
             'stability': self.stability,
             'meta_awareness': self.meta_awareness,
-            'total': self.compute_total()
+            'total': self.compute_total(),
         }
+        if self.F_i > 0:
+            result.update({
+                'phi': self.phi,
+                'phi_c': self.phi_c,
+                'B': self.B,
+                'psi': self.psi,
+                'psi_raw': self.compute_psi_raw(),
+            })
+        return result
 
 # =============================================================================
 # MEMORIA DE ATRACTORES (para emergencia de identidad)

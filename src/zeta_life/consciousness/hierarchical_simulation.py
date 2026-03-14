@@ -88,6 +88,17 @@ class SimulationConfig:
     resilience_preset: str = 'optimal'  # Preset: demo, optimal, stress, validation
     resilience_config: dict | None = None  # Custom config (overrides preset)
 
+    # Formal consciousness equation (Psi = B^3 + Phi)
+    consciousness_alpha: float = 1.0   # Coupling parameter
+    use_formal_psi: bool = False        # Enable formal equation mode
+
+    # GPU Brain settings
+    enable_gpu_brain: bool = False      # Enable GPU brain integration
+    gpu_brain_npl: int = 350            # Neurons per layer
+    gpu_brain_F_i: float = 2.5         # Integration force
+    gpu_brain_alpha: float = 1.0        # Brain coupling
+    gpu_brain_C: float = 0.3           # Coherence cost
+
 # =============================================================================
 # REGISTRO DE MÉTRICAS
 # =============================================================================
@@ -125,9 +136,25 @@ class SimulationMetrics:
     total_modules: int = 0
     modules_spread: int = 0  # Modules spread this step
 
+    # Formal consciousness equation metrics (Psi = B^3 + Phi)
+    psi_raw: float = 0.0
+    phi_c: float = 0.0
+    B_value: float = 0.0
+    is_supercritical: bool = False
+
+    # Corruption analysis (Ec. 13)
+    corruption_ratio: float = 0.0
+    corruption_margin: float = 1.0
+    corruption_warning: str = 'STABLE'
+
+    # GPU Brain metrics
+    brain_psi: float | None = None
+    brain_phi: float | None = None
+    brain_self_ref: float | None = None
+
     def to_dict(self) -> dict:
         """Convierte a diccionario."""
-        return {
+        result = {
             'step': self.step,
             'phi_global': self.phi_global,
             'consciousness_index': self.consciousness_index,
@@ -148,7 +175,22 @@ class SimulationMetrics:
             'mean_degradation': self.mean_degradation,
             'total_modules': self.total_modules,
             'modules_spread': self.modules_spread,
+            # Formal consciousness equation metrics
+            'psi_raw': self.psi_raw,
+            'phi_c': self.phi_c,
+            'B_value': self.B_value,
+            'is_supercritical': self.is_supercritical,
+            # Corruption analysis
+            'corruption_ratio': self.corruption_ratio,
+            'corruption_margin': self.corruption_margin,
+            'corruption_warning': self.corruption_warning,
         }
+        # GPU Brain metrics (only when active)
+        if self.brain_psi is not None:
+            result['brain_psi'] = self.brain_psi
+            result['brain_phi'] = self.brain_phi
+            result['brain_self_ref'] = self.brain_self_ref
+        return result
 
 # =============================================================================
 # SIMULACIÓN JERÁRQUICA
@@ -180,7 +222,9 @@ class HierarchicalSimulation:
         # Integradores
         self.integrator = BottomUpIntegrator(
             state_dim=self.config.state_dim,
-            hidden_dim=self.config.hidden_dim
+            hidden_dim=self.config.hidden_dim,
+            consciousness_alpha=self.config.consciousness_alpha,
+            use_formal_psi=self.config.use_formal_psi,
         )
         self.modulator = TopDownModulator(
             state_dim=self.config.state_dim,
@@ -211,6 +255,12 @@ class HierarchicalSimulation:
         if self.config.enable_resilience:
             self._setup_resilience_system()
 
+        # GPU Brain (optional)
+        self.gpu_brain = None
+        self._last_brain_output: dict | None = None
+        if self.config.enable_gpu_brain:
+            self._setup_gpu_brain()
+
     # =========================================================================
     # RESILIENCE SETUP
     # =========================================================================
@@ -225,6 +275,19 @@ class HierarchicalSimulation:
             self.resilience_config = get_preset_config(self.config.resilience_preset)
 
         self.damage_system = DamageSystem(self.resilience_config)
+
+    def _setup_gpu_brain(self) -> None:
+        """Initialize the GPU brain adapter (graceful degradation if no GPU)."""
+        try:
+            from .gpu_brain import GPUBrainAdapter
+            self.gpu_brain = GPUBrainAdapter(
+                npl=self.config.gpu_brain_npl,
+                F_i=self.config.gpu_brain_F_i,
+                alpha=self.config.gpu_brain_alpha,
+                C_param=self.config.gpu_brain_C,
+            )
+        except Exception:
+            self.gpu_brain = None
 
     # =========================================================================
     # INICIALIZACIÓN
@@ -336,6 +399,10 @@ class HierarchicalSimulation:
         self.clusters, self.organism = self.integrator.integrate(
             self.cells, self.clusters, self.organism
         )
+
+        # 2.5. GPU Brain step (between bottom-up and top-down)
+        if self.gpu_brain is not None and self.organism is not None:
+            self._last_brain_output = self.gpu_brain.step(self.organism)
 
         # 3. Modulación top-down
         mod_results = self.modulator.modulate(
@@ -603,6 +670,33 @@ class HierarchicalSimulation:
                 len(c.resilience.modules) for c in self.cells
             )
             metrics.modules_spread = modules_spread
+
+        # Formal consciousness equation metrics
+        if self.organism and self.organism.consciousness_index.F_i > 0:
+            ci = self.organism.consciousness_index
+            metrics.psi_raw = ci.compute_psi_raw()
+            metrics.phi_c = ci.phi_c if ci.phi_c != float('inf') else 0.0
+            metrics.B_value = ci.B
+            metrics.is_supercritical = ci.B > 0
+
+        # Corruption analysis
+        if self.cells and self.config.enable_resilience and self.damage_system:
+            corruption_result = self.damage_system.compute_corruption_analysis(
+                self.cells,
+                F_i=self.organism.consciousness_index.F_i if self.organism else 0.0,
+                alpha=self.config.consciousness_alpha,
+            )
+            metrics.corruption_ratio = corruption_result['corruption_ratio']
+            metrics.corruption_margin = corruption_result['margin_to_collapse']
+            metrics.corruption_warning = corruption_result['stability_warning']
+
+        # GPU Brain metrics
+        if hasattr(self, 'gpu_brain') and self.gpu_brain is not None:
+            brain_output = getattr(self, '_last_brain_output', None)
+            if brain_output is not None:
+                metrics.brain_psi = brain_output.get('psi', 0.0)
+                metrics.brain_phi = brain_output.get('phi', 0.0)
+                metrics.brain_self_ref = brain_output.get('self_ref', 0.0)
 
         self.metrics_history.append(metrics)
         return metrics

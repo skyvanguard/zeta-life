@@ -18,6 +18,14 @@ Resilience Components (IPUESA integration):
 """
 
 from .bottom_up_integrator import BottomUpIntegrator
+from .formal_equations import (
+    compute_B,
+    compute_corruption_threshold,
+    compute_M_c,
+    compute_phi_c,
+    compute_psi,
+    predict_system_stability,
+)
 from .cluster import Cluster, ClusterPsyche, compute_inter_cluster_coherence, find_cluster_neighbors
 from .cluster_assigner import ClusterAssigner, ClusteringConfig, ClusteringStrategy
 from .damage_system import DamageSystem

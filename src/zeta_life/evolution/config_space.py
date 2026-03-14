@@ -87,6 +87,9 @@ class EvolvableConfig:
     effect_residual_cleaner: float = 0.20
     effect_anticipation_enhancer: float = 0.25
 
+    # Consciousness equation coupling
+    alpha_coupling: float = 1.0
+
     # Group D: Thresholds and Spreading
     consolidation_threshold: float = 0.10
     spread_threshold: float = 0.15
