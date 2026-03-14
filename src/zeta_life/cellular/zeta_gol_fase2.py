@@ -14,7 +14,6 @@ import matplotlib
 
 matplotlib.use('Agg')
 
-import warnings
 from typing import Optional
 
 import matplotlib.pyplot as plt
@@ -22,29 +21,7 @@ import numpy as np
 from matplotlib.colors import LinearSegmentedColormap
 from scipy.signal import convolve2d
 
-try:
-    from mpmath import zetazero
-    HAS_MPMATH = True
-except ImportError:
-    HAS_MPMATH = False
-    warnings.warn("mpmath no disponible. Usando aproximaciones.")
-
-def get_zeta_zeros(M: int) -> list[float]:
-    """Obtiene los primeros M ceros de ζ(s)."""
-    if HAS_MPMATH:
-        return [float(zetazero(k).imag) for k in range(1, M + 1)]
-    else:
-        known = [14.134725, 21.022040, 25.010858, 30.424876, 32.935062,
-                 37.586178, 40.918719, 43.327073, 48.005151, 49.773832,
-                 52.970321, 56.446248, 59.347044, 60.831779, 65.112544,
-                 67.079811, 69.546402, 72.067158, 75.704691, 77.144840]
-        if M <= len(known):
-            return known[:M]
-        zeros = known.copy()
-        for k in range(len(known), M):
-            n = k + 1
-            zeros.append(2 * np.pi * n / np.log(n + 2))
-        return zeros
+from ..core.zeta_constants import get_zeta_zeros
 
 class ZetaNeighborhoodKernel:
     """

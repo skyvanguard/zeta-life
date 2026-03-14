@@ -125,19 +125,18 @@ def get_config(config_path=None, use_cache=True):
 
 
 def get_zeta_zeros(M=None, config=None):
+    """Return the first M zeta zeros, delegating to the canonical source.
+
+    Accepts an optional *config* for backwards compatibility, but the
+    actual zeros come from ``zeta_life.core.zeta_constants``.
+    """
+    from zeta_life.core.zeta_constants import get_zeta_zeros as _canonical
+
     if config is None:
         config = get_config()
     if M is None:
         M = config.zeta.M
-    known = config.zeta.known_zeros
-    if M <= len(known):
-        return known[:M]
-    import numpy as np
-    extended = list(known)
-    for k in range(len(known), M):
-        n = k + 1
-        extended.append(2 * np.pi * n / np.log(n + 2))
-    return extended
+    return _canonical(M)
 
 
 if __name__ == "__main__":

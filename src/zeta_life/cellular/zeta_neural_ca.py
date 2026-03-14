@@ -34,24 +34,7 @@ except ImportError:
     HAS_TORCH = False
     warnings.warn("PyTorch no disponible. Instalar con: pip install torch")
 
-# mpmath para ceros exactos
-try:
-    from mpmath import zetazero
-    HAS_MPMATH = True
-except ImportError:
-    HAS_MPMATH = False
-
-def get_zeta_zeros(M: int) -> list[float]:
-    """Obtiene los primeros M ceros de zeta."""
-    if HAS_MPMATH:
-        return [float(zetazero(k).imag) for k in range(1, M + 1)]
-    else:
-        known = [14.134725, 21.022040, 25.010858, 30.424876, 32.935062,
-                 37.586178, 40.918719, 43.327073, 48.005151, 49.773832,
-                 52.970321, 56.446248, 59.347044, 60.831779, 65.112544]
-        if M <= len(known):
-            return known[:M]
-        return known + [2 * np.pi * n / np.log(n + 2) for n in range(len(known) + 1, M + 1)]
+from ..core.zeta_constants import get_zeta_zeros
 
 if HAS_TORCH:
 

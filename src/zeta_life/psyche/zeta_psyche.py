@@ -144,13 +144,16 @@ class TetrahedralSpace:
 # CEROS DE ZETA PARA MODULACION
 # =============================================================================
 
+from ..core.zeta_constants import get_zeta_zeros as _get_zeta_zeros_list
+
+
 def get_zeta_zeros(M: int = 15) -> torch.Tensor:
-    """Primeros M ceros no triviales de la funcion zeta."""
-    zeros = [14.134725, 21.022040, 25.010858, 30.424876, 32.935062,
-             37.586178, 40.918720, 43.327073, 48.005151, 49.773832,
-             52.970321, 56.446248, 59.347044, 60.831779, 65.112544,
-             67.079811, 69.546402, 72.067158, 75.704691, 77.144840]
-    return torch.tensor(zeros[:M], dtype=torch.float32)
+    """Primeros M ceros no triviales de la funcion zeta.
+
+    Thin wrapper that delegates to core.zeta_constants and returns a tensor
+    for backwards compatibility with psyche callers.
+    """
+    return torch.tensor(_get_zeta_zeros_list(M), dtype=torch.float32)
 
 class ZetaModulator(nn.Module):
     """Modula la dinamica usando ceros de Riemann."""

@@ -10,7 +10,6 @@ import matplotlib
 
 matplotlib.use('Agg')  # Backend no interactivo
 
-import warnings
 from typing import Optional
 
 import matplotlib.pyplot as plt
@@ -18,45 +17,7 @@ import numpy as np
 from matplotlib.animation import FuncAnimation
 from matplotlib.colors import LinearSegmentedColormap
 
-# Intentar importar mpmath para ceros exactos de zeta
-try:
-    from mpmath import zetazero
-    HAS_MPMATH = True
-except ImportError:
-    HAS_MPMATH = False
-    warnings.warn("mpmath no disponible. Usando aproximaciones de ceros de zeta.")
-
-def get_zeta_zeros(M: int) -> list[float]:
-    """
-    Obtiene los primeros M ceros no triviales de ζ(s).
-    Los ceros están en s = 1/2 + iγ, retornamos las partes imaginarias γ.
-    """
-    if HAS_MPMATH:
-        return [float(zetazero(k).imag) for k in range(1, M + 1)]
-    else:
-        # Aproximaciones conocidas de los primeros ceros
-        known_zeros = [
-            14.134725, 21.022040, 25.010858, 30.424876, 32.935062,
-            37.586178, 40.918719, 43.327073, 48.005151, 49.773832,
-            52.970321, 56.446248, 59.347044, 60.831779, 65.112544,
-            67.079811, 69.546402, 72.067158, 75.704691, 77.144840,
-            79.337375, 82.910381, 84.735493, 87.425275, 88.809111,
-            92.491899, 94.651344, 95.870634, 98.831194, 101.317851,
-            103.725538, 105.446623, 107.168611, 111.029536, 111.874659,
-            114.320220, 116.226680, 118.790783, 121.370125, 122.946829,
-            124.256819, 127.516683, 129.578704, 131.087688, 133.497737,
-            134.756509, 138.116042, 139.736209, 141.123707, 143.111846
-        ]
-        if M <= len(known_zeros):
-            return known_zeros[:M]
-        else:
-            # Extrapolar usando la densidad asintótica de ceros
-            zeros = known_zeros.copy()
-            for k in range(len(known_zeros), M):
-                # Aproximación: γ_n ≈ 2πn / ln(n)
-                n = k + 1
-                zeros.append(2 * np.pi * n / np.log(n + 2))
-            return zeros
+from ..core.zeta_constants import get_zeta_zeros
 
 class ZetaKernel:
     """

@@ -13,7 +13,7 @@ try:
     ZetaMemoryGatedSimple = _ZetaMemoryGatedSimple
 except ImportError:
     # Fallback: define locally if import fails
-    from .force_field import get_zeta_zeros
+    from ..core.zeta_constants import get_zeta_zeros
 
     class ZetaMemoryGatedSimple(nn.Module):  # type: ignore[no-redef]
         """Memoria zeta con gate aprendido."""

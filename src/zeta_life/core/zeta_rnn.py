@@ -16,25 +16,7 @@ import torch
 import torch.nn as nn
 from numpy.typing import NDArray
 
-# Reuse existing zeta zeros function
-try:
-    from mpmath import zetazero
-    HAS_MPMATH = True
-except ImportError:
-    HAS_MPMATH = False
-
-def get_zeta_zeros(M: int) -> list[float]:
-    """Get first M non-trivial zeros of Riemann zeta function."""
-    if HAS_MPMATH:
-        return [float(zetazero(k).imag) for k in range(1, M + 1)]
-    else:
-        known = [14.134725, 21.022040, 25.010858, 30.424876, 32.935062,
-                 37.586178, 40.918719, 43.327073, 48.005151, 49.773832,
-                 52.970321, 56.446248, 59.347044, 60.831779, 65.112544,
-                 67.079811, 69.546402, 72.067158, 75.704691, 77.144840]
-        if M <= len(known):
-            return known[:M]
-        return known + [2 * np.pi * n / np.log(n + 2) for n in range(len(known) + 1, M + 1)]
+from .zeta_constants import get_zeta_zeros
 
 class ZetaMemoryLayer(nn.Module):
     """

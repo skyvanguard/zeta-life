@@ -26,7 +26,7 @@ from __future__ import annotations
 import math
 from dataclasses import dataclass, field
 
-from zeta_life.core.zeta_resonance import get_zeta_zeros
+from zeta_life.core.zeta_constants import get_zeta_zeros
 from zeta_life.kernel.complementary_memory import (
     CompressedEpisode,
     FastMemory,

@@ -6,15 +6,7 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 
-def get_zeta_zeros(M: int) -> list[float]:
-    """Primeros M ceros no triviales de zeta."""
-    zeros = [14.134725, 21.022040, 25.010858, 30.424876, 32.935062,
-             37.586178, 40.918720, 43.327073, 48.005151, 49.773832,
-             52.970321, 56.446248, 59.347044, 60.831779, 65.112544,
-             67.079811, 69.546402, 72.067158, 75.704691, 77.144840,
-             79.337375, 82.910381, 84.735493, 87.425275, 88.809111,
-             92.491899, 94.651344, 95.870634, 98.831194, 101.317851]
-    return zeros[:M]
+from ..core.zeta_constants import get_zeta_zeros
 
 class ForceField(nn.Module):
     """Campo de fuerzas propagado por convolucion zeta."""

@@ -7,6 +7,7 @@ plus the memory system for long-term state persistence.
 
 from .tetrahedral_space import TetrahedralSpace, get_tetrahedral_space
 from .vertex import BehaviorVector, Vertex, VertexBehaviors
+from .zeta_constants import KNOWN_ZETA_ZEROS, get_zeta_zeros
 from .zeta_memory import (
     EpisodicMemory,
     MemoryAwarePsyche,
@@ -23,6 +24,9 @@ from .zeta_rnn import (
 )
 
 __all__ = [
+    # Zeta constants
+    'KNOWN_ZETA_ZEROS',
+    'get_zeta_zeros',
     # Vertex system
     'Vertex',
     'BehaviorVector',

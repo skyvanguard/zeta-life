@@ -27,7 +27,7 @@ import torch.nn as nn
 import torch.nn.functional as F
 
 # Importar sistema base
-from .zeta_psyche import Archetype, ZetaModulator, ZetaPsyche, get_zeta_zeros
+from .zeta_psyche import Archetype, ZetaModulator, ZetaPsyche
 
 # =============================================================================
 # NIVEL 1: STIMULUS PREDICTOR
