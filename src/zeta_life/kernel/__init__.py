@@ -1,22 +1,26 @@
 """
-Conscious Kernel — Active Inference architecture for Zeta Life.
+Adaptive Kernel — Active Inference architecture for Zeta Life.
 
 Integrates world modeling, self-modeling, multi-channel prediction errors,
 complementary memory systems, dream consolidation, and identity persistence
-into a unified consciousness architecture.
+into a unified adaptive integration architecture.
+
+The kernel computes Psi (integration index) via the formal equation
+Psi = B^3 + Phi, where Phi is integrated information and B is the
+binding factor relative to the critical threshold Phi_c.
 
 Usage:
     from zeta_life.kernel import ConsciousKernel
 
     ck = ConsciousKernel()
     result = ck.step(stimulus)
-    ck.save('~/.zeta_life/', identity_name='my_identity')
-    ck.load('~/.zeta_life/', identity_name='my_identity')
+    print(result.psi)  # integration index [0, 1]
 
 Based on:
-- "A Beautiful Loop" (Laukkonen, Friston & Chandaria, 2025)
+- Active Inference / Free Energy Principle (Friston)
 - Complementary Learning Systems (McClelland et al.)
-- Riemann zeta zeros as temporal binding mechanism
+- Darwinian Brain hypothesis (multi-kernel competition)
+- Riemann zeta zeros as temporal binding frequencies
 """
 
 from .complementary_memory import CompressedEpisode, Episode, FastMemory, SlowMemory

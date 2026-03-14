@@ -1,7 +1,11 @@
 """
-Hierarchical Consciousness System.
+Hierarchical Integration System.
 
-Multi-level consciousness architecture: Cells → Clusters → Organism.
+Multi-level adaptive integration: Cells → Clusters → Organism.
+
+Formal equations (Psi = B^3 + Phi) predict phase transitions from
+fragmented processing to coherent integration. The critical threshold
+Phi_c = F_i / (alpha - C) determines when the system transitions.
 
 Components:
 - MicroPsyche: Cell-level psyche with archetypes
@@ -9,6 +13,7 @@ Components:
 - OrganismConsciousness: Organism-level integration
 - BottomUpIntegrator: Cell→Cluster→Organism flow
 - TopDownModulator: Organism→Cluster→Cell influence
+- formal_equations: Psi, Phi_c, B, corruption threshold
 
 Resilience Components (IPUESA integration):
 - CellResilience: Resilience state for individual cells

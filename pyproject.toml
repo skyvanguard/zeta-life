@@ -5,7 +5,7 @@ build-backend = "setuptools.build_meta"
 [project]
 name = "zeta-life"
 version = "0.1.0"
-description = "Artificial Consciousness through Riemann Zeta Function - Emergent Intelligence & Jungian AI"
+description = "Computational framework for emergent coherent integration in adaptive multi-agent systems"
 readme = "README.md"
 license = {text = "MIT"}
 authors = [
@@ -13,13 +13,13 @@ authors = [
 ]
 keywords = [
     "artificial-life",
-    "consciousness",
-    "riemann-zeta",
-    "emergent-intelligence",
-    "jungian-psychology",
+    "emergent-integration",
+    "phase-transitions",
+    "active-inference",
     "multi-agent-systems",
-    "neural-networks",
-    "ai-safety"
+    "computational-theory",
+    "darwinian-brain",
+    "free-energy-principle",
 ]
 classifiers = [
     "Development Status :: 4 - Beta",

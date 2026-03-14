@@ -1,15 +1,20 @@
 """
-ZetaPsyche - Jungian archetype-based AI consciousness.
+ZetaPsyche — Legacy Jungian archetype-based integration system.
 
-Consciousness emergence through navigation in a tetrahedral archetype space:
+NOTE: This is the original psyche layer. The active computational core
+is in ``zeta_life.kernel`` (Active Inference architecture). This module
+is maintained for backward compatibility and experimental exploration
+of the tetrahedral archetype space.
+
+Archetype space:
 - PERSONA: Social mask (red)
 - SOMBRA: Shadow/unconscious (purple)
 - ANIMA: Receptive/emotional (blue)
 - ANIMUS: Active/rational (orange)
 - Center = Self (full integration)
 
-Consciousness Index:
-consciousness = 0.3*integration + 0.3*stability + 0.2*(1-dist_to_self) + 0.2*|self_reference|
+Active modules: zeta_psyche, zeta_dreams, zeta_individuation,
+                zeta_attention, zeta_conscious_self, zeta_psyche_voice
 """
 
 from .zeta_attention import AttentionOutput, ZetaAttentionSystem

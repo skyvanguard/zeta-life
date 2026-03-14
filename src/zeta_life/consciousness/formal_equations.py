@@ -1,14 +1,15 @@
 """
-Formal Equations for Emergent Consciousness
-=============================================
+Formal Equations for Emergent Coherent Integration
+====================================================
 
-Mathematical framework for consciousness emergence, phase transitions,
-and corruption thresholds. Pure functions with no side effects.
+Mathematical framework for phase transitions in adaptive integration
+systems, corruption thresholds, and system stability prediction.
+Pure functions with no side effects.
 
 Core equations:
     Phi_c = F_i / (alpha - C)          [critical threshold]
     B = (Phi - Phi_c) / Phi_c          [binding factor]
-    Psi = B^3 + Phi                    [consciousness index]
+    Psi = B^3 + Phi                    [integration index]
     M_c = F_i / (alpha - C)            [critical mass]
     Ec.13: corruption threshold         [system stability]
 
