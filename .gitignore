@@ -84,9 +84,7 @@ Thumbs.db
 *.png
 *.jpg
 *.jpeg
-!results/figures/.gitkeep
-!results/figures/evolution_results.png
-!results/figures/synth_comparison.png
+!results/*.png
 *.json
 !pyproject.toml
 *.pt
@@ -96,21 +94,10 @@ nul
 
 # Keep important directories
 !results/
-!results/figures/
-!results/data/
-!models/
 !personal/
 
-# Sphinx build output
-docs/_build/
-docs/_build_new/
-docs/_build_v2/
-
-# Additional build directories
-docs/_build_clean/
-docs/_build_v3/
+# Sphinx build output (legacy, dirs already removed)
 docs/_build*/
-docs/serve_docs.bat
 tmpclaude-*
 
 # Personal/private data
