@@ -109,7 +109,7 @@ class CellResilience:
     Resilience state for a single cell.
 
     Tracks degradation level, accumulated damage, protective modules,
-    and temporal anticipation state. Integrates with ConsciousCell
+    and temporal anticipation state. Integrates with IntegrationCell
     to modulate plasticity and functional status.
 
     Attributes:

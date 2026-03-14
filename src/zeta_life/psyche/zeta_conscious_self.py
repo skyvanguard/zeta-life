@@ -220,19 +220,19 @@ class ConsciousnessIndex:
     @property
     def phi_c(self) -> float:
         """Critical threshold Phi_c = F_i / (alpha - C)."""
-        from ..consciousness.formal_equations import compute_phi_c
+        from ..integration.formal_equations import compute_phi_c
         return compute_phi_c(self.F_i, self.alpha, self.C)
 
     @property
     def B(self) -> float:
         """Binding factor B = (Phi - Phi_c) / Phi_c."""
-        from ..consciousness.formal_equations import compute_B
+        from ..integration.formal_equations import compute_B
         return compute_B(self.phi, self.phi_c)
 
     @property
     def psi(self) -> float:
         """Consciousness Psi = B^3 + Phi (0 if subcritical)."""
-        from ..consciousness.formal_equations import compute_psi
+        from ..integration.formal_equations import compute_psi
         return compute_psi(self.phi, self.phi_c)
 
     def compute_psi_raw(self) -> float:

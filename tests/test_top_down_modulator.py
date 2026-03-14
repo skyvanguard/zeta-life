@@ -9,10 +9,10 @@ import sys
 sys.path.insert(0, 'C:\\Users\\admin\\Documents\\life')
 
 from zeta_life.psyche.zeta_psyche import Archetype
-from zeta_life.consciousness.micro_psyche import ConsciousCell, MicroPsyche
-from zeta_life.consciousness.cluster import Cluster, ClusterPsyche
-from zeta_life.consciousness.organism_consciousness import OrganismConsciousness
-from zeta_life.consciousness.top_down_modulator import TopDownModulator
+from zeta_life.integration.micro_psyche import IntegrationCell, MicroPsyche
+from zeta_life.integration.cluster import Cluster, ClusterPsyche
+from zeta_life.integration.organism_integration import OrganismIntegration
+from zeta_life.integration.top_down_modulator import TopDownModulator
 
 
 # =============================================================================
@@ -28,7 +28,7 @@ def modulator():
 @pytest.fixture
 def cells():
     """Create test cells."""
-    return [ConsciousCell.create_random(grid_size=64) for _ in range(40)]
+    return [IntegrationCell.create_random(grid_size=64) for _ in range(40)]
 
 
 @pytest.fixture
@@ -53,7 +53,7 @@ def clusters(cells):
 @pytest.fixture
 def organism(clusters):
     """Create organism from clusters."""
-    return OrganismConsciousness.from_clusters(clusters)
+    return OrganismIntegration.from_clusters(clusters)
 
 
 # =============================================================================
@@ -200,10 +200,10 @@ class TestArchetypeGoal:
     def test_goal_compensates_imbalance(self, modulator):
         """Goal should compensate for imbalanced distributions."""
         # Create imbalanced organism
-        cells = [ConsciousCell.create_random(64, archetype_bias=Archetype.PERSONA)
+        cells = [IntegrationCell.create_random(64, archetype_bias=Archetype.PERSONA)
                  for _ in range(40)]
         cluster = Cluster.create_from_cells(0, cells)
-        organism = OrganismConsciousness.from_clusters([cluster])
+        organism = OrganismIntegration.from_clusters([cluster])
 
         # Force imbalance
         organism.global_archetype = torch.tensor([0.7, 0.1, 0.1, 0.1])
@@ -261,7 +261,7 @@ class TestCellModulation:
 
         assert len(results) == clusters[0].size
         for cell, mod, surprise in results:
-            assert isinstance(cell, ConsciousCell)
+            assert isinstance(cell, IntegrationCell)
             assert mod.shape == (32,)
             assert 0.0 <= surprise <= 1.0
 
@@ -359,7 +359,7 @@ class TestQualityMetrics:
         # Create aligned cells
         aligned_cells = []
         for _ in range(20):
-            cell = ConsciousCell.create_random(64)
+            cell = IntegrationCell.create_random(64)
             cell.psyche.archetype_state = organism.global_archetype.clone()
             cell.psyche.emotional_energy = 0.8
             aligned_cells.append(cell)

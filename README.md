@@ -15,13 +15,13 @@ Zeta Life is a computational framework for studying **phase transitions in adapt
 
 The core equation predicts when integration emerges:
 
-```
-Psi = B^3 + Phi       (integration index, supercritical regime)
-Phi_c = F_i / (alpha - C)   (critical threshold for phase transition)
-B = (Phi - Phi_c) / Phi_c   (binding factor)
-```
+$$\Psi = B^3 + \Phi \qquad \text{(integration index, supercritical regime)}$$
 
-The cubic term `B^3` creates a **sharp phase transition**: below the critical threshold `Phi_c`, integration is zero. Above it, the system amplifies nonlinearly -- a mathematical signature of emergent coherence.
+$$\Phi_c = \frac{F_i}{\alpha - C} \qquad \text{(critical threshold for phase transition)}$$
+
+$$B = \frac{\Phi - \Phi_c}{\Phi_c} \qquad \text{(binding factor)}$$
+
+The cubic term $B^3$ creates a **sharp phase transition**: below the critical threshold $\Phi_c$, integration is zero. Above it, the system amplifies nonlinearly -- a mathematical signature of emergent coherence.
 
 ---
 
@@ -45,10 +45,10 @@ PERCEIVE -> PREDICT -> COMPARE -> UPDATE -> MEMORIZE -> ACT -> REFLECT -> DREAM
 | DreamEngine | Zeta-driven offline consolidation |
 | PersistenceLayer | Identity save/load across sessions |
 
-The integration index `Psi` is derived from internal signals:
-- **Phi** (integrated information) from inverse free energy + memory depth
-- **F_i** (binding force) from learned precisions + self-reflection convergence
-- **C** (coherence cost) from recent prediction errors
+The integration index $\Psi$ is derived from internal signals:
+- $\Phi$ (integrated information) from inverse free energy + memory depth
+- $F_i$ (binding force) from learned precisions + self-reflection convergence
+- $C$ (coherence cost) from recent prediction errors
 
 ```python
 from zeta_life.kernel import ConsciousKernel
@@ -90,11 +90,9 @@ The formal equations predict **corruption thresholds** (how much damage before c
 
 The Riemann zeta function's non-trivial zeros provide the temporal structure:
 
-```
-K_sigma(t) = 2 * sum( exp(-sigma * |gamma|) * cos(gamma * t) )
-```
+$$K_\sigma(t) = 2 \sum_n \exp\!\bigl(-\sigma\,|\gamma_n|\bigr)\,\cos(\gamma_n\, t)$$
 
-where `gamma` are the imaginary parts of zeta zeros (14.134, 21.022, 25.011, ...). These frequencies drive memory consolidation in the DreamEngine and temporal binding in the ZetaRNN.
+where $\gamma_n$ are the imaginary parts of zeta zeros (14.134, 21.022, 25.011, ...). These frequencies drive memory consolidation in the DreamEngine and temporal binding in the ZetaRNN.
 
 ---
 
@@ -161,7 +159,7 @@ pytest tests/ -v   # 766 tests
 zeta-life/
 |-- src/zeta_life/
 |   |-- kernel/          # Active Inference kernel + organism
-|   |-- consciousness/   # Hierarchical integration (formal equations)
+|   |-- integration/     # Hierarchical integration (formal equations)
 |   |-- core/            # Zeta constants, RNN, resonance, tetrahedral space
 |   |-- organism/        # Multi-agent emergent intelligence (Fi-Mi dynamics)
 |   |-- evolution/       # Evolutionary parameter optimization (IPUESA)
@@ -183,13 +181,13 @@ zeta-life/
 
 | Equation | Formula | Meaning |
 |----------|---------|---------|
-| Critical threshold | `Phi_c = F_i / (alpha - C)` | Minimum integration for phase transition |
-| Binding factor | `B = (Phi - Phi_c) / Phi_c` | Distance above threshold (normalized) |
-| Integration index | `Psi = B^3 + Phi` | Nonlinear amplification of coherence |
-| Critical mass | `M_c = F_i / (alpha - C)` | Minimum units for integration to emerge |
-| Corruption threshold | `1 - F_i / (alpha * M * alpha_s)` | Maximum damage ratio before collapse |
+| Critical threshold | $\Phi_c = \frac{F_i}{\alpha - C}$ | Minimum integration for phase transition |
+| Binding factor | $B = \frac{\Phi - \Phi_c}{\Phi_c}$ | Distance above threshold (normalized) |
+| Integration index | $\Psi = B^3 + \Phi$ | Nonlinear amplification of coherence |
+| Critical mass | $M_c = \frac{F_i}{\alpha - C}$ | Minimum units for integration to emerge |
+| Corruption threshold | $1 - \frac{F_i}{\alpha \cdot M \cdot \alpha_s}$ | Maximum damage ratio before collapse |
 
-These are implemented as pure functions in `consciousness/formal_equations.py` and used by both the hierarchical simulation and the kernel's `_compute_psi()`.
+These are implemented as pure functions in `integration/formal_equations.py` and used by both the hierarchical simulation and the kernel's `_compute_psi()`.
 
 ---
 

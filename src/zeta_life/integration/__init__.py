@@ -10,7 +10,7 @@ Phi_c = F_i / (alpha - C) determines when the system transitions.
 Components:
 - MicroPsyche: Cell-level psyche with archetypes
 - Cluster: Cluster aggregation and dynamics
-- OrganismConsciousness: Organism-level integration
+- OrganismIntegration: Organism-level integration
 - BottomUpIntegrator: Cell→Cluster→Organism flow
 - TopDownModulator: Organism→Cluster→Cell influence
 - formal_equations: Psi, Phi_c, B, corruption threshold
@@ -36,15 +36,15 @@ from .cluster_assigner import ClusterAssigner, ClusteringConfig, ClusteringStrat
 from .damage_system import DamageSystem
 from .hierarchical_simulation import HierarchicalSimulation, SimulationConfig, SimulationMetrics
 from .micro_psyche import (
-    ConsciousCell,
+    IntegrationCell,
     MicroPsyche,
     apply_psyche_contagion,
     compute_local_phi,
     unbiased_argmax,
 )
-from .organism_consciousness import (
+from .organism_integration import (
     HierarchicalMetrics,
-    OrganismConsciousness,
+    OrganismIntegration,
     _integration_to_stage,
 )
 

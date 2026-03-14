@@ -35,7 +35,7 @@ from .complementary_memory import Episode, FastMemory, SlowMemory
 from .precision_controller import PrecisionController
 from .dream_engine import DreamEngine
 from .persistence import PersistenceLayer
-from ..consciousness.formal_equations import compute_phi_c, compute_psi
+from ..integration.formal_equations import compute_phi_c, compute_psi
 
 
 # ---------------------------------------------------------------------------

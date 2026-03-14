@@ -33,13 +33,13 @@ from .damage_system import DamageSystem
 
 # Importar módulos de consciencia jerárquica
 from .micro_psyche import (
-    ConsciousCell,
+    IntegrationCell,
     MicroPsyche,
     apply_psyche_contagion,
     compute_local_phi,
     unbiased_argmax,
 )
-from .organism_consciousness import HierarchicalMetrics, IndividuationStage, OrganismConsciousness
+from .organism_integration import HierarchicalMetrics, IndividuationStage, OrganismIntegration
 from .resilience_config import create_hierarchical_config, get_preset_config
 from .top_down_modulator import TopDownModulator
 
@@ -187,7 +187,7 @@ class HierarchicalSimulation:
     Orquesta:
     - Nivel 0: Células (MicroPsyche)
     - Nivel 1: Clusters (ClusterPsyche)
-    - Nivel 2: Organismo (OrganismConsciousness)
+    - Nivel 2: Organismo (OrganismIntegration)
 
     Flujos:
     - Bottom-up: Células → Clusters → Organismo
@@ -199,9 +199,9 @@ class HierarchicalSimulation:
         self.config = config or SimulationConfig()
 
         # Componentes del sistema
-        self.cells: list[ConsciousCell] = []
+        self.cells: list[IntegrationCell] = []
         self.clusters: list[Cluster] = []
-        self.organism: OrganismConsciousness | None = None
+        self.organism: OrganismIntegration | None = None
 
         # Integradores
         self.integrator = BottomUpIntegrator(
@@ -295,7 +295,7 @@ class HierarchicalSimulation:
     def _create_cells(
         self,
         distribution: dict[Archetype, float]
-    ) -> list[ConsciousCell]:
+    ) -> list[IntegrationCell]:
         """Crea células según distribución de arquetipos."""
         cells = []
 
@@ -321,7 +321,7 @@ class HierarchicalSimulation:
         # Crear células
         for archetype, count in counts.items():
             for _ in range(count):
-                cell = ConsciousCell.create_random(
+                cell = IntegrationCell.create_random(
                     grid_size=self.config.grid_size,
                     archetype_bias=archetype
                 )

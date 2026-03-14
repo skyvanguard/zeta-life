@@ -1,5 +1,5 @@
 """
-OrganismConsciousness: Estado de consciencia del organismo completo.
+OrganismIntegration: Estado de consciencia del organismo completo.
 
 Representa el nivel más alto de consciencia en el sistema jerárquico.
 Emerge de la integración de todos los clusters.
@@ -29,14 +29,14 @@ Archetype = Vertex
 
 # Importar de módulos nuevos
 from .cluster import Cluster, ClusterPsyche
-from .micro_psyche import ConsciousCell, MicroPsyche, unbiased_argmax
+from .micro_psyche import IntegrationCell, MicroPsyche, unbiased_argmax
 
 # =============================================================================
 # ORGANISM CONSCIOUSNESS
 # =============================================================================
 
 @dataclass
-class OrganismConsciousness:
+class OrganismIntegration:
     """
     Estado de consciencia del organismo completo.
 
@@ -128,7 +128,7 @@ class OrganismConsciousness:
         }
 
     @classmethod
-    def create_initial(cls) -> 'OrganismConsciousness':
+    def create_initial(cls) -> 'OrganismIntegration':
         """Crea consciencia inicial (estado base)."""
         # Seleccionar arquetipo aleatorio para evitar sesgo hacia PERSONA
         random_archetype = Archetype(np.random.randint(4))
@@ -146,17 +146,17 @@ class OrganismConsciousness:
     def from_clusters(
         cls,
         clusters: list[Cluster],
-        prev_consciousness: Optional['OrganismConsciousness'] = None
-    ) -> 'OrganismConsciousness':
+        prev_consciousness: Optional['OrganismIntegration'] = None
+    ) -> 'OrganismIntegration':
         """
-        Crea OrganismConsciousness agregando clusters.
+        Crea OrganismIntegration agregando clusters.
 
         Args:
             clusters: Lista de clusters del organismo
             prev_consciousness: Consciencia anterior (para continuidad)
 
         Returns:
-            Nueva OrganismConsciousness
+            Nueva OrganismIntegration
         """
         if not clusters:
             return cls.create_initial()
@@ -215,7 +215,7 @@ class OrganismConsciousness:
         ])
 
         # 8. Índice de consciencia
-        consciousness_index = _compute_consciousness_index(
+        consciousness_index = _compute_integration_index(
             clusters=valid_clusters,
             phi_global=phi_global,
             vertical_coherence=vertical_coherence,
@@ -267,7 +267,7 @@ def _integration_to_stage(integration: float, phi: float) -> IndividuationStage:
     else:
         return IndividuationStage.SELF_REALIZADO
 
-def _compute_consciousness_index(
+def _compute_integration_index(
     clusters: list[Cluster],
     phi_global: float,
     vertical_coherence: float,
@@ -389,9 +389,9 @@ class HierarchicalMetrics:
     @classmethod
     def compute(
         cls,
-        cells: list[ConsciousCell],
+        cells: list[IntegrationCell],
         clusters: list[Cluster],
-        organism: OrganismConsciousness,
+        organism: OrganismIntegration,
         prev_metrics: Optional['HierarchicalMetrics'] = None
     ) -> 'HierarchicalMetrics':
         """
@@ -486,7 +486,7 @@ class HierarchicalMetrics:
             insight_rate=0.0  # Calculado externamente
         )
 
-def _compute_bottom_up_flow(cells: list[ConsciousCell], clusters: list[Cluster]) -> float:
+def _compute_bottom_up_flow(cells: list[IntegrationCell], clusters: list[Cluster]) -> float:
     """Calcula calidad del flujo bottom-up."""
     if not cells or not clusters:
         return 0.0
@@ -500,7 +500,7 @@ def _compute_bottom_up_flow(cells: list[ConsciousCell], clusters: list[Cluster])
 
     return total_rep / len(cells)
 
-def _compute_top_down_flow(cells: list[ConsciousCell], organism: OrganismConsciousness) -> float:
+def _compute_top_down_flow(cells: list[IntegrationCell], organism: OrganismIntegration) -> float:
     """Calcula calidad del flujo top-down."""
     if not cells:
         return 0.0
@@ -539,7 +539,7 @@ def _compute_horizontal_flow(clusters: list[Cluster]) -> float:
 
 if __name__ == "__main__":
     print("=" * 60)
-    print("  TEST: OrganismConsciousness")
+    print("  TEST: OrganismIntegration")
     print("=" * 60)
 
     # Crear células y clusters de prueba
@@ -551,7 +551,7 @@ if __name__ == "__main__":
         # Crear 10 células por cluster con bias hacia un arquetipo
         archetype = Archetype(cluster_id)
         cells = [
-            ConsciousCell.create_random(grid_size=64, archetype_bias=archetype)
+            IntegrationCell.create_random(grid_size=64, archetype_bias=archetype)
             for _ in range(10)
         ]
         all_cells.extend(cells)
@@ -563,9 +563,9 @@ if __name__ == "__main__":
         print(f"   Cluster {cluster_id}: {cluster.size} células, "
               f"especialización={specialization_name}")
 
-    # Crear OrganismConsciousness
-    print("\n2. Crear OrganismConsciousness:")
-    organism = OrganismConsciousness.from_clusters(clusters)
+    # Crear OrganismIntegration
+    print("\n2. Crear OrganismIntegration:")
+    organism = OrganismIntegration.from_clusters(clusters)
 
     print(f"   Consciencia: {organism.consciousness_level:.3f}")
     print(f"   Φ global: {organism.phi_global:.3f}")

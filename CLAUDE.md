@@ -246,8 +246,8 @@ Multiplier  HS       MSR      TAE      Criteria
 
 **Usage:**
 ```python
-from zeta_life.consciousness.resilience_config import get_preset_config
-from zeta_life.consciousness.damage_system import DamageSystem
+from zeta_life.integration.resilience_config import get_preset_config
+from zeta_life.integration.damage_system import DamageSystem
 
 config = get_preset_config('optimal')  # or 'demo', 'stress', 'validation'
 ds = DamageSystem(config)

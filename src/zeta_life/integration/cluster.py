@@ -1,7 +1,7 @@
 """
 Cluster: Grupo de células conscientes con psique emergente.
 
-Un cluster es un grupo de ConsciousCells que comparten proximidad
+Un cluster es un grupo de IntegrationCells que comparten proximidad
 espacial y/o afinidad arquetipal. Cada cluster desarrolla una
 psique emergente (ClusterPsyche) que representa el "mood" colectivo.
 
@@ -21,7 +21,7 @@ from ..organism.cell_state import CellRole
 
 # Importar del sistema existente
 from ..psyche.zeta_psyche import Archetype
-from .micro_psyche import ConsciousCell, MicroPsyche, compute_local_phi, unbiased_argmax
+from .micro_psyche import IntegrationCell, MicroPsyche, compute_local_phi, unbiased_argmax
 
 # Type hint for resilience config
 if TYPE_CHECKING:
@@ -106,12 +106,12 @@ class ClusterPsyche:
         )
 
     @classmethod
-    def from_cells(cls, cells: list[ConsciousCell]) -> 'ClusterPsyche':
+    def from_cells(cls, cells: list[IntegrationCell]) -> 'ClusterPsyche':
         """
         Crea ClusterPsyche agregando estados de células.
 
         Args:
-            cells: Lista de ConsciousCell del cluster
+            cells: Lista de IntegrationCell del cluster
 
         Returns:
             ClusterPsyche con estado agregado
@@ -195,7 +195,7 @@ class Cluster:
     """
 
     id: int
-    cells: list[ConsciousCell] = field(default_factory=list)
+    cells: list[IntegrationCell] = field(default_factory=list)
     psyche: ClusterPsyche | None = None
     centroid: tuple[float, float] = (0.0, 0.0)
     neighbors: list[int] = field(default_factory=list)
@@ -298,7 +298,7 @@ class Cluster:
         spread_count = 0
 
         # Find all consolidated modules
-        consolidated: list[tuple[ConsciousCell, MicroModule]] = []
+        consolidated: list[tuple[IntegrationCell, MicroModule]] = []
         for cell in self.cells:
             for module in cell.resilience.get_consolidated_modules(min_activations):
                 consolidated.append((cell, module))
@@ -333,11 +333,11 @@ class Cluster:
 
         return spread_count
 
-    def get_functional_cells(self) -> list[ConsciousCell]:
+    def get_functional_cells(self) -> list[IntegrationCell]:
         """Returns list of functional (non-collapsed) cells."""
         return [c for c in self.cells if c.is_functional]
 
-    def get_collapsed_cells(self) -> list[ConsciousCell]:
+    def get_collapsed_cells(self) -> list[IntegrationCell]:
         """Returns list of collapsed cells."""
         return [c for c in self.cells if not c.is_functional]
 
@@ -374,13 +374,13 @@ class Cluster:
 
         self.collective_role = CellRole(int(np.argmax(role_counts)))
 
-    def add_cell(self, cell: ConsciousCell) -> None:
+    def add_cell(self, cell: IntegrationCell) -> None:
         """Agrega una célula al cluster."""
         cell.cluster_id = self.id
         self.cells.append(cell)
         self._update_centroid()
 
-    def remove_cell(self, cell: ConsciousCell) -> None:
+    def remove_cell(self, cell: IntegrationCell) -> None:
         """Remueve una célula del cluster."""
         if cell in self.cells:
             self.cells.remove(cell)
@@ -402,11 +402,11 @@ class Cluster:
         """Distancia entre centroides de clusters."""
         return self.distance_to_point(other.centroid)
 
-    def get_fi_cells(self) -> list[ConsciousCell]:
+    def get_fi_cells(self) -> list[IntegrationCell]:
         """Retorna células con rol Fi (líderes)."""
         return [c for c in self.cells if c.is_fi]
 
-    def get_mass_cells(self) -> list[ConsciousCell]:
+    def get_mass_cells(self) -> list[IntegrationCell]:
         """Retorna células con rol Mass."""
         return [c for c in self.cells if c.is_mass]
 
@@ -462,7 +462,7 @@ class Cluster:
     def create_from_cells(
         cls,
         cluster_id: int,
-        cells: list[ConsciousCell]
+        cells: list[IntegrationCell]
     ) -> 'Cluster':
         """
         Crea un cluster desde una lista de células.
@@ -617,7 +617,7 @@ if __name__ == "__main__":
 
     # Crear células de prueba
     print("\n1. Crear 10 células aleatorias:")
-    cells = [ConsciousCell.create_random(grid_size=64) for _ in range(10)]
+    cells = [IntegrationCell.create_random(grid_size=64) for _ in range(10)]
     for i, c in enumerate(cells):
         print(f"   Cell {i}: pos={c.position}, arch={c.psyche.dominant.name}")
 
@@ -639,7 +639,7 @@ if __name__ == "__main__":
 
     # Crear segundo cluster
     print("\n4. Crear segundo cluster:")
-    cells2 = [ConsciousCell.create_random(grid_size=64) for _ in range(8)]
+    cells2 = [IntegrationCell.create_random(grid_size=64) for _ in range(8)]
     cluster2 = Cluster.create_from_cells(cluster_id=1, cells=cells2)
     print(f"   Cluster 1 centroid: {cluster2.centroid}")
     if cluster2.psyche is not None:

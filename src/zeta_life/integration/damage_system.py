@@ -20,7 +20,7 @@ import numpy as np
 from .resilience import MODULE_TYPES, CellResilience, MicroModule
 
 if TYPE_CHECKING:
-    from .micro_psyche import ConsciousCell
+    from .micro_psyche import IntegrationCell
 
 class DamageSystem:
     """
@@ -49,7 +49,7 @@ class DamageSystem:
             if section not in self.config:
                 raise ValueError(f"Config missing required section: {section}")
 
-    def apply_damage(self, cell: 'ConsciousCell', resilience: CellResilience,
+    def apply_damage(self, cell: 'IntegrationCell', resilience: CellResilience,
                      base_damage: float) -> float:
         """
         Apply damage to cell, return actual damage dealt.
@@ -61,7 +61,7 @@ class DamageSystem:
         - Random noise (for anti-fragility)
 
         Args:
-            cell: The ConsciousCell being damaged
+            cell: The IntegrationCell being damaged
             resilience: Cell's CellResilience state
             base_damage: Raw damage amount before mitigation
 
@@ -124,7 +124,7 @@ class DamageSystem:
 
         return damage
 
-    def apply_recovery(self, cell: 'ConsciousCell', resilience: CellResilience,
+    def apply_recovery(self, cell: 'IntegrationCell', resilience: CellResilience,
                        cluster_cohesion: float = 0.5) -> float:
         """
         Apply recovery to cell, return recovery amount.
@@ -136,7 +136,7 @@ class DamageSystem:
         - Lower degradation (easier to recover when less damaged)
 
         Args:
-            cell: The ConsciousCell recovering
+            cell: The IntegrationCell recovering
             resilience: Cell's CellResilience state
             cluster_cohesion: Cohesion of cell's cluster [0, 1]
 
@@ -283,7 +283,7 @@ class DamageSystem:
         threshold = cfg_modules['consolidation_threshold']
         resilience.remove_weak_modules(threshold)
 
-    def spread_modules_in_cluster(self, cells: list['ConsciousCell']) -> int:
+    def spread_modules_in_cluster(self, cells: list['IntegrationCell']) -> int:
         """
         Spread consolidated modules between cells in a cluster.
 
@@ -300,7 +300,7 @@ class DamageSystem:
         spread_count = 0
 
         # Find all consolidated modules
-        consolidated: list[tuple[ConsciousCell, MicroModule]] = []
+        consolidated: list[tuple[IntegrationCell, MicroModule]] = []
         for cell in cells:
             for module in cell.resilience.get_consolidated_modules(
                 min_activations=cfg_spreading['min_activations']
@@ -333,7 +333,7 @@ class DamageSystem:
 
         return spread_count
 
-    def calculate_cluster_resilience(self, cells: list['ConsciousCell']) -> float:
+    def calculate_cluster_resilience(self, cells: list['IntegrationCell']) -> float:
         """
         Calculate aggregate resilience for a cluster.
 
@@ -345,7 +345,7 @@ class DamageSystem:
 
         return 1.0 - np.mean([c.resilience.degradation_level for c in functional])
 
-    def calculate_functional_ratio(self, cells: list['ConsciousCell']) -> float:
+    def calculate_functional_ratio(self, cells: list['IntegrationCell']) -> float:
         """Calculate proportion of functional cells."""
         if not cells:
             return 0.0
@@ -353,7 +353,7 @@ class DamageSystem:
 
     def compute_corruption_analysis(
         self,
-        cells: list['ConsciousCell'],
+        cells: list['IntegrationCell'],
         F_i: float = 0.0,
         alpha: float = 1.0,
         alpha_s: float = 1.0,
@@ -407,7 +407,7 @@ class DamageSystem:
             'stability_warning': warning,
         }
 
-    def get_metrics(self, cells: list['ConsciousCell']) -> dict:
+    def get_metrics(self, cells: list['IntegrationCell']) -> dict:
         """
         Calculate IPUESA-compatible metrics for a set of cells.
 

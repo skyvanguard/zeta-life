@@ -11,7 +11,7 @@ Tests the mathematical framework:
 
 import pytest
 
-from zeta_life.consciousness.formal_equations import (
+from zeta_life.integration.formal_equations import (
     compute_B,
     compute_corruption_threshold,
     compute_M_c,

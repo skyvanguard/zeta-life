@@ -2,7 +2,7 @@
 
 Tests cover:
 - Phase 1: CellResilience, MicroModule, DamageSystem, resilience_config
-- Phase 2: ConsciousCell integration, Cluster integration, HierarchicalSimulation integration
+- Phase 2: IntegrationCell integration, Cluster integration, HierarchicalSimulation integration
 """
 
 import pytest
@@ -18,7 +18,7 @@ sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..'))
 # Use direct module loading to avoid circular import in existing __init__.py chain
 # The circular import is between zeta_psyche and zeta_memory and is pre-existing
 
-BASE_PATH = os.path.join(os.path.dirname(__file__), '..', 'src', 'zeta_life', 'consciousness')
+BASE_PATH = os.path.join(os.path.dirname(__file__), '..', 'src', 'zeta_life', 'integration')
 
 def load_module_direct(name, path):
     """Load module directly without __init__.py chain."""
@@ -30,15 +30,15 @@ def load_module_direct(name, path):
 
 # Load resilience modules directly (no circular deps)
 resilience_mod = load_module_direct(
-    'zeta_life.consciousness.resilience',
+    'zeta_life.integration.resilience',
     os.path.join(BASE_PATH, 'resilience.py')
 )
 resilience_config_mod = load_module_direct(
-    'zeta_life.consciousness.resilience_config',
+    'zeta_life.integration.resilience_config',
     os.path.join(BASE_PATH, 'resilience_config.py')
 )
 damage_system_mod = load_module_direct(
-    'zeta_life.consciousness.damage_system',
+    'zeta_life.integration.damage_system',
     os.path.join(BASE_PATH, 'damage_system.py')
 )
 
@@ -52,13 +52,13 @@ DamageSystem = damage_system_mod.DamageSystem
 
 # Phase 2 imports need the full package - skip if circular import fails
 try:
-    from zeta_life.consciousness.micro_psyche import ConsciousCell
-    from zeta_life.consciousness.cluster import Cluster
+    from zeta_life.integration.micro_psyche import IntegrationCell
+    from zeta_life.integration.cluster import Cluster
     PHASE2_AVAILABLE = True
 except ImportError:
     # Load individually to avoid circular import
     PHASE2_AVAILABLE = False
-    ConsciousCell = None
+    IntegrationCell = None
     Cluster = None
 
 
@@ -416,16 +416,16 @@ class TestResilienceConfig:
 # =============================================================================
 
 @pytest.mark.skipif(not PHASE2_AVAILABLE, reason="Circular import in codebase prevents full imports")
-class TestConsciousCellResilience:
-    """Tests for ConsciousCell + CellResilience integration."""
+class TestIntegrationCellResilience:
+    """Tests for IntegrationCell + CellResilience integration."""
 
     @pytest.fixture
     def conscious_cell(self):
-        """Create ConsciousCell using factory method."""
-        return ConsciousCell.create_random(grid_size=64)
+        """Create IntegrationCell using factory method."""
+        return IntegrationCell.create_random(grid_size=64)
 
     def test_cell_has_resilience(self, conscious_cell):
-        """ConsciousCell has resilience field."""
+        """IntegrationCell has resilience field."""
         assert hasattr(conscious_cell, 'resilience')
         assert isinstance(conscious_cell.resilience, CellResilience)
 
@@ -468,10 +468,10 @@ class TestClusterResilience:
     @pytest.fixture
     def cluster_with_cells(self):
         """Create cluster with cells."""
-        from zeta_life.consciousness.cluster import ClusterPsyche
+        from zeta_life.integration.cluster import ClusterPsyche
 
         # Create cells using factory
-        cells = [ConsciousCell.create_random(grid_size=64) for _ in range(5)]
+        cells = [IntegrationCell.create_random(grid_size=64) for _ in range(5)]
 
         # Set varied degradation
         cells[0].resilience.degradation_level = 0.0
@@ -534,7 +534,7 @@ class TestSelfEvidence:
         ds = DamageSystem(cfg)
 
         # Create cell population using factory
-        cells = [ConsciousCell.create_random(grid_size=64) for _ in range(20)]
+        cells = [IntegrationCell.create_random(grid_size=64) for _ in range(20)]
 
         # Simulate damage rounds
         for _ in range(10):
@@ -553,7 +553,7 @@ class TestSelfEvidence:
         cfg = get_preset_config('stress')
         ds = DamageSystem(cfg)
 
-        cells = [ConsciousCell.create_random(grid_size=64) for _ in range(10)]
+        cells = [IntegrationCell.create_random(grid_size=64) for _ in range(10)]
 
         # Apply stress
         for _ in range(20):
@@ -566,7 +566,7 @@ class TestSelfEvidence:
 
     def test_embedding_integrity(self):
         """Embedding integrity (EI) should be maintained."""
-        cells = [ConsciousCell.create_random(grid_size=64) for _ in range(10)]
+        cells = [IntegrationCell.create_random(grid_size=64) for _ in range(10)]
 
         # Check each cell has valid resilience
         for cell in cells:
@@ -579,7 +579,7 @@ class TestSelfEvidence:
         cfg = get_preset_config('optimal')
         ds = DamageSystem(cfg)
 
-        cell = ConsciousCell.create_random(grid_size=64)
+        cell = IntegrationCell.create_random(grid_size=64)
 
         # Track degradation over time
         degradation_history = [cell.resilience.degradation_level]

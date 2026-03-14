@@ -264,7 +264,7 @@ def _create_default_resilience() -> 'CellResilience':
     return CellResilience()
 
 @dataclass
-class ConsciousCell:
+class IntegrationCell:
     """
     Célula consciente que combina física (CellEntity) con psique (MicroPsyche).
 
@@ -343,13 +343,13 @@ class ConsciousCell:
         """Current degradation state (OPTIMAL, STRESSED, IMPAIRED, CRITICAL, COLLAPSED)."""
         return self.resilience.state
 
-    def distance_to(self, other: 'ConsciousCell') -> float:
+    def distance_to(self, other: 'IntegrationCell') -> float:
         """Calcula distancia euclidiana a otra célula."""
         dx = self.position[0] - other.position[0]
         dy = self.position[1] - other.position[1]
         return float(np.sqrt(dx**2 + dy**2))
 
-    def psyche_similarity(self, other: 'ConsciousCell') -> float:
+    def psyche_similarity(self, other: 'IntegrationCell') -> float:
         """Calcula similitud psíquica con otra célula."""
         return self.psyche.alignment_with(other.psyche.archetype_state)
 
@@ -414,7 +414,7 @@ class ConsciousCell:
         grid_size: int,
         state_dim: int = 32,
         archetype_bias: Archetype | None = None
-    ) -> 'ConsciousCell':
+    ) -> 'IntegrationCell':
         """
         Crea una célula consciente con posición y estado aleatorios.
 
@@ -441,13 +441,13 @@ class ConsciousCell:
 # UTILIDADES
 # =============================================================================
 
-def compute_local_phi(cell: ConsciousCell, neighbors: list[ConsciousCell]) -> float:
+def compute_local_phi(cell: IntegrationCell, neighbors: list[IntegrationCell]) -> float:
     """
     Calcula Φ local (integración con vecinos).
 
     Args:
         cell: Célula central
-        neighbors: Lista de ConsciousCell vecinas
+        neighbors: Lista de IntegrationCell vecinas
 
     Returns:
         phi_local entre 0 y 1
@@ -474,8 +474,8 @@ def compute_local_phi(cell: ConsciousCell, neighbors: list[ConsciousCell]) -> fl
     return max(0.0, min(1.0, phi))
 
 def apply_psyche_contagion(
-    cell: ConsciousCell,
-    neighbors: list[ConsciousCell],
+    cell: IntegrationCell,
+    neighbors: list[IntegrationCell],
     contagion_rate: float = 0.1,
     similarity_threshold: float = 0.85,
     friction_factor: float = 0.2
@@ -533,7 +533,7 @@ def apply_psyche_contagion(
 
 if __name__ == "__main__":
     print("=" * 60)
-    print("  TEST: MicroPsyche y ConsciousCell")
+    print("  TEST: MicroPsyche y IntegrationCell")
     print("=" * 60)
 
     # Test MicroPsyche
@@ -558,16 +558,16 @@ if __name__ == "__main__":
     print(f"   Después: {psyche.archetype_state.tolist()}")
     print(f"   Nuevo dominante: {psyche.dominant.name}")
 
-    # Test ConsciousCell
-    print("\n4. Crear ConsciousCell:")
-    cell = ConsciousCell.create_random(grid_size=64, state_dim=32)
+    # Test IntegrationCell
+    print("\n4. Crear IntegrationCell:")
+    cell = IntegrationCell.create_random(grid_size=64, state_dim=32)
     print(f"   Posición: {cell.position}")
     print(f"   Rol: {cell.role_name}")
     print(f"   Arquetipo: {cell.psyche.dominant.name}")
 
     # Test múltiples células y contagio
     print("\n5. Crear 5 células y probar contagio:")
-    cells = [ConsciousCell.create_random(grid_size=64) for _ in range(5)]
+    cells = [IntegrationCell.create_random(grid_size=64) for _ in range(5)]
 
     print("   Antes del contagio:")
     for i, c in enumerate(cells):

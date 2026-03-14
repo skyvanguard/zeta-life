@@ -28,8 +28,8 @@ Archetype = Vertex
 
 # Importar de módulos nuevos
 from .cluster import Cluster, ClusterPsyche
-from .micro_psyche import ConsciousCell, MicroPsyche, unbiased_argmax
-from .organism_consciousness import OrganismConsciousness
+from .micro_psyche import IntegrationCell, MicroPsyche, unbiased_argmax
+from .organism_integration import OrganismIntegration
 
 # =============================================================================
 # TOP-DOWN MODULATOR
@@ -101,7 +101,7 @@ class TopDownModulator(nn.Module):
 
     def compute_cluster_attention(
         self,
-        organism: OrganismConsciousness,
+        organism: OrganismIntegration,
         cluster: Cluster
     ) -> float:
         """
@@ -151,7 +151,7 @@ class TopDownModulator(nn.Module):
 
     def distribute_attention(
         self,
-        organism: OrganismConsciousness,
+        organism: OrganismIntegration,
         clusters: list[Cluster]
     ) -> dict[int, float]:
         """
@@ -184,7 +184,7 @@ class TopDownModulator(nn.Module):
 
     def generate_predictions(
         self,
-        organism: OrganismConsciousness,
+        organism: OrganismIntegration,
         clusters: list[Cluster]
     ) -> dict[int, torch.Tensor]:
         """
@@ -242,7 +242,7 @@ class TopDownModulator(nn.Module):
 
     def compute_archetype_goal(
         self,
-        organism: OrganismConsciousness
+        organism: OrganismIntegration
     ) -> torch.Tensor:
         """
         Calcula la distribución arquetipal objetivo que el organismo necesita.
@@ -277,7 +277,7 @@ class TopDownModulator(nn.Module):
 
     def modulate_cell_archetype(
         self,
-        cell: ConsciousCell,
+        cell: IntegrationCell,
         archetype_goal: torch.Tensor,
         strength: float = 0.1
     ) -> None:
@@ -318,8 +318,8 @@ class TopDownModulator(nn.Module):
 
     def compute_adaptive_strength(
         self,
-        cell: ConsciousCell,
-        organism: OrganismConsciousness,
+        cell: IntegrationCell,
+        organism: OrganismIntegration,
         base_strength: float = 0.1
     ) -> float:
         """
@@ -363,7 +363,7 @@ class TopDownModulator(nn.Module):
 
     def generate_cell_modulation(
         self,
-        organism: OrganismConsciousness,
+        organism: OrganismIntegration,
         cluster: Cluster,
         cluster_attention: float
     ) -> torch.Tensor:
@@ -392,8 +392,8 @@ class TopDownModulator(nn.Module):
         cluster: Cluster,
         base_modulation: torch.Tensor,
         cluster_attention: float,
-        organism: OrganismConsciousness
-    ) -> list[tuple[ConsciousCell, torch.Tensor, float]]:
+        organism: OrganismIntegration
+    ) -> list[tuple[IntegrationCell, torch.Tensor, float]]:
         """
         Genera modulaciones específicas para cada célula de un cluster.
 
@@ -437,9 +437,9 @@ class TopDownModulator(nn.Module):
 
     def apply_modulation_to_cell(
         self,
-        cell: ConsciousCell,
+        cell: IntegrationCell,
         modulation: torch.Tensor,
-        organism: OrganismConsciousness,
+        organism: OrganismIntegration,
         archetype_goal: torch.Tensor,
         strength: float = 0.1
     ) -> None:
@@ -486,7 +486,7 @@ class TopDownModulator(nn.Module):
 
     def modulate(
         self,
-        organism: OrganismConsciousness,
+        organism: OrganismIntegration,
         clusters: list[Cluster],
         apply_to_cells: bool = True
     ) -> dict:
@@ -561,8 +561,8 @@ class TopDownModulator(nn.Module):
 
     def compute_modulation_quality(
         self,
-        cells: list[ConsciousCell],
-        organism: OrganismConsciousness
+        cells: list[IntegrationCell],
+        organism: OrganismIntegration
     ) -> float:
         """
         Calcula la calidad de la modulación top-down.
@@ -611,7 +611,7 @@ if __name__ == "__main__":
 
     for i, archetype in enumerate(Archetype):
         cells = [
-            ConsciousCell.create_random(grid_size=64, archetype_bias=archetype)
+            IntegrationCell.create_random(grid_size=64, archetype_bias=archetype)
             for _ in range(10)
         ]
         all_cells.extend(cells)
@@ -621,7 +621,7 @@ if __name__ == "__main__":
     print(f"   {len(all_cells)} células en {len(clusters)} clusters")
 
     # Crear organismo
-    organism = OrganismConsciousness.from_clusters(clusters)
+    organism = OrganismIntegration.from_clusters(clusters)
     print(f"   Organismo: dominante={organism.dominant_archetype.name}")
 
     # Test distribución de atención

@@ -6,7 +6,7 @@ hierarchical consciousness system configuration. Provides presets for
 different use cases (demo, optimal, stress, validation).
 
 Usage:
-    from zeta_life.consciousness.resilience_config import get_preset_config
+    from zeta_life.integration.resilience_config import get_preset_config
 
     config = get_preset_config('optimal')
     damage_system = DamageSystem(config)

@@ -20,13 +20,13 @@ import sys
 sys.path.insert(0, 'C:\\Users\\admin\\Documents\\life')
 
 from zeta_life.psyche import Archetype
-from zeta_life.consciousness import ConsciousCell, MicroPsyche
-from zeta_life.consciousness import Cluster, ClusterPsyche
-from zeta_life.consciousness import OrganismConsciousness
+from zeta_life.integration import IntegrationCell, MicroPsyche
+from zeta_life.integration import Cluster, ClusterPsyche
+from zeta_life.integration import OrganismIntegration
 from zeta_life.psyche import IndividuationStage
-from zeta_life.consciousness import BottomUpIntegrator
-from zeta_life.consciousness import TopDownModulator
-from zeta_life.consciousness import ClusterAssigner, ClusteringConfig, ClusteringStrategy
+from zeta_life.integration import BottomUpIntegrator
+from zeta_life.integration import TopDownModulator
+from zeta_life.integration import ClusterAssigner, ClusteringConfig, ClusteringStrategy
 
 
 # =============================================================================
@@ -34,12 +34,12 @@ from zeta_life.consciousness import ClusterAssigner, ClusteringConfig, Clusterin
 # =============================================================================
 
 @pytest.fixture
-def sample_cells() -> List[ConsciousCell]:
+def sample_cells() -> List[IntegrationCell]:
     """Crea células de muestra para testing."""
     cells = []
     for archetype in Archetype:
         for _ in range(10):
-            cell = ConsciousCell.create_random(grid_size=64, archetype_bias=archetype)
+            cell = IntegrationCell.create_random(grid_size=64, archetype_bias=archetype)
             cells.append(cell)
     return cells
 
@@ -125,7 +125,7 @@ class TestBottomUpIntegrator:
         """Test agregación de clusters a organismo."""
         organism = integrator.aggregate_clusters_to_organism(sample_clusters)
 
-        assert isinstance(organism, OrganismConsciousness)
+        assert isinstance(organism, OrganismIntegration)
         assert organism.global_archetype.shape == (4,)
         assert organism.dominant_archetype in Archetype
         assert 0 <= organism.phi_global <= 1
@@ -140,7 +140,7 @@ class TestBottomUpIntegrator:
 
         assert len(updated_clusters) == 4
         assert all(c.psyche is not None for c in updated_clusters)
-        assert isinstance(organism, OrganismConsciousness)
+        assert isinstance(organism, OrganismIntegration)
 
     def test_integrate_with_previous(self, integrator, sample_cells, sample_clusters):
         """Test integración con consciencia previa."""
@@ -152,7 +152,7 @@ class TestBottomUpIntegrator:
             sample_cells, sample_clusters, organism1
         )
 
-        assert isinstance(organism2, OrganismConsciousness)
+        assert isinstance(organism2, OrganismIntegration)
         # La integración con historial debería producir resultados
         assert organism2.phi_global >= 0
 
@@ -192,7 +192,7 @@ class TestTopDownModulator:
 
     def test_distribute_attention(self, modulator, sample_clusters):
         """Test distribución de atención."""
-        organism = OrganismConsciousness.from_clusters(sample_clusters)
+        organism = OrganismIntegration.from_clusters(sample_clusters)
         attention = modulator.distribute_attention(organism, sample_clusters)
 
         assert isinstance(attention, dict)
@@ -201,7 +201,7 @@ class TestTopDownModulator:
 
     def test_attention_to_complement(self, modulator, sample_clusters):
         """Test que arquetipos complementarios reciben más atención."""
-        organism = OrganismConsciousness.from_clusters(sample_clusters)
+        organism = OrganismIntegration.from_clusters(sample_clusters)
         attention = modulator.distribute_attention(organism, sample_clusters)
 
         # Verificar que hay variación en la atención
@@ -210,7 +210,7 @@ class TestTopDownModulator:
 
     def test_generate_predictions(self, modulator, sample_clusters):
         """Test generación de predicciones."""
-        organism = OrganismConsciousness.from_clusters(sample_clusters)
+        organism = OrganismIntegration.from_clusters(sample_clusters)
         predictions = modulator.generate_predictions(organism, sample_clusters)
 
         assert isinstance(predictions, dict)
@@ -222,7 +222,7 @@ class TestTopDownModulator:
 
     def test_generate_cell_modulation(self, modulator, sample_clusters):
         """Test generación de señal de modulación."""
-        organism = OrganismConsciousness.from_clusters(sample_clusters)
+        organism = OrganismIntegration.from_clusters(sample_clusters)
         cluster = sample_clusters[0]
 
         modulation = modulator.generate_cell_modulation(
@@ -234,7 +234,7 @@ class TestTopDownModulator:
 
     def test_modulate_cells(self, modulator, sample_clusters, sample_cells):
         """Test modulación de células."""
-        organism = OrganismConsciousness.from_clusters(sample_clusters)
+        organism = OrganismIntegration.from_clusters(sample_clusters)
         cluster = sample_clusters[0]
         base_mod = modulator.generate_cell_modulation(organism, cluster, 0.8)
 
@@ -244,13 +244,13 @@ class TestTopDownModulator:
 
         assert len(results) == len(cluster.cells)
         for cell, mod, surprise in results:
-            assert isinstance(cell, ConsciousCell)
+            assert isinstance(cell, IntegrationCell)
             assert mod.shape == (32,)
             assert 0 <= surprise <= 1
 
     def test_full_modulation(self, modulator, sample_clusters):
         """Test modulación completa."""
-        organism = OrganismConsciousness.from_clusters(sample_clusters)
+        organism = OrganismIntegration.from_clusters(sample_clusters)
         results = modulator.modulate(organism, sample_clusters, apply_to_cells=True)
 
         assert 'attention' in results
@@ -264,7 +264,7 @@ class TestTopDownModulator:
 
     def test_modulation_without_apply(self, modulator, sample_clusters, sample_cells):
         """Test modulación sin aplicar a células."""
-        organism = OrganismConsciousness.from_clusters(sample_clusters)
+        organism = OrganismIntegration.from_clusters(sample_clusters)
 
         # Guardar estados originales
         original_states = [c.state.clone() for c in sample_cells]
@@ -277,7 +277,7 @@ class TestTopDownModulator:
 
     def test_modulation_quality(self, modulator, sample_clusters, sample_cells):
         """Test cálculo de calidad de modulación."""
-        organism = OrganismConsciousness.from_clusters(sample_clusters)
+        organism = OrganismIntegration.from_clusters(sample_clusters)
         quality = modulator.compute_modulation_quality(sample_cells, organism)
 
         assert isinstance(quality, float)

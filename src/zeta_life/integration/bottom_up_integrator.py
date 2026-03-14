@@ -26,8 +26,8 @@ from ..psyche.zeta_psyche import Archetype
 from .cluster import Cluster, ClusterPsyche
 
 # Importar de módulos nuevos
-from .micro_psyche import ConsciousCell, MicroPsyche, unbiased_argmax
-from .organism_consciousness import OrganismConsciousness
+from .micro_psyche import IntegrationCell, MicroPsyche, unbiased_argmax
+from .organism_integration import OrganismIntegration
 
 # =============================================================================
 # BOTTOM-UP INTEGRATOR
@@ -93,7 +93,7 @@ class BottomUpIntegrator(nn.Module):
     # NIVEL 0 → NIVEL 1: Células a Clusters
     # =========================================================================
 
-    def compute_cell_importance(self, cell: ConsciousCell) -> float:
+    def compute_cell_importance(self, cell: IntegrationCell) -> float:
         """
         Calcula la importancia de una célula para su cluster.
 
@@ -123,7 +123,7 @@ class BottomUpIntegrator(nn.Module):
 
     def aggregate_cells_to_cluster(
         self,
-        cells: list[ConsciousCell]
+        cells: list[IntegrationCell]
     ) -> ClusterPsyche:
         """
         Agrega micro-psiques de células en psique de cluster.
@@ -249,9 +249,9 @@ class BottomUpIntegrator(nn.Module):
     def aggregate_clusters_to_organism(
         self,
         clusters: list[Cluster],
-        prev_consciousness: OrganismConsciousness | None = None,
-        cells: list[ConsciousCell] | None = None
-    ) -> OrganismConsciousness:
+        prev_consciousness: OrganismIntegration | None = None,
+        cells: list[IntegrationCell] | None = None
+    ) -> OrganismIntegration:
         """
         Agrega psiques de clusters en consciencia de organismo.
 
@@ -267,13 +267,13 @@ class BottomUpIntegrator(nn.Module):
             prev_consciousness: Consciencia anterior (para continuidad)
 
         Returns:
-            OrganismConsciousness integrada
+            OrganismIntegration integrada
         """
         # Filtrar clusters válidos
         valid_clusters = [c for c in clusters if c.psyche is not None and c.cells]
 
         if not valid_clusters:
-            return OrganismConsciousness.create_initial()
+            return OrganismIntegration.create_initial()
 
         # 1. Calcular pesos de clusters (basado en importancia × tamaño)
         weight_list: list[float] = []
@@ -318,12 +318,12 @@ class BottomUpIntegrator(nn.Module):
         ])
 
         # 8. Índice de consciencia
-        consciousness_index = self._compute_consciousness_index(
+        consciousness_index = self._compute_integration_index(
             valid_clusters, cells or [], phi_global, vertical_coherence,
             prev_consciousness.consciousness_index if prev_consciousness else None
         )
 
-        return OrganismConsciousness(
+        return OrganismIntegration(
             consciousness_index=consciousness_index,
             phi_global=phi_global,
             global_archetype=global_archetype,
@@ -556,10 +556,10 @@ class BottomUpIntegrator(nn.Module):
         else:
             return IndividuationStage.SELF_REALIZADO
 
-    def _compute_consciousness_index(
+    def _compute_integration_index(
         self,
         clusters: list[Cluster],
-        cells: list[ConsciousCell],
+        cells: list[IntegrationCell],
         phi_global: float,
         vertical_coherence: float,
         prev_index: ConsciousnessIndex | None = None
@@ -638,10 +638,10 @@ class BottomUpIntegrator(nn.Module):
 
     def integrate(
         self,
-        cells: list[ConsciousCell],
+        cells: list[IntegrationCell],
         clusters: list[Cluster],
-        prev_consciousness: OrganismConsciousness | None = None
-    ) -> tuple[list[Cluster], OrganismConsciousness]:
+        prev_consciousness: OrganismIntegration | None = None
+    ) -> tuple[list[Cluster], OrganismIntegration]:
         """
         Realiza integración bottom-up completa.
 
@@ -668,9 +668,9 @@ class BottomUpIntegrator(nn.Module):
 
     def compute_integration_quality(
         self,
-        cells: list[ConsciousCell],
+        cells: list[IntegrationCell],
         clusters: list[Cluster],
-        organism: OrganismConsciousness
+        organism: OrganismIntegration
     ) -> float:
         """
         Calcula la calidad de la integración bottom-up.
@@ -717,7 +717,7 @@ if __name__ == "__main__":
     all_cells = []
     for archetype in Archetype:
         for _ in range(10):
-            cell = ConsciousCell.create_random(grid_size=64, archetype_bias=archetype)
+            cell = IntegrationCell.create_random(grid_size=64, archetype_bias=archetype)
             all_cells.append(cell)
     print(f"   Total: {len(all_cells)} células")
 

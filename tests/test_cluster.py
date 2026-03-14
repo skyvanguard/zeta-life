@@ -10,8 +10,8 @@ sys.path.insert(0, 'C:\\Users\\admin\\Documents\\life')
 
 from zeta_life.psyche.zeta_psyche import Archetype
 from zeta_life.organism.cell_state import CellRole
-from zeta_life.consciousness.micro_psyche import ConsciousCell, MicroPsyche
-from zeta_life.consciousness.cluster import (
+from zeta_life.integration.micro_psyche import IntegrationCell, MicroPsyche
+from zeta_life.integration.cluster import (
     ClusterPsyche, Cluster, find_cluster_neighbors,
     compute_inter_cluster_coherence, merge_clusters, split_cluster
 )
@@ -33,7 +33,7 @@ class TestClusterPsyche:
 
     def test_from_cells_single(self):
         """Should create psyche from single cell."""
-        cell = ConsciousCell.create_random(grid_size=64)
+        cell = IntegrationCell.create_random(grid_size=64)
         psyche = ClusterPsyche.from_cells([cell])
 
         assert psyche.aggregate_state.shape == (4,)
@@ -43,7 +43,7 @@ class TestClusterPsyche:
 
     def test_from_cells_multiple(self):
         """Should aggregate multiple cells."""
-        cells = [ConsciousCell.create_random(grid_size=64) for _ in range(10)]
+        cells = [IntegrationCell.create_random(grid_size=64) for _ in range(10)]
         psyche = ClusterPsyche.from_cells(cells)
 
         assert psyche.aggregate_state.shape == (4,)
@@ -122,7 +122,7 @@ class TestClusterPsyche:
     def test_to_dict(self):
         """Should serialize to dict."""
         psyche = ClusterPsyche.from_cells([
-            ConsciousCell.create_random(grid_size=64) for _ in range(5)
+            IntegrationCell.create_random(grid_size=64) for _ in range(5)
         ])
         d = psyche.to_dict()
 
@@ -142,7 +142,7 @@ class TestCluster:
     @pytest.fixture
     def cells(self):
         """Create test cells."""
-        return [ConsciousCell.create_random(grid_size=64) for _ in range(10)]
+        return [IntegrationCell.create_random(grid_size=64) for _ in range(10)]
 
     def test_create_from_cells(self, cells):
         """Should create cluster from cells."""
@@ -162,7 +162,7 @@ class TestCluster:
         empty_cluster = Cluster(id=0, cells=[])
         assert empty_cluster.is_empty
 
-        cluster = Cluster.create_from_cells(0, [ConsciousCell.create_random(64)])
+        cluster = Cluster.create_from_cells(0, [IntegrationCell.create_random(64)])
         assert not cluster.is_empty
 
     def test_centroid_computed(self, cells):
@@ -185,7 +185,7 @@ class TestCluster:
     def test_add_cell(self):
         """Should add cell to cluster."""
         cluster = Cluster(id=0, cells=[])
-        cell = ConsciousCell.create_random(grid_size=64)
+        cell = IntegrationCell.create_random(grid_size=64)
 
         cluster.add_cell(cell)
 
@@ -228,8 +228,8 @@ class TestCluster:
 
     def test_distance_to_cluster(self):
         """Should compute distance between clusters."""
-        cells1 = [ConsciousCell.create_random(grid_size=64) for _ in range(5)]
-        cells2 = [ConsciousCell.create_random(grid_size=64) for _ in range(5)]
+        cells1 = [IntegrationCell.create_random(grid_size=64) for _ in range(5)]
+        cells2 = [IntegrationCell.create_random(grid_size=64) for _ in range(5)]
 
         cluster1 = Cluster.create_from_cells(0, cells1)
         cluster2 = Cluster.create_from_cells(1, cells2)
@@ -260,7 +260,7 @@ class TestCluster:
         # Create cells with similar archetypes
         cells = []
         for _ in range(5):
-            cell = ConsciousCell.create_random(grid_size=64, archetype_bias=Archetype.PERSONA)
+            cell = IntegrationCell.create_random(grid_size=64, archetype_bias=Archetype.PERSONA)
             cells.append(cell)
 
         cluster = Cluster.create_from_cells(0, cells)
@@ -303,7 +303,7 @@ class TestClusterUtilities:
 
     def test_find_cluster_neighbors_single(self):
         """Should handle single cluster."""
-        cells = [ConsciousCell.create_random(64) for _ in range(5)]
+        cells = [IntegrationCell.create_random(64) for _ in range(5)]
         cluster = Cluster.create_from_cells(0, cells)
 
         find_cluster_neighbors([cluster])
@@ -315,7 +315,7 @@ class TestClusterUtilities:
         # Create clusters at different positions
         clusters = []
         for i in range(4):
-            cells = [ConsciousCell.create_random(64) for _ in range(5)]
+            cells = [IntegrationCell.create_random(64) for _ in range(5)]
             # Force position
             for c in cells:
                 c.position = (i * 10, i * 10)
@@ -330,7 +330,7 @@ class TestClusterUtilities:
 
     def test_compute_inter_cluster_coherence_single(self):
         """Should return 1.0 for single cluster."""
-        cells = [ConsciousCell.create_random(64) for _ in range(5)]
+        cells = [IntegrationCell.create_random(64) for _ in range(5)]
         cluster = Cluster.create_from_cells(0, cells)
 
         coherence = compute_inter_cluster_coherence([cluster])
@@ -340,7 +340,7 @@ class TestClusterUtilities:
         """Should compute coherence for multiple clusters."""
         clusters = []
         for i, arch in enumerate(Archetype):
-            cells = [ConsciousCell.create_random(64, archetype_bias=arch) for _ in range(5)]
+            cells = [IntegrationCell.create_random(64, archetype_bias=arch) for _ in range(5)]
             cluster = Cluster.create_from_cells(i, cells)
             clusters.append(cluster)
 
@@ -349,8 +349,8 @@ class TestClusterUtilities:
 
     def test_merge_clusters(self):
         """Should merge two clusters."""
-        cells1 = [ConsciousCell.create_random(64) for _ in range(5)]
-        cells2 = [ConsciousCell.create_random(64) for _ in range(3)]
+        cells1 = [IntegrationCell.create_random(64) for _ in range(5)]
+        cells2 = [IntegrationCell.create_random(64) for _ in range(3)]
 
         cluster1 = Cluster.create_from_cells(0, cells1)
         cluster2 = Cluster.create_from_cells(1, cells2)
@@ -362,7 +362,7 @@ class TestClusterUtilities:
 
     def test_split_cluster_insufficient_cells(self):
         """Should not split if too few cells."""
-        cells = [ConsciousCell.create_random(64)]
+        cells = [IntegrationCell.create_random(64)]
         cluster = Cluster.create_from_cells(0, cells)
 
         parts = split_cluster(cluster, n_parts=2)
@@ -371,7 +371,7 @@ class TestClusterUtilities:
 
     def test_split_cluster_success(self):
         """Should split cluster into parts."""
-        cells = [ConsciousCell.create_random(64) for _ in range(10)]
+        cells = [IntegrationCell.create_random(64) for _ in range(10)]
         cluster = Cluster.create_from_cells(0, cells)
 
         parts = split_cluster(cluster, n_parts=2)
@@ -391,7 +391,7 @@ class TestClusterIntegration:
     def test_create_update_serialize(self):
         """Test full create -> update -> serialize cycle."""
         # Create
-        cells = [ConsciousCell.create_random(64) for _ in range(10)]
+        cells = [IntegrationCell.create_random(64) for _ in range(10)]
         cluster = Cluster.create_from_cells(0, cells)
 
         # Update
@@ -406,7 +406,7 @@ class TestClusterIntegration:
 
     def test_cluster_dynamics(self):
         """Test cluster behavior over multiple updates."""
-        cells = [ConsciousCell.create_random(64) for _ in range(20)]
+        cells = [IntegrationCell.create_random(64) for _ in range(20)]
         cluster = Cluster.create_from_cells(0, cells)
 
         phi_values = []
@@ -425,7 +425,7 @@ class TestClusterIntegration:
         # Create 4 clusters, one per archetype
         clusters = []
         for i, arch in enumerate(Archetype):
-            cells = [ConsciousCell.create_random(64, archetype_bias=arch) for _ in range(8)]
+            cells = [IntegrationCell.create_random(64, archetype_bias=arch) for _ in range(8)]
             cluster = Cluster.create_from_cells(i, cells)
             clusters.append(cluster)
 

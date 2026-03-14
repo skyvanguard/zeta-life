@@ -26,7 +26,7 @@ from ..psyche.zeta_psyche import Archetype
 from .cluster import Cluster, ClusterPsyche
 
 # Importar de módulos nuevos
-from .micro_psyche import ConsciousCell, MicroPsyche
+from .micro_psyche import IntegrationCell, MicroPsyche
 
 # =============================================================================
 # ESTRATEGIAS DE CLUSTERING
@@ -91,7 +91,7 @@ class ClusterAssigner:
 
     def compute_spatial_distance(
         self,
-        cell: ConsciousCell,
+        cell: IntegrationCell,
         centroid: tuple[float, float]
     ) -> float:
         """
@@ -110,7 +110,7 @@ class ClusterAssigner:
 
     def compute_psyche_similarity(
         self,
-        cell: ConsciousCell,
+        cell: IntegrationCell,
         cluster_psyche: torch.Tensor
     ) -> float:
         """
@@ -133,7 +133,7 @@ class ClusterAssigner:
 
     def compute_affinity(
         self,
-        cell: ConsciousCell,
+        cell: IntegrationCell,
         cluster: Cluster
     ) -> float:
         """
@@ -173,7 +173,7 @@ class ClusterAssigner:
 
     def initialize_clusters_spatial(
         self,
-        cells: list[ConsciousCell],
+        cells: list[IntegrationCell],
         grid_size: int = 64
     ) -> list[Cluster]:
         """
@@ -228,7 +228,7 @@ class ClusterAssigner:
 
     def initialize_clusters_archetype(
         self,
-        cells: list[ConsciousCell]
+        cells: list[IntegrationCell]
     ) -> list[Cluster]:
         """
         Inicializa clusters por arquetipo dominante.
@@ -323,7 +323,7 @@ class ClusterAssigner:
 
     def reassign_cells(
         self,
-        cells: list[ConsciousCell],
+        cells: list[IntegrationCell],
         clusters: list[Cluster]
     ) -> list[Cluster]:
         """
@@ -810,7 +810,7 @@ class ClusterAssigner:
 
     def assign(
         self,
-        cells: list[ConsciousCell],
+        cells: list[IntegrationCell],
         existing_clusters: list[Cluster] | None = None,
         force_reassign: bool = False
     ) -> list[Cluster]:
@@ -928,7 +928,7 @@ if __name__ == "__main__":
             # Posición en cuadrante según arquetipo
             base_x = 16 + (i % 2) * 32
             base_y = 16 + (i // 2) * 32
-            cell = ConsciousCell.create_random(
+            cell = IntegrationCell.create_random(
                 grid_size=64,
                 archetype_bias=archetype
             )

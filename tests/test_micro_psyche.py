@@ -1,5 +1,5 @@
 # tests/test_micro_psyche.py
-"""Tests for MicroPsyche and ConsciousCell - cell-level consciousness."""
+"""Tests for MicroPsyche and IntegrationCell - cell-level consciousness."""
 
 import pytest
 import torch
@@ -10,8 +10,8 @@ sys.path.insert(0, 'C:\\Users\\admin\\Documents\\life')
 
 from zeta_life.psyche.zeta_psyche import Archetype
 from zeta_life.organism.cell_state import CellRole
-from zeta_life.consciousness.micro_psyche import (
-    MicroPsyche, ConsciousCell, unbiased_argmax,
+from zeta_life.integration.micro_psyche import (
+    MicroPsyche, IntegrationCell, unbiased_argmax,
     compute_local_phi, apply_psyche_contagion
 )
 
@@ -273,12 +273,12 @@ class TestMicroPsyche:
 # CONSCIOUS CELL TESTS
 # =============================================================================
 
-class TestConsciousCell:
-    """Tests for ConsciousCell."""
+class TestIntegrationCell:
+    """Tests for IntegrationCell."""
 
     def test_create_random(self):
         """Should create random cell."""
-        cell = ConsciousCell.create_random(grid_size=64)
+        cell = IntegrationCell.create_random(grid_size=64)
 
         assert cell.position is not None
         assert 0 <= cell.position[0] < 64
@@ -288,7 +288,7 @@ class TestConsciousCell:
 
     def test_create_random_with_archetype_bias(self):
         """Should bias toward specified archetype."""
-        cells = [ConsciousCell.create_random(64, archetype_bias=Archetype.ANIMA)
+        cells = [IntegrationCell.create_random(64, archetype_bias=Archetype.ANIMA)
                  for _ in range(20)]
 
         anima_dominant = sum(1 for c in cells if c.psyche.dominant == Archetype.ANIMA)
@@ -297,17 +297,17 @@ class TestConsciousCell:
 
     def test_state_shape(self):
         """Cell state should have correct shape."""
-        cell = ConsciousCell.create_random(64)
+        cell = IntegrationCell.create_random(64)
         assert cell.state.shape == (32,)  # Default state_dim
 
     def test_role_tensor(self):
         """Role should be valid tensor."""
-        cell = ConsciousCell.create_random(64)
+        cell = IntegrationCell.create_random(64)
         assert cell.role.shape == (3,)  # MASS, FORCE, CORRUPT
 
     def test_is_fi_is_mass(self):
         """Role properties should work."""
-        cell = ConsciousCell.create_random(64)
+        cell = IntegrationCell.create_random(64)
 
         # One should be true
         is_either = cell.is_fi or cell.is_mass or cell.role.argmax() == 2
@@ -315,13 +315,13 @@ class TestConsciousCell:
 
     def test_cluster_id_default(self):
         """Cluster ID should default to -1."""
-        cell = ConsciousCell.create_random(64)
+        cell = IntegrationCell.create_random(64)
         assert cell.cluster_id == -1
 
     def test_psyche_similarity(self):
         """Should compute psyche similarity between cells."""
-        cell1 = ConsciousCell.create_random(64)
-        cell2 = ConsciousCell.create_random(64)
+        cell1 = IntegrationCell.create_random(64)
+        cell2 = IntegrationCell.create_random(64)
 
         sim = cell1.psyche_similarity(cell2)
         assert 0.0 <= sim <= 1.0
@@ -332,7 +332,7 @@ class TestConsciousCell:
 
     def test_apply_archetype_influence(self):
         """Should apply archetype influence."""
-        cell = ConsciousCell.create_random(64)
+        cell = IntegrationCell.create_random(64)
         initial_state = cell.psyche.archetype_state.clone()
 
         influence = torch.tensor([0.9, 0.03, 0.03, 0.04])
@@ -343,8 +343,8 @@ class TestConsciousCell:
 
     def test_distance_to(self):
         """Should compute spatial distance."""
-        cell1 = ConsciousCell.create_random(64)
-        cell2 = ConsciousCell.create_random(64)
+        cell1 = IntegrationCell.create_random(64)
+        cell2 = IntegrationCell.create_random(64)
 
         cell1.position = (0, 0)
         cell2.position = (3, 4)
@@ -354,7 +354,7 @@ class TestConsciousCell:
 
     def test_to_dict(self):
         """Should serialize to dict."""
-        cell = ConsciousCell.create_random(64)
+        cell = IntegrationCell.create_random(64)
         d = cell.to_dict()
 
         assert 'position' in d
@@ -372,7 +372,7 @@ class TestComputeLocalPhi:
 
     def test_single_cell(self):
         """Single cell should have neutral phi."""
-        cell = ConsciousCell.create_random(64)
+        cell = IntegrationCell.create_random(64)
         phi = compute_local_phi(cell, [])
 
         assert phi == 0.5  # No neighbors = neutral integration
@@ -380,7 +380,7 @@ class TestComputeLocalPhi:
     def test_similar_neighbors(self):
         """Similar neighbors should give high phi."""
         # Create cells with similar archetypes
-        cells = [ConsciousCell.create_random(64, archetype_bias=Archetype.PERSONA)
+        cells = [IntegrationCell.create_random(64, archetype_bias=Archetype.PERSONA)
                  for _ in range(5)]
 
         # Force similar states
@@ -394,7 +394,7 @@ class TestComputeLocalPhi:
         """Diverse neighbors should give lower phi."""
         cells = []
         for arch in Archetype:
-            cell = ConsciousCell.create_random(64)
+            cell = IntegrationCell.create_random(64)
             state = torch.zeros(4)
             state[arch.value] = 0.7
             state[(arch.value + 1) % 4] = 0.1
@@ -418,7 +418,7 @@ class TestPsycheContagion:
 
     def test_contagion_affects_state(self):
         """Contagion should affect cell states when neighbors are similar."""
-        cells = [ConsciousCell.create_random(64) for _ in range(10)]
+        cells = [IntegrationCell.create_random(64) for _ in range(10)]
 
         # Make cells have similar archetypes (above similarity threshold)
         for c in cells:
@@ -436,7 +436,7 @@ class TestPsycheContagion:
 
     def test_contagion_rate_zero(self):
         """Zero contagion rate should not blend states (though noise may be added)."""
-        cells = [ConsciousCell.create_random(64) for _ in range(5)]
+        cells = [IntegrationCell.create_random(64) for _ in range(5)]
 
         # With zero contagion, blend_factor=0, so state should be (1-0)*current + 0*neighbor
         # But update_state adds noise by default, so we can't expect exact equality
@@ -459,7 +459,7 @@ class TestMicroPsycheIntegration:
     def test_cell_lifecycle(self):
         """Test complete cell lifecycle."""
         # Create
-        cell = ConsciousCell.create_random(64, archetype_bias=Archetype.ANIMUS)
+        cell = IntegrationCell.create_random(64, archetype_bias=Archetype.ANIMUS)
 
         # Initial state
         assert cell.psyche is not None
@@ -481,7 +481,7 @@ class TestMicroPsycheIntegration:
 
     def test_cell_interaction(self):
         """Test interaction between cells."""
-        cells = [ConsciousCell.create_random(64) for _ in range(20)]
+        cells = [IntegrationCell.create_random(64) for _ in range(20)]
 
         # Compute similarities
         similarities = []
@@ -510,7 +510,7 @@ class TestMicroPsycheIntegration:
 
     def test_phi_evolution(self):
         """Test phi evolution over time."""
-        cells = [ConsciousCell.create_random(64) for _ in range(10)]
+        cells = [IntegrationCell.create_random(64) for _ in range(10)]
 
         phi_history = []
         for _ in range(20):
