@@ -99,7 +99,7 @@ class EmergenceTracker:
         self.phases: list[str] = []
         self.dream_events: list[int] = []
         self.reflect_events: list[int] = []
-        self.consciousness_values: list[float] = []
+        self.psi_values: list[float] = []
         self.attractor_candidates: list[torch.Tensor] = []
         self.attractor_hits: list[int] = []  # step where an attractor was revisited
         self.generalization_errors: list[tuple[int, float]] = []
@@ -116,7 +116,7 @@ class EmergenceTracker:
         """Record metrics for one step."""
         self.free_energies.append(result.free_energy)
         self.phases.append(phase)
-        self.consciousness_values.append(result.psi)
+        self.psi_values.append(result.psi)
 
         if result.dreamed:
             self.dream_events.append(step)

@@ -15,6 +15,4 @@ from .behavior_engine import BehaviorEngine
 from .cell_state import CellRole, CellState
 from .force_field import ForceField
 from .organism_cell import OrganismCell
-from .organism_cell_lstm import OrganismCellLSTM
 from .zeta_organism import CellEntity, ZetaOrganism
-from .zeta_organism_lstm import ZetaOrganismLSTM

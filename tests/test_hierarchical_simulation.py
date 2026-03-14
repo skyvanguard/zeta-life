@@ -219,7 +219,7 @@ class TestSimulationMetrics:
         metrics = simulation.metrics_history[-1]
 
         assert hasattr(metrics, 'phi_global')
-        assert hasattr(metrics, 'consciousness_index')
+        assert hasattr(metrics, 'psi')
         assert hasattr(metrics, 'vertical_coherence')
         assert hasattr(metrics, 'avg_phi_cluster')
         assert hasattr(metrics, 'avg_coherence')
@@ -241,7 +241,7 @@ class TestSimulationMetrics:
 
         assert 'total_steps' in summary
         assert 'final_phi_global' in summary
-        assert 'final_consciousness' in summary
+        assert 'final_psi' in summary
         assert 'final_stage' in summary
 
     def test_metrics_valid_ranges(self, simulation):
@@ -250,7 +250,7 @@ class TestSimulationMetrics:
 
         for metrics in simulation.metrics_history:
             assert 0 <= metrics.phi_global <= 1
-            assert 0 <= metrics.consciousness_index <= 1
+            assert 0 <= metrics.psi <= 1
             assert 0 <= metrics.vertical_coherence <= 1
             assert 0 <= metrics.avg_coherence <= 1
 
@@ -381,7 +381,7 @@ class TestConsciousnessEmergence:
         simulation.run(10, verbose=False)
 
         metrics = simulation.metrics_history[-1]
-        assert metrics.consciousness_index > 0
+        assert metrics.psi > 0
 
     def test_individuation_stage_valid(self, simulation):
         """Test que etapa de individuación es válida."""

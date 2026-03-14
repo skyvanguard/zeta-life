@@ -104,7 +104,7 @@ class SimulationMetrics:
 
     # Métricas de organismo
     phi_global: float = 0.0
-    consciousness_index: float = 0.0
+    psi: float = 0.0
     vertical_coherence: float = 0.0
     individuation_stage: int = 0
     dominant_archetype: int = 0
@@ -146,7 +146,7 @@ class SimulationMetrics:
         result = {
             'step': self.step,
             'phi_global': self.phi_global,
-            'consciousness_index': self.consciousness_index,
+            'psi': self.psi,
             'vertical_coherence': self.vertical_coherence,
             'individuation_stage': self.individuation_stage,
             'dominant_archetype': self.dominant_archetype,
@@ -428,7 +428,7 @@ class HierarchicalSimulation:
             if verbose and (i + 1) % 10 == 0:
                 print(f"  Paso {i+1}/{n_steps}: "
                       f"φ_global={metrics.phi_global:.3f}, "
-                      f"consciousness={metrics.consciousness_index:.3f}, "
+                      f"psi={metrics.psi:.3f}, "
                       f"stage={IndividuationStage(metrics.individuation_stage).name}")
 
         if verbose:
@@ -587,7 +587,7 @@ class HierarchicalSimulation:
         # Métricas de organismo
         if self.organism:
             metrics.phi_global = self.organism.phi_global
-            metrics.consciousness_index = self.organism.consciousness_index.compute_total()
+            metrics.psi = self.organism.consciousness_index.compute_total()
             metrics.vertical_coherence = self.organism.vertical_coherence
             metrics.individuation_stage = self.organism.individuation_stage.value
             metrics.dominant_archetype = self.organism.dominant_archetype.value
@@ -667,10 +667,10 @@ class HierarchicalSimulation:
         return {
             'total_steps': self.step_count,
             'final_phi_global': final.phi_global,
-            'final_consciousness': final.consciousness_index,
+            'final_psi': final.psi,
             'final_stage': IndividuationStage(final.individuation_stage).name,
             'phi_improvement': final.phi_global - initial.phi_global,
-            'consciousness_improvement': final.consciousness_index - initial.consciousness_index,
+            'psi_improvement': final.psi - initial.psi,
             'avg_coherence': np.mean([m.avg_coherence for m in self.metrics_history]),
             'avg_modulation_quality': np.mean([m.modulation_quality for m in self.metrics_history]),
         }
@@ -697,8 +697,8 @@ class HierarchicalSimulation:
         ax1 = axes[0, 0]
         ax1.plot(steps, [m.phi_global for m in self.metrics_history],
                  'b-', label='φ global', linewidth=2)
-        ax1.plot(steps, [m.consciousness_index for m in self.metrics_history],
-                 'r--', label='Consciencia', linewidth=2)
+        ax1.plot(steps, [m.psi for m in self.metrics_history],
+                 'r--', label='Psi', linewidth=2)
         ax1.set_xlabel('Paso')
         ax1.set_ylabel('Valor')
         ax1.set_title('Evolución de Consciencia')
@@ -922,8 +922,8 @@ def run_emergence_experiment(
         print("\nResultados:")
         print(f"  φ_global: {summary['final_phi_global']:.3f} "
               f"(mejora: {summary['phi_improvement']:+.3f})")
-        print(f"  Consciencia: {summary['final_consciousness']:.3f} "
-              f"(mejora: {summary['consciousness_improvement']:+.3f})")
+        print(f"  Psi: {summary['final_psi']:.3f} "
+              f"(mejora: {summary['psi_improvement']:+.3f})")
         print(f"  Etapa final: {summary['final_stage']}")
 
     return {

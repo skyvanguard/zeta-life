@@ -59,9 +59,6 @@ full = [
     "ipywidgets>=8.0.0",
 ]
 
-[project.scripts]
-zeta-chat = "zeta_life.demos.chat_psyche:main"
-
 [project.urls]
 Homepage = "https://github.com/skyvanguard/zeta-life"
 Documentation = "https://zeta-life.readthedocs.io"

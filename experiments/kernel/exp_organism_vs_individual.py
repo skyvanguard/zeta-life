@@ -9,7 +9,7 @@ Measures:
 1. Free energy trajectory (learning quality)
 2. Action diversity (behavioral richness)
 3. Adaptation speed to phase changes
-4. Final consciousness metrics
+4. Final psi metrics
 
 Success criterion from design doc:
     "organism free energy < individual kernel FE"
@@ -88,7 +88,7 @@ def run_organism(stimuli: list[torch.Tensor]) -> dict:
     org = ConsciousOrganism(obs_dim=4, initial_kernels=2, total_energy=10.0)
     fes = []
     actions = []
-    consciousnesses = []
+    psi_values = []
     diversities = []
     populations = []
     events_total = {'spawn': 0, 'merge': 0, 'death': 0}
@@ -99,7 +99,7 @@ def run_organism(stimuli: list[torch.Tensor]) -> dict:
         avg_fe = sum(r.free_energies.values()) / max(len(r.free_energies), 1)
         fes.append(avg_fe)
         actions.append(org.gw.broadcast_signal.clone().detach())
-        consciousnesses.append(r.psi)
+        psi_values.append(r.psi)
         diversities.append(r.diversity)
         populations.append(r.population)
         for e in r.events:
@@ -113,7 +113,7 @@ def run_organism(stimuli: list[torch.Tensor]) -> dict:
     return {
         'free_energies': fes,
         'actions': actions,
-        'consciousnesses': consciousnesses,
+        'psi_values': psi_values,
         'diversities': diversities,
         'populations': populations,
         'events': events_total,
@@ -202,7 +202,7 @@ def main(n_steps: int = 10000):
 
     # Organism-specific metrics
     print(f"\n  Organism Metrics:")
-    print(f"    Avg consciousness: {sum(org['consciousnesses'])/n_steps:.3f}")
+    print(f"    Avg psi: {sum(org['psi_values'])/n_steps:.3f}")
     print(f"    Avg diversity:     {sum(org['diversities'])/n_steps:.3f}")
     print(f"    Population range:  {min(org['populations'])}-{max(org['populations'])}")
     print(f"    Events: spawn={org['events']['spawn']} merge={org['events']['merge']} death={org['events']['death']}")
@@ -266,8 +266,8 @@ def _save_plot(ind, org, n_steps, phase_windows):
         axes[0, 0].axvline(start, color='gray', linestyle='--', alpha=0.3)
 
     # Consciousness
-    axes[0, 1].plot(x, smooth(org['consciousnesses']), color='purple')
-    axes[0, 1].set_title("Organism Consciousness Index")
+    axes[0, 1].plot(x, smooth(org['psi_values']), color='purple')
+    axes[0, 1].set_title("Organism Psi Index")
 
     # Population
     axes[1, 0].plot(x, org['populations'], alpha=0.5, linewidth=0.5)

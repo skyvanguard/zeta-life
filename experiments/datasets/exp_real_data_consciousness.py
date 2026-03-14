@@ -8,7 +8,7 @@ Uses ConsciousOrganism instead of bare ConsciousKernel because consciousness
 emerges from multi-agent dynamics (diversity, coherence, workspace competition),
 not from individual kernel processing.
 
-Measures: free_energy, prediction_error, dream_count, consciousness_index,
+Measures: free_energy, prediction_error, dream_count, psi,
 diversity, coherence, population dynamics, and detects phase transitions.
 """
 
@@ -37,7 +37,7 @@ def run_organism_session(
 ) -> dict:
     """Run organism for n_steps, collecting metrics."""
     free_energies = []
-    consciousness = []
+    psi_values = []
     diversity = []
     coherence = []
     population = []
@@ -49,13 +49,13 @@ def run_organism_session(
         # Average free energy across all kernels
         avg_fe = np.mean(list(result.free_energies.values())) if result.free_energies else 0.0
         free_energies.append(avg_fe)
-        consciousness.append(result.psi)
+        psi_values.append(result.psi)
         diversity.append(result.diversity)
         coherence.append(result.coherence)
         population.append(result.population)
 
     fe = np.array(free_energies)
-    ci = np.array(consciousness)
+    ci = np.array(psi_values)
     div = np.array(diversity)
     coh = np.array(coherence)
     pop = np.array(population)
@@ -66,9 +66,9 @@ def run_organism_session(
         "free_energy_mean": float(fe.mean()),
         "free_energy_std": float(fe.std()),
         "free_energy_final": float(fe[-100:].mean()),
-        "consciousness_mean": float(ci.mean()),
-        "consciousness_max": float(ci.max()),
-        "consciousness_final": float(ci[-100:].mean()),
+        "psi_mean": float(ci.mean()),
+        "psi_max": float(ci.max()),
+        "psi_final": float(ci[-100:].mean()),
         "diversity_mean": float(div.mean()),
         "coherence_mean": float(coh.mean()),
         "population_final": int(pop[-1]),
@@ -100,9 +100,9 @@ def print_comparison(real: dict, synthetic: dict) -> None:
         ("Free Energy (mean)", "free_energy_mean", ".4f"),
         ("Free Energy (std)", "free_energy_std", ".4f"),
         ("Free Energy (final 100)", "free_energy_final", ".4f"),
-        ("Consciousness (mean)", "consciousness_mean", ".4f"),
-        ("Consciousness (max)", "consciousness_max", ".4f"),
-        ("Consciousness (final 100)", "consciousness_final", ".4f"),
+        ("Psi (mean)", "psi_mean", ".4f"),
+        ("Psi (max)", "psi_max", ".4f"),
+        ("Psi (final 100)", "psi_final", ".4f"),
         ("Diversity (mean)", "diversity_mean", ".4f"),
         ("Coherence (mean)", "coherence_mean", ".4f"),
         ("Population (final)", "population_final", "d"),
@@ -146,7 +146,7 @@ def main():
         n_steps=N_STEPS,
         label="pink_noise",
     )
-    print(f"  Done. Consciousness final: {real_results['consciousness_final']:.4f}")
+    print(f"  Done. Psi final: {real_results['psi_final']:.4f}")
 
     # --- Condition 2: Synthetic baseline (random) ---
     print("[2/2] Running with random synthetic stimuli (baseline)...")
@@ -164,7 +164,7 @@ def main():
         n_steps=N_STEPS,
         label="random_synthetic",
     )
-    print(f"  Done. Consciousness final: {synth_results['consciousness_final']:.4f}")
+    print(f"  Done. Psi final: {synth_results['psi_final']:.4f}")
 
     # --- Comparison ---
     print_comparison(real_results, synth_results)
@@ -177,21 +177,21 @@ def main():
         div_trans = detect_phase_transitions(results["div_series"])
         print(f"  {label}:")
         print(f"    Free energy transitions:  {len(fe_trans)} at steps {fe_trans[:5]}")
-        print(f"    Consciousness transitions: {len(ci_trans)} at steps {ci_trans[:5]}")
+        print(f"    Psi transitions:           {len(ci_trans)} at steps {ci_trans[:5]}")
         print(f"    Diversity transitions:     {len(div_trans)} at steps {div_trans[:5]}")
 
     # --- Convergence analysis ---
     fe_ratio = real_results["free_energy_final"] / max(synth_results["free_energy_final"], 1e-10)
-    ci_ratio = real_results["consciousness_final"] / max(synth_results["consciousness_final"], 1e-10)
+    ci_ratio = real_results["psi_final"] / max(synth_results["psi_final"], 1e-10)
     print(f"\nFree energy ratio (real/synthetic): {fe_ratio:.3f}")
-    print(f"Consciousness ratio (real/synthetic): {ci_ratio:.3f}")
+    print(f"Psi ratio (real/synthetic): {ci_ratio:.3f}")
 
-    if real_results["consciousness_final"] > synth_results["consciousness_final"]:
-        print("-> Structured data produced HIGHER consciousness (more integration)")
-    elif real_results["consciousness_final"] < synth_results["consciousness_final"]:
-        print("-> Random data produced higher consciousness (more diversity)")
+    if real_results["psi_final"] > synth_results["psi_final"]:
+        print("-> Structured data produced HIGHER integration (more coherence)")
+    elif real_results["psi_final"] < synth_results["psi_final"]:
+        print("-> Random data produced higher integration (more diversity)")
     else:
-        print("-> Similar consciousness levels between conditions")
+        print("-> Similar integration levels between conditions")
 
     print("\nExperiment complete.")
     return {"real": real_results, "synthetic": synth_results}

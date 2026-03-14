@@ -39,8 +39,7 @@ from mpl_toolkits.mplot3d import Axes3D
 # =============================================================================
 # VERTICES ABSTRACTOS (antes Arquetipos de Jung)
 # =============================================================================
-# NOTA: Para nuevos desarrollos, usar zeta_life.core.vertex.Vertex
-# y zeta_life.narrative.NarrativeMapper para visualizacion.
+# NOTA: Para nuevos desarrollos, usar zeta_life.core.vertex.Vertex.
 # Los siguientes son aliases de compatibilidad.
 from ..core.vertex import Vertex
 
@@ -48,7 +47,6 @@ from ..core.vertex import Vertex
 Archetype = Vertex
 
 # Colores por vertice (para visualizacion legacy)
-# Nuevos desarrollos deben usar NarrativeMapper.get_color()
 ARCHETYPE_COLORS = {
     Vertex.V0: '#E53E3E',   # Rojo (was PERSONA)
     Vertex.V1: '#553C9A',   # Morado oscuro (was SOMBRA)
@@ -57,7 +55,6 @@ ARCHETYPE_COLORS = {
 }
 
 # Descripciones por vertice (para visualizacion legacy)
-# Nuevos desarrollos deben usar NarrativeMapper.get_description()
 ARCHETYPE_DESCRIPTIONS = {
     Vertex.V0: "La mascara que mostramos al mundo",
     Vertex.V1: "Lo reprimido, el lado oscuro",

@@ -6,7 +6,7 @@ Runs a ConsciousOrganism through varied stimuli and tracks:
 
 1. Population dynamics (spawn/merge/death events)
 2. Diversity and coherence trajectories
-3. Consciousness index evolution
+3. Psi index evolution
 4. Energy distribution across kernels
 5. Global Workspace turnover (anti-monopoly)
 6. Lifecycle event log
@@ -93,7 +93,7 @@ def run_experiment(n_steps: int = 5000, print_interval: int = 100):
     env = StimulusEnvironment(obs_dim=4)
 
     # Tracking
-    consciousness_history = []
+    psi_history = []
     diversity_history = []
     coherence_history = []
     population_history = []
@@ -106,7 +106,7 @@ def run_experiment(n_steps: int = 5000, print_interval: int = 100):
         stimulus, phase = env.get_stimulus()
         result = org.step(stimulus)
 
-        consciousness_history.append(result.psi)
+        psi_history.append(result.psi)
         diversity_history.append(result.diversity)
         coherence_history.append(result.coherence)
         population_history.append(result.population)
@@ -142,7 +142,7 @@ def run_experiment(n_steps: int = 5000, print_interval: int = 100):
     print("  RESULTS")
     print("=" * 70)
 
-    avg_c = sum(consciousness_history[-500:]) / min(500, len(consciousness_history))
+    avg_c = sum(psi_history[-500:]) / min(500, len(psi_history))
     avg_div = sum(diversity_history[-500:]) / min(500, len(diversity_history))
     avg_coh = sum(coherence_history[-500:]) / min(500, len(coherence_history))
     pop_set = set(population_history)
@@ -150,7 +150,7 @@ def run_experiment(n_steps: int = 5000, print_interval: int = 100):
     print(f"\n  Steps: {n_steps} in {elapsed:.1f}s ({n_steps/elapsed:.0f} steps/s)")
     print(f"  Final population: {len(org.kernels)}")
     print(f"  Population range: {min(population_history)}-{max(population_history)}")
-    print(f"  Avg consciousness (last 500): {avg_c:.3f}")
+    print(f"  Avg psi (last 500): {avg_c:.3f}")
     print(f"  Avg diversity (last 500): {avg_div:.3f}")
     print(f"  Avg coherence (last 500): {avg_coh:.3f}")
 
@@ -194,13 +194,13 @@ def run_experiment(n_steps: int = 5000, print_interval: int = 100):
 
     # Try to save plot
     try:
-        _save_plot(consciousness_history, diversity_history, coherence_history,
+        _save_plot(psi_history, diversity_history, coherence_history,
                    population_history, n_steps)
     except Exception as e:
         print(f"\n  (Plot skipped: {e})")
 
 
-def _save_plot(consciousness, diversity, coherence, population, n_steps):
+def _save_plot(psi, diversity, coherence, population, n_steps):
     import matplotlib
     matplotlib.use('Agg')
     import matplotlib.pyplot as plt
@@ -208,11 +208,11 @@ def _save_plot(consciousness, diversity, coherence, population, n_steps):
     fig, axes = plt.subplots(2, 2, figsize=(14, 10))
     fig.suptitle("ConsciousOrganism — Emergence Monitor", fontsize=14)
 
-    x = range(1, len(consciousness) + 1)
+    x = range(1, len(psi) + 1)
 
-    axes[0, 0].plot(x, consciousness, alpha=0.5, linewidth=0.5)
-    axes[0, 0].set_title("Consciousness Index")
-    axes[0, 0].set_ylabel("C")
+    axes[0, 0].plot(x, psi, alpha=0.5, linewidth=0.5)
+    axes[0, 0].set_title("Psi Index")
+    axes[0, 0].set_ylabel("Psi")
 
     axes[0, 1].plot(x, population, alpha=0.7, linewidth=0.5)
     axes[0, 1].set_title("Population")
@@ -223,16 +223,16 @@ def _save_plot(consciousness, diversity, coherence, population, n_steps):
     axes[1, 0].set_title("Diversity & Coherence")
     axes[1, 0].legend()
 
-    # Smoothed consciousness
-    window = min(100, len(consciousness))
+    # Smoothed psi
+    window = min(100, len(psi))
     if window > 1:
         smoothed = [
-            sum(consciousness[max(0, i - window):i]) / min(i, window)
-            for i in range(1, len(consciousness) + 1)
+            sum(psi[max(0, i - window):i]) / min(i, window)
+            for i in range(1, len(psi) + 1)
         ]
         axes[1, 1].plot(x, smoothed, linewidth=1)
-    axes[1, 1].set_title("Consciousness (smoothed)")
-    axes[1, 1].set_ylabel("C")
+    axes[1, 1].set_title("Psi (smoothed)")
+    axes[1, 1].set_ylabel("Psi")
 
     for ax in axes.flat:
         ax.set_xlabel("Step")

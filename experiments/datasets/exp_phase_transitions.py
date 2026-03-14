@@ -74,7 +74,7 @@ def run_sweep(
 
     psi_values = [m.psi_raw for m in final]
     phi_values = [m.phi_global for m in final]
-    ci_values = [m.consciousness_index for m in final]
+    ci_values = [m.psi for m in final]
     b_values = [m.B_value for m in final]
     supercritical = [m.is_supercritical for m in final]
     corruption = [m.corruption_warning for m in final]
