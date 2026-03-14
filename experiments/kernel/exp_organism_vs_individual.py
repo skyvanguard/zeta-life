@@ -99,7 +99,7 @@ def run_organism(stimuli: list[torch.Tensor]) -> dict:
         avg_fe = sum(r.free_energies.values()) / max(len(r.free_energies), 1)
         fes.append(avg_fe)
         actions.append(org.gw.broadcast_signal.clone().detach())
-        consciousnesses.append(r.consciousness)
+        consciousnesses.append(r.psi)
         diversities.append(r.diversity)
         populations.append(r.population)
         for e in r.events:

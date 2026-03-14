@@ -25,7 +25,7 @@ from .organism_state import OrganismState
 class OrganismStepResult:
     """Result of a single ConsciousOrganism step."""
     winner_id: int
-    consciousness: float
+    psi: float
     population: int
     diversity: float
     coherence: float
@@ -148,7 +148,7 @@ class ConsciousOrganism:
 
         return OrganismStepResult(
             winner_id=winner_id,
-            consciousness=self.state.consciousness_index,
+            psi=self.state.integration_index,
             population=len(self.kernels),
             diversity=self.state.diversity,
             coherence=self.state.coherence,

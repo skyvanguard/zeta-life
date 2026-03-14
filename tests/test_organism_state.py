@@ -27,7 +27,7 @@ def _mock_gw(history: list[int]):
 class TestInit:
     def test_creation(self):
         state = OrganismState()
-        assert state.consciousness_index == 0.0
+        assert state.integration_index == 0.0
 
 
 class TestDiversity:
@@ -96,4 +96,4 @@ class TestConsciousnessIndex:
         kernels = {0: _mock_kernel(torch.randn(4), torch.randn(4)),
                    1: _mock_kernel(torch.randn(4), torch.randn(4))}
         state.update(kernels, _mock_gw([0, 1, 0]))
-        assert 0.0 <= state.consciousness_index <= 1.0
+        assert 0.0 <= state.integration_index <= 1.0

@@ -40,10 +40,10 @@ class TestStep:
         result = org.step(torch.randn(4))
         assert result.winner_id in org.kernels
 
-    def test_consciousness_in_range(self):
+    def test_psi_in_range(self):
         org = ConsciousOrganism()
         result = org.step(torch.randn(4))
-        assert 0.0 <= result.consciousness <= 1.0
+        assert 0.0 <= result.psi <= 1.0
 
     def test_population_tracked(self):
         org = ConsciousOrganism()

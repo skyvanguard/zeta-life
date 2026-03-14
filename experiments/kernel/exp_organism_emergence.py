@@ -106,7 +106,7 @@ def run_experiment(n_steps: int = 5000, print_interval: int = 100):
         stimulus, phase = env.get_stimulus()
         result = org.step(stimulus)
 
-        consciousness_history.append(result.consciousness)
+        consciousness_history.append(result.psi)
         diversity_history.append(result.diversity)
         coherence_history.append(result.coherence)
         population_history.append(result.population)
@@ -129,7 +129,7 @@ def run_experiment(n_steps: int = 5000, print_interval: int = 100):
             print(
                 f"[{step:5d}] phase={phase:12s} | "
                 f"pop={result.population} | "
-                f"C={result.consciousness:.3f} | "
+                f"C={result.psi:.3f} | "
                 f"div={result.diversity:.3f} coh={result.coherence:.3f} | "
                 f"E: {energies} | "
                 f"{sps:.0f} steps/s"

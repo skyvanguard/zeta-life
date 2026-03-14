@@ -128,10 +128,10 @@ class TestStep:
         result = ck.step(torch.randn(4))
         assert result.action.shape == (4,)
 
-    def test_consciousness_is_float(self):
+    def test_psi_is_float(self):
         ck = _make_kernel()
         result = ck.step(torch.randn(4))
-        assert isinstance(result.consciousness, float)
+        assert isinstance(result.psi, float)
 
     def test_reflected_flag_off_when_not_interval(self):
         ck = _make_kernel(reflect_interval=5)
@@ -351,3 +351,58 @@ class TestEnergy:
         result = ck.step(stimulus)
         assert ck._last_result is result
         assert ck._last_result.free_energy == result.free_energy
+
+
+# ---------------------------------------------------------------------------
+# Consciousness: Psi = B^3 + Phi (formal equation integration)
+# ---------------------------------------------------------------------------
+
+class TestConsciousness:
+    """Consciousness should be computed from kernel signals via Psi = B^3 + Phi."""
+
+    def test_psi_nonnegative(self):
+        """Psi index must be >= 0."""
+        ck = _make_kernel()
+        for _ in range(10):
+            result = ck.step(torch.randn(4))
+            assert result.psi >= 0.0, (
+                f"Psi should be >= 0, got {result.psi}"
+            )
+
+    def test_psi_bounded(self):
+        """Psi index must be <= 1.0."""
+        ck = _make_kernel()
+        for _ in range(20):
+            result = ck.step(torch.randn(4))
+            assert result.psi <= 1.0, (
+                f"Psi should be <= 1.0, got {result.psi}"
+            )
+
+    def test_psi_responds_to_learning(self):
+        """After learning a pattern, psi should be > 0."""
+        ck = _make_kernel(reflect_interval=5, dream_interval=1000)
+        pattern = torch.tensor([1.0, 0.0, 0.5, 0.2])
+        result = None
+        for _ in range(50):
+            result = ck.step(pattern)
+        assert result.psi > 0.0, (
+            f"After 50 steps of repeated pattern, psi should be > 0, "
+            f"got {result.psi}"
+        )
+
+    def test_consciousness_alpha_parameter(self):
+        """alpha parameter should be stored and configurable."""
+        ck = _make_kernel(alpha=2.5)
+        assert ck.alpha == 2.5
+
+    def test_consciousness_default_alpha(self):
+        """Default alpha should be 1.0."""
+        ck = _make_kernel()
+        assert ck.alpha == 1.0
+
+    def test_psi_subcritical_initially(self):
+        """On the very first step, psi can be 0 (subcritical)."""
+        ck = _make_kernel()
+        result = ck.step(torch.randn(4))
+        # Just verify it's a valid float in [0, 1] — may or may not be 0
+        assert 0.0 <= result.psi <= 1.0

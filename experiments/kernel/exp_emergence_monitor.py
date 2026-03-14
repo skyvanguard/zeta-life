@@ -116,7 +116,7 @@ class EmergenceTracker:
         """Record metrics for one step."""
         self.free_energies.append(result.free_energy)
         self.phases.append(phase)
-        self.consciousness_values.append(result.consciousness)
+        self.consciousness_values.append(result.psi)
 
         if result.dreamed:
             self.dream_events.append(step)

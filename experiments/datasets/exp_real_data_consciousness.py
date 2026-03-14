@@ -49,7 +49,7 @@ def run_organism_session(
         # Average free energy across all kernels
         avg_fe = np.mean(list(result.free_energies.values())) if result.free_energies else 0.0
         free_energies.append(avg_fe)
-        consciousness.append(result.consciousness)
+        consciousness.append(result.psi)
         diversity.append(result.diversity)
         coherence.append(result.coherence)
         population.append(result.population)

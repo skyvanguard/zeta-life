@@ -35,6 +35,7 @@ from .complementary_memory import Episode, FastMemory, SlowMemory
 from .precision_controller import PrecisionController
 from .dream_engine import DreamEngine
 from .persistence import PersistenceLayer
+from ..consciousness.formal_equations import compute_phi_c, compute_psi
 
 
 # ---------------------------------------------------------------------------
@@ -53,8 +54,8 @@ class StepResult:
         Per-channel error magnitudes ``{channel_name: float}``.
     action : Tensor
         Action vector produced by the kernel this step.
-    consciousness : float
-        Scalar consciousness index (0-1 range, heuristic).
+    psi : float
+        Scalar consciousness index Psi (0-1 range, formal equation).
     reflected : bool
         Whether self-reflection ran this step.
     dreamed : bool
@@ -64,7 +65,7 @@ class StepResult:
     free_energy: float
     errors: dict  # {channel: magnitude}
     action: Tensor
-    consciousness: float = 0.0
+    psi: float = 0.0
     reflected: bool = False
     dreamed: bool = False
 
@@ -104,6 +105,7 @@ class ConsciousKernel:
         dream_interval: int = 50,
         save_interval: int = 100,
         latent_weight: float = 0.0,
+        alpha: float = 1.0,
     ) -> None:
         self.obs_dim = obs_dim
         self.latent_dim = latent_dim
@@ -112,6 +114,7 @@ class ConsciousKernel:
         self.dream_interval = dream_interval
         self.save_interval = save_interval
         self.latent_weight = latent_weight
+        self.alpha = alpha
 
         # --- Core components ---
         self.world_model = WorldModel(obs_dim, latent_dim, obs_dim)
@@ -260,12 +263,52 @@ class ConsciousKernel:
             free_energy=free_energy.item(),
             errors=errors_summary,
             action=action,
-            consciousness=0.0,
+            psi=self._compute_psi(free_energy.item()),
             reflected=reflected,
             dreamed=dreamed,
         )
         self._last_result = result
         return result
+
+    # ------------------------------------------------------------------
+    # Consciousness computation (Psi = B^3 + Phi)
+    # ------------------------------------------------------------------
+
+    def _compute_psi(self, free_energy: float) -> float:
+        """Derive formal consciousness index Psi from kernel signals.
+
+        Maps internal kernel signals to the formal equation parameters:
+        - Phi (integrated information): inverse of free energy + memory bonus
+        - F_i (binding force): mean precision + reflection convergence bonus
+        - C (coherence cost): mean recent prediction errors
+        - alpha: coupling parameter (constructor arg)
+
+        Returns
+        -------
+        float
+            Consciousness index clamped to [0, 1].
+        """
+        # Phi: inverse of normalised free energy + episodic memory bonus
+        phi_base = 1.0 / (1.0 + free_energy / 10.0)
+        mem_ratio = len(self.fast_memory) / 500.0
+        phi = phi_base + 0.2 * mem_ratio  # range ~[0.0, 1.2]
+
+        # F_i: mean precision normalised + reflection convergence bonus
+        precisions = self.error_engine.precisions  # tensor (4,)
+        F_i = float(precisions.mean().item()) / 10.0
+        if self.self_model.reflection_history:
+            last_ref = self.self_model.reflection_history[-1]
+            ref_convergence = 1.0 / (1.0 + last_ref[-1]['prediction_error'])
+            F_i += 0.3 * ref_convergence
+
+        # C: coherence cost from recent errors
+        recent = self.error_engine.recent_errors()  # tensor (4,)
+        C = float(recent.mean().item()) / 5.0
+
+        # Psi via formal equations
+        phi_c = compute_phi_c(F_i, self.alpha, C)
+        psi = compute_psi(phi, phi_c)
+        return min(1.0, max(0.0, psi))
 
     # ------------------------------------------------------------------
     # Persistence

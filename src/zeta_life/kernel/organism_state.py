@@ -25,9 +25,9 @@ class OrganismState:
         self.coherence: float = 0.0
         self.phi_global: float = 0.0
         self.turnover: float = 0.0
-        self.consciousness_index: float = 0.0
+        self.integration_index: float = 0.0
         self.population_history: deque[int] = deque(maxlen=1000)
-        self.consciousness_history: deque[float] = deque(maxlen=1000)
+        self.integration_history: deque[float] = deque(maxlen=1000)
 
     def update(self, kernels: dict, gw) -> None:
         """Recompute all metrics from current kernel states."""
@@ -36,7 +36,7 @@ class OrganismState:
             self.coherence = 1.0
             self.phi_global = 0.0
             self.turnover = 0.0
-            self.consciousness_index = 0.0
+            self.integration_index = 0.0
             return
 
         # Diversity: 1 - avg cosine similarity of embeddings
@@ -75,15 +75,15 @@ class OrganismState:
         else:
             self.turnover = 0.0
 
-        # Consciousness index
-        self.consciousness_index = (
+        # Integration index
+        self.integration_index = (
             0.30 * self.diversity
             + 0.25 * max(self.coherence, 0)
             + 0.25 * self.phi_global
             + 0.20 * min(self.turnover, 1.0)
         )
-        self.consciousness_index = max(0.0, min(1.0, self.consciousness_index))
+        self.integration_index = max(0.0, min(1.0, self.integration_index))
 
         # History
         self.population_history.append(len(kernels))
-        self.consciousness_history.append(self.consciousness_index)
+        self.integration_history.append(self.integration_index)
