@@ -229,6 +229,10 @@ class ConsciousKernel:
         # the transition's temporal memory).
         self.world_model.observe(stimulus)
 
+        # Train the self-model from the interoceptive error so its channel
+        # reflects learned self-prediction instead of a fixed offset.
+        self.self_model.update_from_error(errors['interoceptive']['raw'])
+
         # Train the per-channel precisions toward inverse error variance, so the
         # precision term in Psi actually reflects channel reliability instead of
         # staying frozen at its initial value.
