@@ -189,10 +189,7 @@ class ConsciousKernel:
         """
         self.t += 1
 
-        # ---- 1. PERCEIVE ----
-        observation = self.world_model.encode(stimulus)
-
-        # ---- 2. PREDICT ----
+        # ---- 1. PREDICT (prior) ----
         # predict() returns tensors with grad_fn for learning
         predicted_obs, _ = self.world_model.predict(self.last_action)
         predicted_self = self.self_model.predict_self(self.last_action)
@@ -226,7 +223,11 @@ class ConsciousKernel:
         # The raw error from predicted_obs - stimulus has grad_fn from predict(),
         # so update_from_error can backpropagate.
         self.world_model.update_from_error(errors['perceptual']['raw'])
-        self.world_model.latent_state = self.world_model.encode(stimulus).detach()
+        # Posterior step: fold the observation into the latent and train the
+        # encoder (replaces the old line that overwrote the recurrent latent
+        # with a detached encode(stimulus), which froze the encoder and erased
+        # the transition's temporal memory).
+        self.world_model.observe(stimulus)
 
         # Train the per-channel precisions toward inverse error variance, so the
         # precision term in Psi actually reflects channel reliability instead of
