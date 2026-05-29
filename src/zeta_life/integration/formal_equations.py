@@ -18,6 +18,11 @@ Reference: SkyVanguard formal derivation (2026-03-14)
 
 from __future__ import annotations
 
+# Minimum critical threshold below which the binding factor B = (Phi-Phi_c)/Phi_c
+# would blow up numerically. Thresholds at or below this are treated as the
+# degenerate (no-binding) regime.
+_PHI_C_MIN = 1e-6
+
 
 def compute_phi_c(F_i: float, alpha: float, C: float) -> float:
     """
@@ -59,7 +64,10 @@ def compute_B(phi: float, phi_c: float) -> float:
     Returns:
         B: Binding factor (can be negative)
     """
-    if phi_c <= 0 or phi_c == float('inf'):
+    # Guard the pole at phi_c -> 0+: a vanishing threshold makes B blow up
+    # (e.g. phi_c=1e-9 -> B~1e9), which then explodes any B**n downstream.
+    # Treat a near-zero threshold as the degenerate (no-binding) case.
+    if phi_c <= _PHI_C_MIN or phi_c == float('inf'):
         return 0.0
     return (phi - phi_c) / phi_c
 
@@ -134,9 +142,16 @@ def compute_M_c(F_i: float, alpha: float, C: float) -> float:
 
     M_c = F_i / (alpha - C)
 
-    This is analytically equivalent to Phi_c but interpreted as
-    the minimum system mass (number of functional units) needed
-    for consciousness to emerge.
+    This reuses the Phi_c formula but is interpreted as the minimum system mass
+    (number of functional units) needed for consciousness to emerge.
+
+    DIMENSIONAL CAVEAT: M_c shares Phi_c's formula F_i/(alpha - C), whose output
+    has the units of integrated information, yet ``predict_system_stability``
+    compares it against ``M_current`` (a unit count). This is only valid under
+    the modelling assumption that F_i is expressed in units of mass, so that
+    F_i/(alpha - C) yields a count directly. If that assumption does not hold,
+    M_c needs its own scaling to mass units before the ``M_current > M_c``
+    comparison is meaningful. Flagged for theoretical review.
 
     Args:
         F_i: Integration force
@@ -144,7 +159,7 @@ def compute_M_c(F_i: float, alpha: float, C: float) -> float:
         C: Coherence cost
 
     Returns:
-        M_c: Critical mass (same formula as Phi_c)
+        M_c: Critical mass (same formula as Phi_c; see dimensional caveat)
     """
     return compute_phi_c(F_i, alpha, C)
 
@@ -172,13 +187,25 @@ def compute_corruption_threshold(
         alpha_s: Corruption severity factor
 
     Returns:
-        Critical ratio [0, 1]. If negative, system is inherently unstable.
+        Critical ratio, upper-bounded by 1.0. A NEGATIVE value means the system
+        is inherently unstable (base integration force exceeds coupled capacity)
+        and is returned as-is rather than clamped to 0 — clamping would hide the
+        degree of instability and contradict the documented semantics.
+
+    Raises:
+        ValueError: if any of alpha, M, alpha_s is negative (invalid inputs).
     """
+    if alpha < 0 or M < 0 or alpha_s < 0:
+        raise ValueError(
+            f"alpha, M and alpha_s must be non-negative; got "
+            f"alpha={alpha}, M={M}, alpha_s={alpha_s}"
+        )
     denominator = alpha * M * alpha_s
-    if denominator <= 0:
+    if denominator == 0:
         return 0.0
     ratio = 1.0 - F_i_b / denominator
-    return max(0.0, min(1.0, ratio))
+    # Only clamp the upper bound; keep negatives to signal structural instability.
+    return min(1.0, ratio)
 
 
 def predict_system_stability(
@@ -213,7 +240,7 @@ def predict_system_stability(
             stability: STABLE | WARNING | CRITICAL | COLLAPSING
     """
     phi_c = compute_phi_c(F_i, alpha, C)
-    M_c = phi_c  # Same formula
+    M_c = compute_M_c(F_i, alpha, C)
 
     is_supercritical = M_current > M_c if M_c != float('inf') else False
 
@@ -221,7 +248,12 @@ def predict_system_stability(
     critical_corruption = compute_corruption_threshold(F_i, alpha, M_current, alpha_s)
     margin = critical_corruption - corruption_ratio
 
-    if margin > 0.3:
+    # A subcritical system (Phi cannot exceed the threshold, e.g. alpha <= C so
+    # phi_c -> inf) cannot sustain integration regardless of corruption margin.
+    # Report that directly instead of mislabelling it STABLE on the corruption axis.
+    if not is_supercritical:
+        stability = 'SUBCRITICAL'
+    elif margin > 0.3:
         stability = 'STABLE'
     elif margin > 0.1:
         stability = 'WARNING'
