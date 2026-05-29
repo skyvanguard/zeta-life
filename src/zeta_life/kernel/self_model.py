@@ -156,7 +156,17 @@ class SelfModel(nn.Module):
         Returns
         -------
         Tensor
-            Predicted future state of shape ``(state_dim,)``.
+            Predicted future self-state as a probability distribution of
+            shape ``(state_dim,)`` (softmax-normalised).
+
+        Notes
+        -----
+        The prediction is softmax-normalised so it lives in the same space as
+        the observed self-state (``actual_self = softmax(stimulus)`` in the
+        kernel's interoceptive channel). Without this, the channel compared a
+        raw linear projection against a probability distribution, yielding a
+        spurious error that grew with input structure rather than with genuine
+        interoceptive surprise.
         """
         action_embed = self.action_to_embed(future_action)
 
@@ -166,7 +176,7 @@ class SelfModel(nn.Module):
             self.self_embedding.unsqueeze(0),
         ).squeeze(0)
 
-        return self.embed_to_prediction(projected)
+        return torch.softmax(self.embed_to_prediction(projected), dim=-1)
 
     def identity_distance(self, state: Tensor) -> float:
         """Measure how far a state is from the current identity.

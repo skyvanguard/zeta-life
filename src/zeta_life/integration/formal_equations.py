@@ -88,6 +88,46 @@ def compute_psi(phi: float, phi_c: float) -> float:
     return B ** 3 + phi
 
 
+def compute_psi_hill(phi: float, phi_c: float, n: float = 4.0, K: float = 0.1) -> float:
+    """Compute consciousness index Psi via a Hill (cooperative) function.
+
+    Psi = B^n / (K^n + B^n)   (when Phi > Phi_c)
+    Psi = 0                    (when Phi <= Phi_c)
+    with B = (Phi - Phi_c) / Phi_c.
+
+    This is a bounded, continuous alternative to :func:`compute_psi` (B^3 + Phi).
+    It fixes three issues of the cubic form found during calibration:
+
+    1. **Saturation.** ``B^3 + Phi`` is unbounded; once B > 1 it explodes and any
+       downstream clamp collapses every supercritical state to 1.0, so Psi stops
+       discriminating *degrees* of integration. The Hill form is naturally bounded
+       in ``[0, 1)`` — no clamp needed, no saturation.
+    2. **Jump discontinuity.** ``B^3 + Phi`` jumps from 0 to Phi_c at the threshold
+       (a first-order transition). The Hill form is continuous: Psi -> 0 as B -> 0.
+    3. **Dimensional consistency.** ``B^3 + Phi`` adds a dimensionless ratio to an
+       information quantity. The Hill form is a pure ratio (dimensionless).
+
+    The exponent ``n`` controls how sharp the phase transition is (larger n ->
+    steeper, closer to a step). ``K`` is the half-activation point (Psi = 0.5 when
+    B = K). Both should be calibrated per system; the defaults are a reasonable
+    starting point for the kernel's signal scale.
+
+    Args:
+        phi: Current integrated information.
+        phi_c: Critical threshold.
+        n: Hill coefficient (transition sharpness). Must be > 0.
+        K: Half-activation point on B. Must be > 0.
+
+    Returns:
+        Psi in ``[0, 1)`` (0 if subcritical).
+    """
+    if phi_c <= 0 or phi_c == float('inf') or phi <= phi_c:
+        return 0.0
+    B = (phi - phi_c) / phi_c
+    Bn = B ** n
+    return Bn / (K ** n + Bn)
+
+
 def compute_M_c(F_i: float, alpha: float, C: float) -> float:
     """
     Compute critical mass M_c for Goldilocks zone prediction.

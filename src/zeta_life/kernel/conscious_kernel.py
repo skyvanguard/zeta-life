@@ -35,7 +35,7 @@ from .complementary_memory import Episode, FastMemory, SlowMemory
 from .precision_controller import PrecisionController
 from .dream_engine import DreamEngine
 from .persistence import PersistenceLayer
-from ..integration.formal_equations import compute_phi_c, compute_psi
+from ..integration.formal_equations import compute_phi_c, compute_psi, compute_psi_hill
 
 
 # ---------------------------------------------------------------------------
@@ -106,6 +106,10 @@ class ConsciousKernel:
         save_interval: int = 100,
         latent_weight: float = 0.0,
         alpha: float = 1.0,
+        psi_mode: str = "cubic",
+        psi_fe_scale: float = 0.1,
+        psi_hill_n: float = 4.0,
+        psi_hill_K: float = 0.1,
     ) -> None:
         self.obs_dim = obs_dim
         self.latent_dim = latent_dim
@@ -115,6 +119,20 @@ class ConsciousKernel:
         self.save_interval = save_interval
         self.latent_weight = latent_weight
         self.alpha = alpha
+        # Psi metric configuration.
+        #   psi_mode="cubic"  -> original Psi = B^3 + Phi (clamped), default for
+        #                        backward compatibility.
+        #   psi_mode="hill"   -> bounded Hill metric that discriminates degrees of
+        #                        integration (see compute_psi_hill). Use this when
+        #                        you need Psi to separate coherent input from noise;
+        #                        the cubic form saturates to 1.0 for both.
+        # psi_fe_scale controls how strongly free energy maps to Phi:
+        #   Phi = 1/(1 + psi_fe_scale * free_energy). Larger values are needed when
+        #   the system's free energy is small (e.g. after the interoceptive fix).
+        self.psi_mode = psi_mode
+        self.psi_fe_scale = psi_fe_scale
+        self.psi_hill_n = psi_hill_n
+        self.psi_hill_K = psi_hill_K
 
         # --- Core components ---
         self.world_model = WorldModel(obs_dim, latent_dim, obs_dim)
@@ -288,8 +306,15 @@ class ConsciousKernel:
         float
             Consciousness index clamped to [0, 1].
         """
-        # Phi: inverse of normalised free energy + episodic memory bonus
-        phi_base = 1.0 / (1.0 + free_energy / 10.0)
+        # Phi: inverse of free energy + episodic memory bonus.
+        # The cubic mode keeps the historical /10 scaling; the hill mode uses a
+        # configurable scale so Phi actually responds to free energy (the /10
+        # compresses Phi to ~0.96 regardless of input, which the cubic form then
+        # saturates anyway).
+        if self.psi_mode == "hill":
+            phi_base = 1.0 / (1.0 + self.psi_fe_scale * free_energy)
+        else:
+            phi_base = 1.0 / (1.0 + free_energy / 10.0)
         mem_ratio = len(self.fast_memory) / 500.0
         phi = phi_base + 0.2 * mem_ratio  # range ~[0.0, 1.2]
 
@@ -307,6 +332,8 @@ class ConsciousKernel:
 
         # Psi via formal equations
         phi_c = compute_phi_c(F_i, self.alpha, C)
+        if self.psi_mode == "hill":
+            return compute_psi_hill(phi, phi_c, self.psi_hill_n, self.psi_hill_K)
         psi = compute_psi(phi, phi_c)
         return min(1.0, max(0.0, psi))
 
