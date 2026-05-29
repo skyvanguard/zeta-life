@@ -80,8 +80,9 @@ def test_predict_self_returns_distribution():
 # --------------------------------------------------------------------------
 # kernel — hill mode discriminates, cubic stays the default
 # --------------------------------------------------------------------------
-def test_cubic_is_default_mode():
-    assert ConsciousKernel().psi_mode == "cubic"
+def test_hill_is_default_mode():
+    # Hill is the default: the cubic form saturates and cannot discriminate.
+    assert ConsciousKernel().psi_mode == "hill"
 
 
 def test_hill_mode_discriminates_signal_from_noise():
@@ -115,7 +116,7 @@ def test_cubic_mode_saturates_as_documented():
 
     def run(stimulus_fn):
         torch.manual_seed(0)
-        ck = ConsciousKernel()  # cubic default
+        ck = ConsciousKernel(psi_mode="cubic")  # explicit cubic (legacy metric)
         psis = [ck.step(stimulus_fn(t)).psi for t in range(60)]
         return sum(psis[-20:]) / 20
 

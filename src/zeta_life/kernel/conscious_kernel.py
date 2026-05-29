@@ -104,8 +104,8 @@ class ConsciousKernel:
         save_interval: int = 100,
         latent_weight: float = 0.0,
         alpha: float = 1.0,
-        psi_mode: str = "cubic",
-        psi_fe_scale: float = 0.1,
+        psi_mode: str = "hill",
+        psi_fe_scale: float = 5.0,
         psi_hill_n: float = 4.0,
         psi_hill_K: float = 0.1,
     ) -> None:
@@ -118,12 +118,14 @@ class ConsciousKernel:
         self.latent_weight = latent_weight
         self.alpha = alpha
         # Psi metric configuration.
-        #   psi_mode="cubic"  -> original Psi = B^3 + Phi (clamped), default for
-        #                        backward compatibility.
-        #   psi_mode="hill"   -> bounded Hill metric that discriminates degrees of
-        #                        integration (see compute_psi_hill). Use this when
-        #                        you need Psi to separate coherent input from noise;
-        #                        the cubic form saturates to 1.0 for both.
+        #   psi_mode="hill"   -> DEFAULT. Bounded Hill metric that discriminates
+        #                        degrees of integration (see compute_psi_hill).
+        #                        The cubic form saturates to 1.0 for any
+        #                        supercritical input, so it cannot separate
+        #                        coherent input from noise — hill is the usable
+        #                        metric and is therefore the default.
+        #   psi_mode="cubic"  -> original Psi = B^3 + Phi (clamped). Kept to
+        #                        reproduce earlier (pre-fix) paper results.
         # psi_fe_scale controls how strongly free energy maps to Phi:
         #   Phi = 1/(1 + psi_fe_scale * free_energy). Larger values are needed when
         #   the system's free energy is small (e.g. after the interoceptive fix).
