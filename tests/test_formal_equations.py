@@ -141,12 +141,15 @@ class TestCorruptionThreshold:
         )
         assert ratio == 0.0
 
-    def test_clamped_to_zero_one(self):
-        # Very high F_i_b → ratio would be negative → clamped to 0
+    def test_high_F_i_b_returns_negative(self):
+        # Very high F_i_b → base integration force exceeds coupled capacity →
+        # structurally unstable. The negative value is now preserved (not clamped
+        # to 0), matching the documented "If negative, inherently unstable".
         ratio = compute_corruption_threshold(
             F_i_b=500.0, alpha=1.0, M=10.0, alpha_s=1.0
         )
-        assert ratio == 0.0
+        assert ratio < 0.0
+        assert ratio <= 1.0  # upper bound still enforced
 
 
 class TestSystemStability:

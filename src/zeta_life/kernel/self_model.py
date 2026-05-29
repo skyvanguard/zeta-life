@@ -56,6 +56,7 @@ class SelfModel(nn.Module):
         state_dim: int = 4,
         embed_dim: int = 16,
         ema_decay: float = 0.95,
+        learning_rate: float = 0.005,
     ) -> None:
         super().__init__()
 
@@ -80,6 +81,16 @@ class SelfModel(nn.Module):
 
         # History of reflection results
         self.reflection_history: deque[list[dict]] = deque(maxlen=100)
+
+        # Optimizer for the *prediction* pathway (action_to_embed, reflection_net,
+        # embed_to_prediction, state_to_embed). self_embedding is excluded on
+        # purpose: identity drifts slowly via the EMA update in reflect(), not by
+        # gradient. Without this optimizer the interoceptive prediction never
+        # improved — its error was a fixed offset polluting the free energy.
+        prediction_params = [
+            p for name, p in self.named_parameters() if name != "self_embedding"
+        ]
+        self._optimizer = torch.optim.Adam(prediction_params, lr=learning_rate)
 
     def reflect(self, current_state: Tensor, depth: int = 3) -> list[dict]:
         """Perform recursive self-reflection at multiple depth levels.
@@ -156,7 +167,17 @@ class SelfModel(nn.Module):
         Returns
         -------
         Tensor
-            Predicted future state of shape ``(state_dim,)``.
+            Predicted future self-state as a probability distribution of
+            shape ``(state_dim,)`` (softmax-normalised).
+
+        Notes
+        -----
+        The prediction is softmax-normalised so it lives in the same space as
+        the observed self-state (``actual_self = softmax(stimulus)`` in the
+        kernel's interoceptive channel). Without this, the channel compared a
+        raw linear projection against a probability distribution, yielding a
+        spurious error that grew with input structure rather than with genuine
+        interoceptive surprise.
         """
         action_embed = self.action_to_embed(future_action)
 
@@ -166,7 +187,36 @@ class SelfModel(nn.Module):
             self.self_embedding.unsqueeze(0),
         ).squeeze(0)
 
-        return self.embed_to_prediction(projected)
+        return torch.softmax(self.embed_to_prediction(projected), dim=-1)
+
+    def update_from_error(self, error: Tensor) -> float:
+        """Train the prediction pathway from the interoceptive error.
+
+        Takes one gradient step on ``||error||^2`` over the self-model's
+        prediction parameters (not the identity embedding). The error is the
+        difference between the predicted self-state and the observed one; without
+        this step the self-model never learned and its channel contributed a
+        constant, non-reducible offset to the free energy.
+
+        Mirrors :meth:`WorldModel.update_from_error`: only backpropagates when the
+        error is connected to the graph (i.e. came from :meth:`predict_self`).
+
+        Parameters
+        ----------
+        error : Tensor
+            Interoceptive prediction error of shape ``(state_dim,)``.
+
+        Returns
+        -------
+        float
+            The scalar loss value.
+        """
+        loss = torch.sum(error ** 2)
+        if loss.requires_grad:
+            self._optimizer.zero_grad()
+            loss.backward()
+            self._optimizer.step()
+        return loss.item()
 
     def identity_distance(self, state: Tensor) -> float:
         """Measure how far a state is from the current identity.

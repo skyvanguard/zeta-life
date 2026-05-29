@@ -27,7 +27,6 @@ from .complementary_memory import CompressedEpisode, Episode, FastMemory, SlowMe
 from .conscious_kernel import ConsciousKernel, StepResult
 from .dream_engine import DreamEngine, DreamReport
 from .persistence import PersistenceLayer
-from .precision_controller import PrecisionController
 from .prediction_error import PredictionErrorEngine
 from .self_model import SelfModel
 from .world_model import WorldModel
@@ -43,7 +42,6 @@ __all__ = [
     'WorldModel',
     'SelfModel',
     'PredictionErrorEngine',
-    'PrecisionController',
     'FastMemory',
     'SlowMemory',
     'Episode',

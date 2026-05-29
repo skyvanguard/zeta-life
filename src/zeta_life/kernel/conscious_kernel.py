@@ -13,7 +13,6 @@ Components:
     - WorldModel:          Predictive model of the environment
     - SelfModel:           Recursive self-modeling with Strange Loop
     - PredictionErrorEngine: Multi-channel precision-weighted errors
-    - PrecisionController: Learned precision hyper-model
     - FastMemory:          Episodic hippocampal buffer
     - SlowMemory:          Semantic neocortical network
     - DreamEngine:         Zeta-driven sleep consolidation
@@ -32,10 +31,9 @@ from .world_model import WorldModel
 from .prediction_error import PredictionErrorEngine
 from .self_model import SelfModel
 from .complementary_memory import Episode, FastMemory, SlowMemory
-from .precision_controller import PrecisionController
 from .dream_engine import DreamEngine
 from .persistence import PersistenceLayer
-from ..integration.formal_equations import compute_phi_c, compute_psi
+from ..integration.formal_equations import compute_phi_c, compute_psi, compute_psi_hill
 
 
 # ---------------------------------------------------------------------------
@@ -106,6 +104,10 @@ class ConsciousKernel:
         save_interval: int = 100,
         latent_weight: float = 0.0,
         alpha: float = 1.0,
+        psi_mode: str = "hill",
+        psi_fe_scale: float = 5.0,
+        psi_hill_n: float = 4.0,
+        psi_hill_K: float = 0.1,
     ) -> None:
         self.obs_dim = obs_dim
         self.latent_dim = latent_dim
@@ -115,12 +117,27 @@ class ConsciousKernel:
         self.save_interval = save_interval
         self.latent_weight = latent_weight
         self.alpha = alpha
+        # Psi metric configuration.
+        #   psi_mode="hill"   -> DEFAULT. Bounded Hill metric that discriminates
+        #                        degrees of integration (see compute_psi_hill).
+        #                        The cubic form saturates to 1.0 for any
+        #                        supercritical input, so it cannot separate
+        #                        coherent input from noise — hill is the usable
+        #                        metric and is therefore the default.
+        #   psi_mode="cubic"  -> original Psi = B^3 + Phi (clamped). Kept to
+        #                        reproduce earlier (pre-fix) paper results.
+        # psi_fe_scale controls how strongly free energy maps to Phi:
+        #   Phi = 1/(1 + psi_fe_scale * free_energy). Larger values are needed when
+        #   the system's free energy is small (e.g. after the interoceptive fix).
+        self.psi_mode = psi_mode
+        self.psi_fe_scale = psi_fe_scale
+        self.psi_hill_n = psi_hill_n
+        self.psi_hill_K = psi_hill_K
 
         # --- Core components ---
         self.world_model = WorldModel(obs_dim, latent_dim, obs_dim)
         self.self_model = SelfModel(obs_dim, embed_dim)
         self.error_engine = PredictionErrorEngine(4)
-        self.precision_controller = PrecisionController(obs_dim, 4)
         self.fast_memory = FastMemory(500, 0.3)
         self.slow_memory = SlowMemory(obs_dim, outcome_dim=obs_dim)
         self.dream_engine = DreamEngine(
@@ -174,10 +191,7 @@ class ConsciousKernel:
         """
         self.t += 1
 
-        # ---- 1. PERCEIVE ----
-        observation = self.world_model.encode(stimulus)
-
-        # ---- 2. PREDICT ----
+        # ---- 1. PREDICT (prior) ----
         # predict() returns tensors with grad_fn for learning
         predicted_obs, _ = self.world_model.predict(self.last_action)
         predicted_self = self.self_model.predict_self(self.last_action)
@@ -211,7 +225,20 @@ class ConsciousKernel:
         # The raw error from predicted_obs - stimulus has grad_fn from predict(),
         # so update_from_error can backpropagate.
         self.world_model.update_from_error(errors['perceptual']['raw'])
-        self.world_model.latent_state = self.world_model.encode(stimulus).detach()
+        # Posterior step: fold the observation into the latent and train the
+        # encoder (replaces the old line that overwrote the recurrent latent
+        # with a detached encode(stimulus), which froze the encoder and erased
+        # the transition's temporal memory).
+        self.world_model.observe(stimulus)
+
+        # Train the self-model from the interoceptive error so its channel
+        # reflects learned self-prediction instead of a fixed offset.
+        self.self_model.update_from_error(errors['interoceptive']['raw'])
+
+        # Train the per-channel precisions toward inverse error variance, so the
+        # precision term in Psi actually reflects channel reliability instead of
+        # staying frozen at its initial value.
+        self.error_engine.update_precisions(errors)
 
         # ---- 5. MEMORIZE ----
         surprise = max(
@@ -288,8 +315,15 @@ class ConsciousKernel:
         float
             Consciousness index clamped to [0, 1].
         """
-        # Phi: inverse of normalised free energy + episodic memory bonus
-        phi_base = 1.0 / (1.0 + free_energy / 10.0)
+        # Phi: inverse of free energy + episodic memory bonus.
+        # The cubic mode keeps the historical /10 scaling; the hill mode uses a
+        # configurable scale so Phi actually responds to free energy (the /10
+        # compresses Phi to ~0.96 regardless of input, which the cubic form then
+        # saturates anyway).
+        if self.psi_mode == "hill":
+            phi_base = 1.0 / (1.0 + self.psi_fe_scale * free_energy)
+        else:
+            phi_base = 1.0 / (1.0 + free_energy / 10.0)
         mem_ratio = len(self.fast_memory) / 500.0
         phi = phi_base + 0.2 * mem_ratio  # range ~[0.0, 1.2]
 
@@ -307,6 +341,8 @@ class ConsciousKernel:
 
         # Psi via formal equations
         phi_c = compute_phi_c(F_i, self.alpha, C)
+        if self.psi_mode == "hill":
+            return compute_psi_hill(phi, phi_c, self.psi_hill_n, self.psi_hill_K)
         psi = compute_psi(phi, phi_c)
         return min(1.0, max(0.0, psi))
 
@@ -352,7 +388,6 @@ class ConsciousKernel:
             'world_model': self.world_model,
             'self_model': self.self_model,
             'error_engine': self.error_engine,
-            'precision_controller': self.precision_controller,
             'fast_memory': self.fast_memory,
             'slow_memory': self.slow_memory,
             'step': self.t,

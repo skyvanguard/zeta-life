@@ -143,8 +143,12 @@ class MicroPsyche:
         prev = self.recent_states[-2]
         curr = self.recent_states[-1]
 
+        # L1 distance between two probability distributions (softmax states) lies
+        # in [0, 2], so divide by 2 for a true [0, 1] normalisation. The previous
+        # min(1.0, diff) clamped instead of normalising, saturating any transition
+        # stronger than a half-reorientation to 1.0 (indistinguishable).
         diff = (curr - prev).abs().sum().item()
-        return min(1.0, diff)
+        return min(1.0, diff / 2.0)
 
     def update_accumulated_surprise(self, decay: float = 0.9) -> None:
         """

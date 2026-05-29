@@ -42,12 +42,20 @@ class WorldModel(nn.Module):
         latent_dim: int = 32,
         action_dim: int = 4,
         learning_rate: float = 0.005,
+        posterior_blend: float = 0.5,
     ) -> None:
         super().__init__()
 
         self.obs_dim = obs_dim
         self.latent_dim = latent_dim
         self.action_dim = action_dim
+        # Weight of the prior (transition) vs the encoded observation when
+        # forming the posterior latent in observe(). 1.0 = pure recurrence,
+        # 0.0 = pure observation. 0.5 balances memory and perception.
+        self.posterior_blend = posterior_blend
+        # Last prior latent produced by predict(), kept (with grad) so the
+        # prior-loss backward in update_from_error can reach the transition.
+        self._prior_latent: Tensor | None = None
 
         # Bottom-up encoder: observation -> latent
         self.encoder = nn.Sequential(
@@ -112,10 +120,64 @@ class WorldModel(nn.Module):
 
         predicted_obs = self.predictor(next_latent)
 
-        # Update internal state
+        # Keep the prior latent (with grad) for the posterior step in observe().
+        # The buffer is updated to a detached copy so reads before observe() are
+        # safe; observe() overwrites it with the posterior.
+        self._prior_latent = next_latent
         self.latent_state = next_latent.detach()
 
         return predicted_obs, next_latent
+
+    def observe(self, observation: Tensor) -> float:
+        """Incorporate an observation into the latent state (posterior step).
+
+        Forms the posterior latent as a blend of the prior (from the last
+        :meth:`predict`) and the bottom-up encoding of the observation, then
+        takes a gradient step on the reconstruction loss
+        ``||predictor(posterior) - observation||^2``.
+
+        This is what makes the **encoder learn** (the gradient flows
+        encoder -> posterior -> prediction -> loss) and gives the latent a real
+        **posterior correction** from perception, instead of the previous code
+        that overwrote the recurrent latent with a detached ``encode(obs)``
+        (which froze the encoder and discarded the transition's memory).
+
+        The prior is detached here so this step trains only the encoder and
+        predictor; the transition is trained by the prior loss in
+        :meth:`update_from_error`. This keeps the two backward passes on
+        separate graphs (no double-backward).
+
+        Parameters
+        ----------
+        observation : Tensor
+            Observation vector of shape ``(obs_dim,)``.
+
+        Returns
+        -------
+        float
+            The scalar reconstruction loss.
+        """
+        prior = (
+            self._prior_latent.detach()
+            if self._prior_latent is not None
+            else self.latent_state
+        )
+        encoded = self.encode(observation)
+        posterior = self.posterior_blend * prior + (1.0 - self.posterior_blend) * encoded
+
+        loss = torch.sum((self.predictor(posterior) - observation) ** 2)
+        self.optimizer.zero_grad()
+        loss.backward()
+        self.optimizer.step()
+
+        # Recompute the posterior detached for the persistent latent (the graph
+        # above was freed by backward).
+        with torch.no_grad():
+            encoded_d = self.encode(observation)
+            self.latent_state = (
+                self.posterior_blend * prior + (1.0 - self.posterior_blend) * encoded_d
+            )
+        return loss.item()
 
     def imagine(self, action_sequence: list[Tensor]) -> list[Tensor]:
         """Run a counterfactual simulation without modifying internal state.

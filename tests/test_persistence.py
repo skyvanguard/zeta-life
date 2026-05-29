@@ -19,7 +19,6 @@ from zeta_life.kernel.persistence import PersistenceLayer
 from zeta_life.kernel.world_model import WorldModel
 from zeta_life.kernel.self_model import SelfModel
 from zeta_life.kernel.prediction_error import PredictionErrorEngine
-from zeta_life.kernel.precision_controller import PrecisionController
 from zeta_life.kernel.complementary_memory import FastMemory, SlowMemory
 
 
@@ -33,7 +32,6 @@ def _make_components():
         'world_model': WorldModel(obs_dim=4, latent_dim=32, action_dim=4),
         'self_model': SelfModel(state_dim=4, embed_dim=16),
         'error_engine': PredictionErrorEngine(n_channels=4),
-        'precision_controller': PrecisionController(state_dim=4),
         'fast_memory': FastMemory(capacity=50),
         'slow_memory': SlowMemory(context_dim=4, outcome_dim=4),
         'step': 0,
