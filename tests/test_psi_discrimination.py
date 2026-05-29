@@ -89,9 +89,12 @@ def test_hill_mode_discriminates_signal_from_noise():
 
     def run(stimulus_fn):
         torch.manual_seed(0)
+        # With learned precisions (the world model + precision training make the
+        # free energy separate coherent input from noise ~9x), a modest fe_scale
+        # is enough; the frozen-system calibration needed fe_scale=40.
         ck = ConsciousKernel(
-            psi_mode="hill", psi_fe_scale=40.0, psi_hill_n=4.0,
-            psi_hill_K=0.1, alpha=0.7,
+            psi_mode="hill", psi_fe_scale=5.0, psi_hill_n=4.0,
+            psi_hill_K=0.1, alpha=1.0,
         )
         psis = [ck.step(stimulus_fn(t)).psi for t in range(120)]
         return sum(psis[-30:]) / 30
@@ -100,8 +103,9 @@ def test_hill_mode_discriminates_signal_from_noise():
     noise = run(lambda t: torch.softmax(torch.randn(4), dim=-1))
 
     # Coherent input integrates clearly more than noise.
-    assert coherent > 0.3
-    assert coherent > noise + 0.2
+    assert coherent > 0.7
+    assert noise < 0.4
+    assert coherent - noise > 0.5
 
 
 def test_cubic_mode_saturates_as_documented():

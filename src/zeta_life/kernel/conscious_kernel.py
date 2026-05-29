@@ -13,7 +13,6 @@ Components:
     - WorldModel:          Predictive model of the environment
     - SelfModel:           Recursive self-modeling with Strange Loop
     - PredictionErrorEngine: Multi-channel precision-weighted errors
-    - PrecisionController: Learned precision hyper-model
     - FastMemory:          Episodic hippocampal buffer
     - SlowMemory:          Semantic neocortical network
     - DreamEngine:         Zeta-driven sleep consolidation
@@ -32,7 +31,6 @@ from .world_model import WorldModel
 from .prediction_error import PredictionErrorEngine
 from .self_model import SelfModel
 from .complementary_memory import Episode, FastMemory, SlowMemory
-from .precision_controller import PrecisionController
 from .dream_engine import DreamEngine
 from .persistence import PersistenceLayer
 from ..integration.formal_equations import compute_phi_c, compute_psi, compute_psi_hill
@@ -138,7 +136,6 @@ class ConsciousKernel:
         self.world_model = WorldModel(obs_dim, latent_dim, obs_dim)
         self.self_model = SelfModel(obs_dim, embed_dim)
         self.error_engine = PredictionErrorEngine(4)
-        self.precision_controller = PrecisionController(obs_dim, 4)
         self.fast_memory = FastMemory(500, 0.3)
         self.slow_memory = SlowMemory(obs_dim, outcome_dim=obs_dim)
         self.dream_engine = DreamEngine(
@@ -230,6 +227,11 @@ class ConsciousKernel:
         # so update_from_error can backpropagate.
         self.world_model.update_from_error(errors['perceptual']['raw'])
         self.world_model.latent_state = self.world_model.encode(stimulus).detach()
+
+        # Train the per-channel precisions toward inverse error variance, so the
+        # precision term in Psi actually reflects channel reliability instead of
+        # staying frozen at its initial value.
+        self.error_engine.update_precisions(errors)
 
         # ---- 5. MEMORIZE ----
         surprise = max(
@@ -379,7 +381,6 @@ class ConsciousKernel:
             'world_model': self.world_model,
             'self_model': self.self_model,
             'error_engine': self.error_engine,
-            'precision_controller': self.precision_controller,
             'fast_memory': self.fast_memory,
             'slow_memory': self.slow_memory,
             'step': self.t,

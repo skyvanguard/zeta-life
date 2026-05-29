@@ -2,7 +2,7 @@
 
 Covers:
 - Init: all components initialized (world_model, self_model, error_engine,
-  precision_controller, fast_memory, slow_memory, dream_engine, t=0)
+  fast_memory, slow_memory, dream_engine, t=0)
 - step(stimulus): returns StepResult with free_energy >= 0, increments t,
   errors dict has channel names
 - Learning: free_energy decreases on repeated pattern
@@ -22,7 +22,6 @@ from zeta_life.kernel.conscious_kernel import ConsciousKernel, StepResult
 from zeta_life.kernel.world_model import WorldModel
 from zeta_life.kernel.self_model import SelfModel
 from zeta_life.kernel.prediction_error import PredictionErrorEngine
-from zeta_life.kernel.precision_controller import PrecisionController
 from zeta_life.kernel.complementary_memory import FastMemory, SlowMemory
 from zeta_life.kernel.dream_engine import DreamEngine
 
@@ -58,9 +57,6 @@ class TestInit:
         ck = _make_kernel()
         assert isinstance(ck.error_engine, PredictionErrorEngine)
 
-    def test_precision_controller_initialized(self):
-        ck = _make_kernel()
-        assert isinstance(ck.precision_controller, PrecisionController)
 
     def test_fast_memory_initialized(self):
         ck = _make_kernel()

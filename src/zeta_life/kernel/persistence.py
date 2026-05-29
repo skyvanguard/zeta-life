@@ -60,7 +60,6 @@ class PersistenceLayer:
             - ``world_model`` : :class:`WorldModel` (nn.Module)
             - ``self_model`` : :class:`SelfModel` (nn.Module)
             - ``error_engine`` : :class:`PredictionErrorEngine` (nn.Module)
-            - ``precision_controller`` : :class:`PrecisionController` (nn.Module)
             - ``fast_memory`` : :class:`FastMemory` (plain object with serialize)
             - ``slow_memory`` : :class:`SlowMemory` (nn.Module)
             - ``step`` : int
@@ -82,7 +81,6 @@ class PersistenceLayer:
             'world_model',
             'self_model',
             'error_engine',
-            'precision_controller',
             'slow_memory',
         ]
         for key in nn_module_keys:
@@ -168,7 +166,6 @@ class PersistenceLayer:
             'world_model',
             'self_model',
             'error_engine',
-            'precision_controller',
             'slow_memory',
         ]
         for key in nn_module_keys:
