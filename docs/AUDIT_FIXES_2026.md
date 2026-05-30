@@ -63,8 +63,17 @@ Al intentar medir Ψ como discriminador (input coherente vs ruido), Ψ saturaba 
   iterar más para efecto medible.
 - Campo `weighted` en `compute_errors` calculado y no usado.
 
+## Continuación
+
+- **Calibración de Φc** — al entrenar las precisiones (#1) crecieron a O(10–50) y
+  rompieron el escalado `prec_mean/10` de `F_i`, inflando Φc por encima de Φ →
+  Ψ colapsaba a 0 a horizonte largo. Corregido con un término de precisión
+  acotado (Ψ discrimina sostenido). Commit `3563529`.
+- **Agencia** — selección de acción por active inference (EFE). Ver
+  [AGENCY_2026.md](AGENCY_2026.md). Commit `005961b`.
+
 ## Reproducir
 ```bash
-PYTHONPATH=src python -m pytest -q                       # 770 tests
+PYTHONPATH=src python -m pytest -q                       # 778 tests
 PYTHONPATH=src python experiments/kernel/exp_conscious_kernel_validation.py  # 6/6
 ```
