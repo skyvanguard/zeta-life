@@ -92,15 +92,39 @@ Entorno reactivo `state_{t+1}=(1−r)·state+r·action`, objetivo `C=[0.7,0.1,0.
 - **Algebraica**: `softmax(obs+Δ) = softmax(imagine([a]))` — el delta fue clave
   para *entender* el bug, pero la fórmula final es directa.
 
-## Pendiente (extensiones; knobs cableados, no usados)
+## Extensiones investigadas — y por qué NO se integraron (todavía)
 
-- **Valor epistémico / exploración dirigida** (`efe_epistemic_weight`): el proxy
-  actual (entropía del outcome) es grueso; la formulación correcta es ganancia de
-  información esperada.
-- **Horizonte de planning > 1** (`imagine()` ya acepta secuencias de acciones).
-- **Preferencia derivada del self-model** (que C emerja de la identidad interna en
-  vez de imponerse).
-- Conexión con Yvyra: definir su preferencia C.
+Se prototiparon las tres extensiones (en `yvyra-zeta/fase_epistemico*.py`,
+`fase_detour.py`, `fase_wm_benchmark.py`). Hallazgos:
+
+- **Valor epistémico real** (ensemble disagreement, no el proxy de entropía):
+  mejora el aprendizaje del world model **+82%** (explorar lo incierto), pero en
+  una tarea simple aporta **0%** — el agente pragmático 1-step ya converge
+  (0.97). Aporta al *modelo del mundo*, no a tareas que el pragmático resuelve.
+- **Horizonte de planning > 1**: no se pudo demostrar valor — el entorno reactivo
+  simple no lo necesita (greedy 1-step ya basta).
+- **La tijera (hallazgo central)**: las extensiones solo lucen donde el world
+  model NO alcanza; donde alcanza, no se necesitan. Conclusión inicial: el cuello
+  de botella sería la capacidad del world model.
+- **El muro era metodológico, no de capacidad**: un entorno "detour" (dinámica
+  condicional discontinua) parecía mostrar que el modelo no aprende (error ~0.51
+  estancado con más capacidad/steps). **Era un confound train/eval**: se entrenaba
+  con acciones continuas y el planner evaluaba one-hots fuera de distribución,
+  disparando un fallback degenerado del entorno. Con un benchmark **limpio**
+  (mismo espacio de acción train/eval, eval in-distribution), todas las
+  arquitecturas aprenden la dinámica condicional a **~0.04**. Y **más capacidad
+  cruda perjudica**: MLP profundo (3×128) fue el peor (0.078) vs MLP base (0.040)
+  y MLP-delta (0.037, mejor).
+
+**Decisión (YAGNI):** no integrar epistémico ni horizonte ni un world model más
+grande ahora. El MVP pragmático basta para el espacio 4-D actual, y la evidencia
+dice que el modelo ya es capaz aquí. Las dos cosas reales pendientes:
+1. Que el planner use candidatos de acción consistentes con el entrenamiento (no
+   one-hots OOD) — fix del planner, barato.
+2. La complejidad real no está en la dinámica 4-D sino en el **mapeo experiencia
+   → stimulus** (alta dimensión, secuencias, observabilidad parcial). Un world
+   model más capaz (recurrente/probabilístico) se justifica **después** de definir
+   ese mapeo, que es lo que fija sus requisitos. Antes es especular.
 
 ## Reproducir
 
