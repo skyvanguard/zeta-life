@@ -85,27 +85,51 @@ def test_hill_is_default_mode():
     assert ConsciousKernel().psi_mode == "hill"
 
 
+def _run_hill(stimulus_fn, n_steps: int):
+    torch.manual_seed(0)
+    # With learned precisions (the world model + precision training make the
+    # free energy separate coherent input from noise ~9x), a modest fe_scale
+    # is enough; the frozen-system calibration needed fe_scale=40.
+    ck = ConsciousKernel(
+        psi_mode="hill", psi_fe_scale=5.0, psi_hill_n=4.0,
+        psi_hill_K=0.1, alpha=1.0,
+    )
+    psis = [ck.step(stimulus_fn(t)).psi for t in range(n_steps)]
+    return sum(psis[-30:]) / 30
+
+
 def test_hill_mode_discriminates_signal_from_noise():
+    # 300 steps: long enough for the trained precisions to mature so Phi_c
+    # settles into its operating range. At 120 steps the precisions are still
+    # small and the threshold is not yet asserted, so noise sits right on the
+    # 0.4 edge — that short horizon is not representative of the running system.
     pattern = torch.tensor([0.5, 0.2, 0.2, 0.1])
-
-    def run(stimulus_fn):
-        torch.manual_seed(0)
-        # With learned precisions (the world model + precision training make the
-        # free energy separate coherent input from noise ~9x), a modest fe_scale
-        # is enough; the frozen-system calibration needed fe_scale=40.
-        ck = ConsciousKernel(
-            psi_mode="hill", psi_fe_scale=5.0, psi_hill_n=4.0,
-            psi_hill_K=0.1, alpha=1.0,
-        )
-        psis = [ck.step(stimulus_fn(t)).psi for t in range(120)]
-        return sum(psis[-30:]) / 30
-
-    coherent = run(lambda t: pattern + 0.01 * torch.randn(4))
-    noise = run(lambda t: torch.softmax(torch.randn(4), dim=-1))
+    coherent = _run_hill(lambda t: pattern + 0.01 * torch.randn(4), 300)
+    noise = _run_hill(lambda t: torch.softmax(torch.randn(4), dim=-1), 300)
 
     # Coherent input integrates clearly more than noise.
     assert coherent > 0.7
     assert noise < 0.4
+    assert coherent - noise > 0.5
+
+
+def test_hill_discrimination_does_not_collapse_over_long_horizon():
+    """Regression guard for the Phi_c calibration fix.
+
+    The trained precisions grow without bound (they track inverse error
+    variance), so the previous unbounded ``F_i = prec_mean/10`` drove Phi_c
+    above Phi for ALL inputs after a few hundred steps -> B<0 -> Psi collapsed
+    to 0 for coherent input too (the 120-step test never ran long enough to
+    see it). The bounded prec_term caps F_i so Phi_c stays below Phi for
+    coherent input even as precisions saturate. Here Psi must STILL discriminate
+    at a long horizon where the old metric was flat-zero.
+    """
+    pattern = torch.tensor([0.5, 0.2, 0.2, 0.1])
+    coherent = _run_hill(lambda t: pattern + 0.01 * torch.randn(4), 1500)
+    noise = _run_hill(lambda t: torch.softmax(torch.randn(4), dim=-1), 1500)
+
+    assert coherent > 0.7      # coherent stays supercritical (no collapse)
+    assert noise < 0.3         # noise stays subcritical
     assert coherent - noise > 0.5
 
 

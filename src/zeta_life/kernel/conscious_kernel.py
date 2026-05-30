@@ -108,6 +108,9 @@ class ConsciousKernel:
         psi_fe_scale: float = 5.0,
         psi_hill_n: float = 4.0,
         psi_hill_K: float = 0.1,
+        psi_prec_half: float = 5.0,
+        psi_w_prec: float = 0.45,
+        psi_w_ref: float = 0.15,
     ) -> None:
         self.obs_dim = obs_dim
         self.latent_dim = latent_dim
@@ -133,6 +136,20 @@ class ConsciousKernel:
         self.psi_fe_scale = psi_fe_scale
         self.psi_hill_n = psi_hill_n
         self.psi_hill_K = psi_hill_K
+        # Binding-force (F_i) calibration for the critical threshold Phi_c.
+        #   F_i = psi_w_prec * prec_term + psi_w_ref * reflection_convergence
+        #   prec_term = prec_mean / (prec_mean + psi_prec_half)   in [0, 1)
+        # The bounded prec_term replaces the old unbounded `prec_mean / 10`, which
+        # was calibrated for precisions ~O(1). Once update_precisions() began
+        # training precisions toward inverse-error-variance they grew to O(10-50),
+        # inflating F_i above alpha so Phi_c = F_i/(alpha-C) exceeded Phi for ALL
+        # inputs -> B<0 -> Psi collapsed to 0 and stopped discriminating coherence
+        # from noise. Capping F_i at (psi_w_prec + psi_w_ref) keeps Phi_c safely
+        # below Phi for coherent input even as precisions saturate, so Psi stays
+        # supercritical for structure and subcritical for noise indefinitely.
+        self.psi_prec_half = psi_prec_half
+        self.psi_w_prec = psi_w_prec
+        self.psi_w_ref = psi_w_ref
 
         # --- Core components ---
         self.world_model = WorldModel(obs_dim, latent_dim, obs_dim)
@@ -327,13 +344,20 @@ class ConsciousKernel:
         mem_ratio = len(self.fast_memory) / 500.0
         phi = phi_base + 0.2 * mem_ratio  # range ~[0.0, 1.2]
 
-        # F_i: mean precision normalised + reflection convergence bonus
+        # F_i: bounded precision term + reflection convergence bonus.
+        # prec_term saturates in [0, 1) so trained precisions (which grow without
+        # bound as inverse error variance) cannot inflate F_i past its cap of
+        # (psi_w_prec + psi_w_ref). That cap keeps Phi_c below Phi for coherent
+        # input, which is what lets Psi discriminate structure from noise even at
+        # long horizons. See the constructor note for the full rationale.
         precisions = self.error_engine.precisions  # tensor (4,)
-        F_i = float(precisions.mean().item()) / 10.0
+        prec_mean = float(precisions.mean().item())
+        prec_term = prec_mean / (prec_mean + self.psi_prec_half)
+        F_i = self.psi_w_prec * prec_term
         if self.self_model.reflection_history:
             last_ref = self.self_model.reflection_history[-1]
             ref_convergence = 1.0 / (1.0 + last_ref[-1]['prediction_error'])
-            F_i += 0.3 * ref_convergence
+            F_i += self.psi_w_ref * ref_convergence
 
         # C: coherence cost from recent errors
         recent = self.error_engine.recent_errors()  # tensor (4,)
