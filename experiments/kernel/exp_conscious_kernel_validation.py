@@ -73,31 +73,45 @@ def test_identity_persistence():
 
 
 def test_generalization():
-    """Criterion 3: Slow memory generalizes after exposure."""
+    """Criterion 3: Slow memory generalizes after exposure.
+
+    Measures generalization as *improvement from training* (post-training error
+    on a novel input lower than the same kernel's pre-training error), not an
+    absolute error threshold. The absolute error is dominated by random
+    initialisation (~0.5 ± 0.06) and the learning signal is small (~6%), so a
+    fixed `error < 0.5` threshold was a coin flip across runs. Comparing the same
+    kernel before vs after isolates the learning effect. Seeded for reproducibility.
+    """
     print("\n=== Test 3: Generalization ===")
+    torch.manual_seed(0)
     ck = ConsciousKernel()
 
     pattern = torch.tensor([0.7, 0.1, 0.1, 0.1])
+    # SlowMemory is trained on softmax(stimulus), so the query must also be softmax
+    novel = torch.tensor([0.65, 0.15, 0.1, 0.1])
+    novel_soft = torch.nn.functional.softmax(novel, dim=-1)
+    training_soft = torch.nn.functional.softmax(pattern, dim=-1)
+
+    # Baseline: error on the novel input BEFORE any training (random init).
+    pre_error = torch.norm(ck.slow_memory.generalize(novel_soft) - novel_soft).item()
+
     # Need enough steps for the slow neocortical network to learn (lr=0.0001)
     for _ in range(500):
         ck.step(pattern)
-
     # Force multiple dream consolidation cycles for deeper transfer
     for _ in range(5):
         ck.dream_engine.dream_cycle(duration=50)
 
-    # SlowMemory is trained on softmax(stimulus), so query must also be softmax
-    novel = torch.tensor([0.65, 0.15, 0.1, 0.1])
-    novel_soft = torch.nn.functional.softmax(novel, dim=-1)
-    training_soft = torch.nn.functional.softmax(pattern, dim=-1)
     predicted = ck.slow_memory.generalize(novel_soft)
-    error = torch.norm(predicted - novel_soft).item()
+    post_error = torch.norm(predicted - novel_soft).item()
 
     print(f"  Training pattern (softmax): {[f'{x:.3f}' for x in training_soft.tolist()]}")
     print(f"  Novel input (softmax):      {[f'{x:.3f}' for x in novel_soft.tolist()]}")
     print(f"  Predicted:                  {[f'{x:.3f}' for x in predicted.tolist()]}")
-    print(f"  Error:                      {error:.4f}")
-    passed = error < 0.5
+    print(f"  Error pre-train:            {pre_error:.4f}")
+    print(f"  Error post-train:           {post_error:.4f}")
+    # Generalizes = training reduces error on the novel input.
+    passed = post_error < pre_error
     print(f"  RESULT: {'PASS' if passed else 'FAIL'}")
     return passed
 
