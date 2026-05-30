@@ -111,6 +111,11 @@ class ConsciousKernel:
         psi_prec_half: float = 5.0,
         psi_w_prec: float = 0.45,
         psi_w_ref: float = 0.15,
+        action_mode: str = "reactive",
+        preference: Tensor | None = None,
+        action_candidates: list[Tensor] | None = None,
+        explore_eps: float = 0.0,
+        efe_epistemic_weight: float = 0.0,
     ) -> None:
         self.obs_dim = obs_dim
         self.latent_dim = latent_dim
@@ -150,6 +155,36 @@ class ConsciousKernel:
         self.psi_prec_half = psi_prec_half
         self.psi_w_prec = psi_w_prec
         self.psi_w_ref = psi_w_ref
+
+        # --- Action selection (agency) ---
+        #   action_mode="reactive" -> DEFAULT. action = softmax(stimulus) (with the
+        #                             optional latent_weight bias). Byte-identical to
+        #                             the pre-agency kernel.
+        #   action_mode="efe"      -> Active-inference action selection: pick the
+        #                             candidate action whose imagined outcome
+        #                             minimises expected free energy G(a) toward the
+        #                             preference C. Requires `preference`.
+        # G(a) = KL(C || softmax(imagine([a])))            [pragmatic value]
+        #        - efe_epistemic_weight * H(softmax(imagine([a])))   [epistemic, coarse]
+        # The chosen action becomes `actual_self`, so it flows into the
+        # interoceptive channel, memory and last_action — which keeps the world
+        # model trained on the action ACTUALLY taken (the alignment that makes
+        # planning work; see the agency investigation).
+        self.action_mode = action_mode
+        self.preference = (
+            (preference / preference.sum()).detach()
+            if preference is not None else None
+        )
+        self.explore_eps = explore_eps
+        self.efe_epistemic_weight = efe_epistemic_weight
+        if action_candidates is not None:
+            self._action_candidates = [a.detach() for a in action_candidates]
+        else:
+            # Default candidate set: the pure (one-hot) actions plus the uniform
+            # action — a minimal basis that spans "push one channel" vs "stay flat".
+            cands = [F.one_hot(torch.tensor(i), obs_dim).float() for i in range(obs_dim)]
+            cands.append(torch.full((obs_dim,), 1.0 / obs_dim))
+            self._action_candidates = cands
 
         # --- Core components ---
         self.world_model = WorldModel(obs_dim, latent_dim, obs_dim)
@@ -213,7 +248,11 @@ class ConsciousKernel:
         predicted_obs, _ = self.world_model.predict(self.last_action)
         predicted_self = self.self_model.predict_self(self.last_action)
         raw_self = F.softmax(stimulus, dim=-1)
-        if self.latent_weight > 0.0:
+        if self.action_mode == "efe" and self.preference is not None:
+            # Active-inference action selection. predict() above already advanced
+            # the latent, so imagine() inside the planner uses the current latent.
+            actual_self = self._select_action_efe(raw_self)
+        elif self.latent_weight > 0.0:
             latent_bias = self._latent_to_action(self.world_model.latent_state.detach())
             actual_self = F.softmax(raw_self + self.latent_weight * latent_bias, dim=-1)
         else:
@@ -369,6 +408,47 @@ class ConsciousKernel:
             return compute_psi_hill(phi, phi_c, self.psi_hill_n, self.psi_hill_K)
         psi = compute_psi(phi, phi_c)
         return min(1.0, max(0.0, psi))
+
+    # ------------------------------------------------------------------
+    # Action selection (active inference)
+    # ------------------------------------------------------------------
+
+    def _select_action_efe(self, reactive_action: Tensor) -> Tensor:
+        """Select an action by minimising expected free energy toward `preference`.
+
+        For each candidate action ``a`` (the configured candidate set plus the
+        reactive action), the world model imagines the resulting observation
+        without mutating state, and we score:
+
+            G(a) = KL(preference || softmax(imagine([a])))     [pragmatic value]
+                   - efe_epistemic_weight * H(softmax(imagine([a])))  [epistemic]
+
+        and return ``argmin_a G(a)``. With probability ``explore_eps`` we instead
+        return a random (normalised) action — exploration, which is what lets the
+        world model learn the action->outcome dynamics in the first place.
+
+        The pragmatic term drives the agent toward preferred outcomes; the
+        epistemic term (a coarse outcome-entropy proxy, off by default) rewards
+        informative actions. See Friston et al. 2015, "Active inference and
+        epistemic value".
+        """
+        if self.explore_eps > 0.0 and float(torch.rand(1).item()) < self.explore_eps:
+            a = torch.rand(self.obs_dim)
+            return (a / a.sum()).detach()
+
+        pref = self.preference
+        log_pref = pref.clamp(min=1e-6).log()
+        best, best_g = reactive_action.detach(), float("inf")
+        for a in self._action_candidates + [reactive_action]:
+            pred_obs = self.world_model.imagine([a])[0]
+            proj = F.softmax(pred_obs, dim=-1)
+            log_proj = proj.clamp(min=1e-6).log()
+            pragmatic = float((pref * (log_pref - log_proj)).sum())  # KL(pref || proj)
+            entropy = float(-(proj * log_proj).sum())
+            g = pragmatic - self.efe_epistemic_weight * entropy
+            if g < best_g:
+                best_g, best = g, a.detach()
+        return best
 
     # ------------------------------------------------------------------
     # Persistence
