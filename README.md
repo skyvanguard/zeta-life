@@ -5,7 +5,7 @@
 [![Python 3.9+](https://img.shields.io/badge/python-3.9+-blue.svg)](https://www.python.org/downloads/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Code style: ruff](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/astral-sh/ruff/main/assets/badge/v2.json)](https://github.com/astral-sh/ruff)
-[![Tests](https://img.shields.io/badge/tests-480%20passed-brightgreen.svg)](tests/)
+[![Tests](https://img.shields.io/badge/tests-481%20passed-brightgreen.svg)](tests/)
 
 ---
 
@@ -144,7 +144,7 @@ python experiments/kernel/exp_organism_emergence.py
 ### Run Tests
 
 ```bash
-PYTHONPATH=src pytest tests/ -q   # 480 tests (or `pip install -e .` first)
+PYTHONPATH=src pytest tests/ -q   # 481 tests (or `pip install -e .` first)
 ```
 
 ---
@@ -162,10 +162,10 @@ zeta-life/
 |   +-- utils/           # Shared utilities
 |
 |-- experiments/
-|   |-- kernel/          # 17 kernel experiments (the live research)
+|   |-- kernel/          # 18 kernel experiments (the live research)
 |   +-- datasets/        # 1 experiment (Psi on real data)
 |
-|-- tests/               # 25 test files (480 tests)
+|-- tests/               # 25 test files (481 tests)
 +-- docs/                # Documentation, papers, plans
 
 (Legacy subsystems -- psyche, hierarchical/IPUESA integration, organism,

@@ -1,0 +1,25 @@
+======================================================================
+  MODEL-BASED CONTROL — unknown (permuted) action dynamics
+======================================================================
+  target C = [0.7, 0.1, 0.1, 0.1]  perm=[2, 0, 3, 1]
+  steps=600  warmup=300  seeds=[0, 1, 2]
+  metric = ||state - C|| over last 20% (LOWER = better)
+
+  reactive                  : dist = 0.5196 ± 0.0000
+  naive (model-free)        : dist = 0.8485 ± 0.0000
+  kernel EFE (model-based)  : dist = 0.0459 ± 0.0037
+
+======================================================================
+  VERDICT
+======================================================================
+  kernel < naive (learned model beats model-free): True (0.0459 vs 0.8485)
+  kernel reaches the target (dist<0.15):           True (0.0459)
+  reactive baseline:                               0.5196
+
+  FINDING: the kernel LEARNS the unknown (permuted) dynamics and inverts
+  them to reach the target, where the model-free controller is defeated
+  by the permutation. This is the regime where the action-conditioned
+  design is an ADVANTAGE — the mirror image of the prediction handicap.
+  [PASS]
+======================================================================
+  plot saved: results\modelcontrol.png

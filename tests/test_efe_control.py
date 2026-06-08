@@ -128,3 +128,43 @@ class TestEFEFixes:
         for _ in range(5):
             result = ck.step(torch.rand(4))
         assert result.action.shape == (4,)
+
+
+class TestModelBasedControl:
+    """The kernel learns unknown (permuted) action dynamics and inverts them."""
+
+    def _run(self, arm, n_steps=300, warmup=150, seed=0):
+        torch.manual_seed(seed)
+        perm = torch.tensor([2, 0, 3, 1])
+        g = torch.Generator().manual_seed(seed)
+        state = torch.rand(4, generator=g)
+        state = state / state.sum()
+        ck = None
+        if arm == "kernel":
+            ck = ConsciousKernel(action_mode="efe", preference=TARGET,
+                                 efe_n_samples=48, efe_obs_norm="l1",
+                                 reflect_interval=10**9, dream_interval=10**9)
+        obs = state.clone()
+        dists = []
+        for t in range(n_steps):
+            if arm == "naive":
+                a = TARGET.clone()
+            else:
+                result = ck.step(obs)
+                if t < warmup:
+                    a = torch.rand(4); a = a / a.sum()
+                    ck.last_action = a.detach()
+                else:
+                    a = result.action
+            permuted = a.detach()[perm]
+            state = ((1 - 0.4) * state + 0.4 * permuted).clamp(min=1e-6)
+            state = state / state.sum()
+            obs = state
+            dists.append(float(torch.linalg.vector_norm(state - TARGET)))
+        return st.mean(dists[-60:])
+
+    def test_kernel_learns_permuted_dynamics(self):
+        kernel = self._run("kernel")
+        naive = self._run("naive")
+        assert kernel < 0.15, f"kernel did not reach target under permuted dynamics ({kernel:.3f})"
+        assert kernel < naive * 0.6, f"kernel ({kernel:.3f}) should beat naive model-free ({naive:.3f})"
