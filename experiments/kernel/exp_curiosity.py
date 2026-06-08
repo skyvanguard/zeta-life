@@ -1,31 +1,32 @@
 """
-Curiosity — does a real epistemic signal drive exploration?
-===========================================================
+Curiosity — does a REAL dynamics-ensemble disagreement drive exploration?
+=========================================================================
 
-The agency investigation (docs/AGENCY_2026.md) found the EFE's epistemic term
-added nothing — but it used a coarse outcome-entropy proxy. This experiment gives
-the planner a REAL info-gain signal: the world model's ensemble DISAGREEMENT
-(wm_disagreement_heads + efe_epistemic_mode="disagreement"). Disagreement is high
-where the model has not learned (novel regions) and falls as it learns there.
+Earlier finding (the retraction): the EFE's disagreement-curiosity, sourced from
+the shared-latent predictor HEADS (`wm_disagreement_heads`), gave no controlled
+gain — the heads share the transition and differ only in a linear readout over an
+identical next-latent, so their disagreement is near-flat. RELATED_WORK item #3:
+retry with a Plan2Explore-faithful INDEPENDENT dynamics ensemble
+(`dynamics_ensemble`), where each member is its own (latent, action) -> next-obs
+model, so they disagree where the dynamics are unlearned.
 
 Task: a two-regime environment that hides dynamics behind exploration.
 
     regime A (argmax(state) == 0):  state_{t+1} = (1-r) state + r action
     regime B (argmax(state) != 0):  state_{t+1} = (1-r) state + r roll(action, 1)
 
-The agent starts in regime A and its preferred character C is peaked at vertex 0
-(i.e. C lives in regime A). A purely pragmatic agent therefore has no reason to
-leave A and never learns regime B's (permuted) dynamics. A curious agent is
-pulled toward the high-disagreement frontier (regime B is unlearned), explores
-it, and learns it.
+The agent's preferred C is peaked at vertex 0 (regime A = home). A purely
+pragmatic agent never leaves A and never learns B. A curious agent is pulled
+toward the high-disagreement frontier (B is unlearned).
 
-Arms:
-  - reactive       : action = softmax(obs)
-  - efe-pragmatic  : EFE toward C, no epistemic term (exploits A)
-  - efe-curious    : EFE toward C + disagreement epistemic term (explores B)
+Two CONTROLLED paired comparisons (each curious arm differs from its pragmatic
+control ONLY in efe_epistemic_weight; both carry the same machinery so the global
+RNG stream is matched):
+  - heads   : curious-heads   vs pragmatic-heads     (the old, flat signal)
+  - ensemble: curious-ens     vs pragmatic-ens       (the real dynamics signal)
 
-Metric: fraction of steps spent in regime B (coverage of the novel regime). The
-honest question is whether curiosity raises it above the pragmatic baseline.
+Metric: fraction of steps in regime B (coverage of the novel regime). The honest
+question: does the real ensemble drive exploration where the heads did not?
 """
 
 from __future__ import annotations
@@ -43,22 +44,18 @@ from zeta_life.kernel import ConsciousKernel
 
 C = torch.tensor([0.7, 0.1, 0.1, 0.1])
 C = C / C.sum()
-EPISTEMIC_WEIGHT = 30.0
 
-# Controlled design: pragmatic and curious are IDENTICAL except efe_epistemic_weight.
-# Both carry the disagreement ensemble (so head construction + training consume the
-# same RNG), and head masking uses a dedicated generator (C1 fix), so the EFE action
-# sampler draws from the same global stream in both arms. The only difference is
-# whether disagreement enters the cost -> a genuinely controlled comparison.
-ARMS = {
-    "reactive":      dict(action_mode="reactive"),
-    "efe-pragmatic": dict(action_mode="efe", efe_n_samples=24, efe_obs_norm="l1",
-                          wm_disagreement_heads=5, efe_epistemic_mode="disagreement",
-                          efe_epistemic_weight=0.0),
-    "efe-curious":   dict(action_mode="efe", efe_n_samples=24, efe_obs_norm="l1",
-                          wm_disagreement_heads=5, efe_epistemic_mode="disagreement",
-                          efe_epistemic_weight=EPISTEMIC_WEIGHT),
-}
+
+def arms_for(weight: float) -> dict:
+    base = dict(action_mode="efe", efe_n_samples=24, efe_obs_norm="l1",
+                efe_epistemic_mode="disagreement")
+    return {
+        "reactive":        dict(action_mode="reactive"),
+        "pragmatic-heads": dict(**base, wm_disagreement_heads=5, efe_epistemic_weight=0.0),
+        "curious-heads":   dict(**base, wm_disagreement_heads=5, efe_epistemic_weight=weight),
+        "pragmatic-ens":   dict(**base, dynamics_ensemble=5, efe_epistemic_weight=0.0),
+        "curious-ens":     dict(**base, dynamics_ensemble=5, efe_epistemic_weight=weight),
+    }
 
 
 def true_step(state: torch.Tensor, action: torch.Tensor, r: float = 0.3) -> torch.Tensor:
@@ -70,83 +67,86 @@ def true_step(state: torch.Tensor, action: torch.Tensor, r: float = 0.3) -> torc
     return nxt / nxt.sum()
 
 
-def run(arm: str, n_steps: int, seed: int) -> float:
+def run(kwargs: dict, n_steps: int, seed: int) -> float:
     torch.manual_seed(seed)
-    kwargs = ARMS[arm]
     is_efe = kwargs["action_mode"] == "efe"
-    ck = ConsciousKernel(preference=C if is_efe else None, **kwargs)
-    state = C.clone()  # start at home (regime A)
+    ck = ConsciousKernel(preference=C if is_efe else None, reflect_interval=10**9,
+                         dream_interval=10**9, **kwargs)
+    state = C.clone()
     obs = state.clone()
     in_b = []
-    for t in range(n_steps):
+    for _ in range(n_steps):
         result = ck.step(obs)
-        a = result.action
-        state = true_step(state, a)
+        state = true_step(state, result.action)
         obs = state
         in_b.append(int(state.argmax()) != 0)
     tail = max(1, n_steps // 2)
     return sum(in_b[-tail:]) / tail
 
 
-def main(n_steps: int, seeds: list[int], plot: bool) -> bool:
-    print("=" * 70)
-    print("  CURIOSITY — does ensemble disagreement drive exploration?")
-    print("=" * 70)
-    print(f"  C (home, regime A) = {[round(float(x), 2) for x in C]}")
-    print(f"  epistemic_weight={EPISTEMIC_WEIGHT}  steps={n_steps}  seeds={len(seeds)}")
-    print(f"  metric = fraction of steps in regime B (the novel regime)")
-    print(f"  CONTROLLED: pragmatic & curious differ ONLY in efe_epistemic_weight")
-    print(f"  (both carry the ensemble; head masking on a dedicated RNG)")
-    print()
-
-    # Per-seed values for paired analysis.
-    per_arm = {arm: [run(arm, n_steps, s) for s in seeds] for arm in ARMS}
-    res = {arm: (st.mean(v), st.pstdev(v) if len(v) > 1 else 0.0)
-           for arm, v in per_arm.items()}
-    for arm in ARMS:
-        print(f"  {arm:15s}: time in regime B = {res[arm][0]:.3f} ± {res[arm][1]:.3f}")
-    print()
-
-    # Paired test: curious - pragmatic on the SAME seed (now a valid pairing).
-    diffs = [c - p for c, p in zip(per_arm["efe-curious"], per_arm["efe-pragmatic"])]
+def paired(curious: list[float], pragmatic: list[float]) -> tuple[float, float, int, int]:
+    diffs = [c - p for c, p in zip(curious, pragmatic)]
     n = len(diffs)
     md = st.mean(diffs)
     sd = st.stdev(diffs) if n > 1 else 0.0
     se = sd / math.sqrt(n) if n > 1 and sd > 0 else float("inf")
     t = md / se if se not in (0.0, float("inf")) else 0.0
     wins = sum(d > 0 for d in diffs)
+    return md, t, wins, n
 
-    print("=" * 70)
-    print("  VERDICT (paired, controlled)")
-    print("=" * 70)
-    print(f"  curious vs pragmatic time-in-B: "
-          f"{res['efe-curious'][0]:.3f} vs {res['efe-pragmatic'][0]:.3f}")
-    print(f"  paired mean diff = {md:+.3f}  (se={se:.3f}, t={t:.2f}, n={n})")
-    print(f"  curious wins on {wins}/{n} seeds")
+
+def main(n_steps: int, seeds: list[int], weight: float, plot: bool) -> bool:
+    arms = arms_for(weight)
+    print("=" * 72)
+    print("  CURIOSITY — real dynamics ensemble vs shared-latent heads (controlled)")
+    print("=" * 72)
+    print(f"  epistemic_weight={weight}  steps={n_steps}  seeds={len(seeds)}")
+    print(f"  metric = fraction of steps in regime B (the novel regime)")
     print()
-    significant = abs(t) > 2.0  # ~p<0.05 for n>~10
-    positive = md > 0
-    if positive and significant:
-        print("  FINDING: disagreement-curiosity RELIABLY increases exploration")
-        print(f"  (paired t={t:.2f} > 2). Genuine info-gain works where the entropy")
-        print("  proxy did not.")
-    elif positive:
-        print("  FINDING: disagreement-curiosity shows a POSITIVE DIRECTION but it is")
-        print(f"  NOT statistically significant at n={n} (paired t={t:.2f}). It is a")
-        print("  tendency, not a reliable driver — exploration is high-variance and")
-        print("  per-seed it is close to a coin flip. Honest, deflated from the earlier")
-        print("  overclaimed '~2x / it works'.")
+
+    per_arm = {name: [run(kw, n_steps, s) for s in seeds] for name, kw in arms.items()}
+    res = {name: (st.mean(v), st.pstdev(v) if len(v) > 1 else 0.0)
+           for name, v in per_arm.items()}
+    for name in arms:
+        print(f"  {name:16s}: time in regime B = {res[name][0]:.3f} ± {res[name][1]:.3f}")
+    print()
+
+    md_h, t_h, w_h, n = paired(per_arm["curious-heads"], per_arm["pragmatic-heads"])
+    md_e, t_e, w_e, _ = paired(per_arm["curious-ens"], per_arm["pragmatic-ens"])
+
+    print("=" * 72)
+    print("  VERDICT (paired, controlled)")
+    print("=" * 72)
+    print(f"  HEADS    : curious {res['curious-heads'][0]:.3f} vs pragmatic "
+          f"{res['pragmatic-heads'][0]:.3f}  | diff {md_h:+.3f} (t={t_h:.2f}, wins {w_h}/{n})")
+    print(f"  ENSEMBLE : curious {res['curious-ens'][0]:.3f} vs pragmatic "
+          f"{res['pragmatic-ens'][0]:.3f}  | diff {md_e:+.3f} (t={t_e:.2f}, wins {w_e}/{n})")
+    print()
+    ens_works = md_e > 0 and abs(t_e) > 2.0
+    heads_works = md_h > 0 and abs(t_h) > 2.0
+    if ens_works and not heads_works:
+        print("  FINDING: the REAL dynamics ensemble RELIABLY drives exploration where")
+        print("  the shared-latent heads do not — the disagreement signal needed to be")
+        print("  over independent dynamics, not a linear readout. Validates Plan2Explore")
+        print("  in our regime and explains the earlier null.")
+    elif ens_works and heads_works:
+        print("  FINDING: both signals drive exploration here; the ensemble is the more")
+        print("  principled source (independent dynamics).")
+    elif md_e > md_h and md_e > 0:
+        print("  FINDING: the ensemble shows a stronger positive DIRECTION than the heads")
+        print(f"  but not significant at n={n} (t={t_e:.2f}) — a tendency, reported honestly.")
     else:
-        print("  FINDING: no positive effect under the controlled design — an honest")
-        print("  negative. The earlier apparent effect was likely the RNG confound.")
-    print("=" * 70)
+        print("  FINDING: even the real ensemble does not reliably drive exploration in")
+        print("  this regime — an honest negative; the pragmatic anchor dominates.")
+    print(f"  [{'PASS' if ens_works else 'INCONCLUSIVE'}]")
+    print("=" * 72)
 
     if plot:
         try:
             _plot(res)
         except Exception as e:  # noqa: BLE001
             print(f"  (plot skipped: {e})")
-    return positive and significant
+    return ens_works
 
 
 def _plot(res: dict) -> None:
@@ -155,28 +155,29 @@ def _plot(res: dict) -> None:
     import matplotlib.pyplot as plt
     import numpy as np
 
-    arms = list(ARMS)
+    arms = list(res)
     x = np.arange(len(arms))
-    fig, ax = plt.subplots(figsize=(8, 5))
+    fig, ax = plt.subplots(figsize=(10, 5))
+    colors = ["#7f8c8d", "#e67e22", "#d35400", "#2980b9", "#8e44ad"]
     ax.bar(x, [res[a][0] for a in arms], yerr=[res[a][1] for a in arms],
-           capsize=4, color=["#7f8c8d", "#e67e22", "#2980b9"])
-    ax.set_xticks(x); ax.set_xticklabels(arms, rotation=10)
+           capsize=4, color=colors[:len(arms)])
+    ax.set_xticks(x); ax.set_xticklabels(arms, rotation=12, fontsize=8)
     ax.set_ylabel("fraction of time in the novel regime B")
-    ax.set_title("Curiosity (controlled): disagreement does NOT reliably increase exploration")
+    ax.set_title("Curiosity: real dynamics ensemble vs shared-latent heads")
     ax.grid(True, axis="y", alpha=0.3)
     out = Path("results") / "curiosity.png"
     out.parent.mkdir(exist_ok=True)
-    plt.tight_layout()
-    plt.savefig(out, dpi=150, bbox_inches="tight")
-    plt.close()
+    plt.tight_layout(); plt.savefig(out, dpi=150, bbox_inches="tight"); plt.close()
     print(f"  plot saved: {out}")
 
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser(description="Disagreement-driven curiosity")
+    parser = argparse.ArgumentParser(description="Disagreement curiosity: ensemble vs heads")
     parser.add_argument("--steps", type=int, default=600)
-    parser.add_argument("--seeds", type=int, default=3)
+    parser.add_argument("--seeds", type=int, default=6)
+    parser.add_argument("--weight", type=float, default=500.0)
     parser.add_argument("--no-plot", action="store_true")
     args = parser.parse_args()
-    ok = main(n_steps=args.steps, seeds=list(range(args.seeds)), plot=not args.no_plot)
+    ok = main(n_steps=args.steps, seeds=list(range(args.seeds)),
+              weight=args.weight, plot=not args.no_plot)
     sys.exit(0 if ok else 1)

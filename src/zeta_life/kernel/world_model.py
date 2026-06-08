@@ -17,6 +17,8 @@ from __future__ import annotations
 import torch
 from torch import Tensor, nn
 
+from .dynamics_ensemble import DynamicsEnsemble
+
 
 class WorldModel(nn.Module):
     """Predictive world model that learns environment dynamics.
@@ -45,6 +47,7 @@ class WorldModel(nn.Module):
         posterior_blend: float = 0.5,
         temporal_dim: int = 0,
         disagreement_heads: int = 0,
+        dynamics_ensemble: int = 0,
     ) -> None:
         super().__init__()
 
@@ -108,6 +111,20 @@ class WorldModel(nn.Module):
             self._head_rng = torch.Generator()
             self._head_rng.manual_seed(20260608)
 
+        # Optional ensemble of INDEPENDENT one-step dynamics models — the
+        # Plan2Explore-faithful disagreement source (each member is its own MLP
+        # over (latent, action), not a shared-latent readout head). Preferred over
+        # `heads` for the epistemic signal when configured. 0 (default) -> off.
+        self.dynamics_ensemble = dynamics_ensemble
+        self._ens_input: tuple[Tensor, Tensor] | None = None
+        if dynamics_ensemble > 0:
+            self.ensemble = DynamicsEnsemble(
+                latent_dim, action_dim + temporal_dim, obs_dim,
+                n_members=dynamics_ensemble, learning_rate=learning_rate,
+            )
+        else:
+            self.ensemble = None
+
     def encode(self, observation: Tensor) -> Tensor:
         """Encode an observation into latent space (bottom-up).
 
@@ -164,7 +181,15 @@ class WorldModel(nn.Module):
             ``(obs_dim,)`` and ``next_latent`` has shape ``(latent_dim,)``.
         """
         # GRUCell expects (batch, features) — add and remove batch dim
-        action_batched = self._transition_input(action, temporal_feat).unsqueeze(0)
+        transition_input = self._transition_input(action, temporal_feat)
+        # Stash (prior latent, transition input) so the dynamics ensemble can be
+        # trained in observe() on (latent, action) -> next observation.
+        if self.ensemble is not None:
+            self._ens_input = (
+                self.latent_state.detach().clone(),
+                transition_input.detach().clone(),
+            )
+        action_batched = transition_input.unsqueeze(0)
         latent_batched = self.latent_state.unsqueeze(0)
 
         next_latent_batched = self.transition(action_batched, latent_batched)
@@ -230,8 +255,13 @@ class WorldModel(nn.Module):
                 self.posterior_blend * prior + (1.0 - self.posterior_blend) * encoded_d
             )
             self.latent_state = posterior_d
-        # Train the disagreement ensemble on the detached posterior -> observation.
+        # Train the disagreement heads on the detached posterior -> observation.
         self._train_heads(posterior_d, observation.detach())
+        # Train the independent dynamics ensemble on (prior latent, action) -> obs.
+        if self.ensemble is not None and self._ens_input is not None:
+            self.ensemble.train_step(
+                self._ens_input[0], self._ens_input[1], observation.detach()
+            )
         return loss.item()
 
     def imagine(
@@ -380,10 +410,15 @@ class WorldModel(nn.Module):
     def disagreement(self, action: Tensor, temporal_feat: Tensor | None = None) -> float:
         """Variance across ensemble heads of the imagined next observation.
 
-        A read-only epistemic signal: high where the heads disagree (a region the
-        model has not learned). Returns 0.0 if no ensemble is configured. Does not
-        mutate internal state.
+        A read-only epistemic signal: high where the members disagree (a region
+        the model has not learned). Prefers the independent dynamics ensemble when
+        configured; falls back to the shared-latent heads; 0.0 if neither. Does
+        not mutate internal state.
         """
+        if self.ensemble is not None:
+            return self.ensemble.disagreement(
+                self.latent_state, self._transition_input(action, temporal_feat)
+            )
         if self.disagreement_heads == 0:
             return 0.0
         with torch.no_grad():

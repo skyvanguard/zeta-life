@@ -131,6 +131,7 @@ class ConsciousKernel:
         efe_cem_elite_frac: float = 0.3,
         efe_epistemic_mode: str = "entropy",
         wm_disagreement_heads: int = 0,
+        dynamics_ensemble: int = 0,
         imag_horizon: int = 5,
         imag_rollouts: int = 8,
         imag_lambda: float = 0.95,
@@ -307,6 +308,7 @@ class ConsciousKernel:
         self.world_model = WorldModel(
             obs_dim, latent_dim, self.action_dim, temporal_dim=temporal_dim,
             disagreement_heads=wm_disagreement_heads,
+            dynamics_ensemble=dynamics_ensemble,
         )
         # If the feature bank has trainable frequencies (the "learned" arm), fold
         # its parameters into the world model's optimizer so they are trained by

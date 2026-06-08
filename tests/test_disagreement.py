@@ -6,6 +6,7 @@ import torch
 
 from zeta_life.kernel import ConsciousKernel
 from zeta_life.kernel.world_model import WorldModel
+from zeta_life.kernel.dynamics_ensemble import DynamicsEnsemble
 
 
 class TestWorldModelDisagreement:
@@ -45,6 +46,53 @@ class TestWorldModelDisagreement:
         assert not hasattr(wm, "heads")
         pred, latent = wm.predict(torch.zeros(4))
         assert pred.shape == (4,)
+
+
+class TestDynamicsEnsemble:
+    """Independent one-step dynamics models (Plan2Explore-faithful signal)."""
+
+    def test_disagreement_is_nonneg_float(self):
+        ens = DynamicsEnsemble(latent_dim=32, action_in_dim=4, obs_dim=4, n_members=5)
+        d = ens.disagreement(torch.zeros(32), torch.tensor([1.0, 0, 0, 0]))
+        assert isinstance(d, float) and d >= 0.0
+
+    def test_train_step_updates_members(self):
+        torch.manual_seed(0)
+        ens = DynamicsEnsemble(latent_dim=8, action_in_dim=4, obs_dim=4, n_members=5)
+        before = [p.detach().clone() for p in ens.members.parameters()]
+        for _ in range(20):
+            ens.train_step(torch.randn(8), torch.tensor([1.0, 0, 0, 0]),
+                           torch.tensor([0.5, 0.2, 0.2, 0.1]))
+        after = list(ens.members.parameters())
+        assert any(not torch.allclose(b, a) for b, a in zip(before, after))
+
+    def test_worldmodel_ensemble_higher_disagreement_in_novel_region(self):
+        """After training on one action, a novel action should disagree more."""
+        torch.manual_seed(0)
+        wm = WorldModel(dynamics_ensemble=5)
+        home = torch.tensor([0.7, 0.1, 0.1, 0.1])
+        target = torch.tensor([0.7, 0.1, 0.1, 0.1])
+        for _ in range(150):
+            wm.predict(home)
+            wm.observe(target)
+        d_home = wm.disagreement(home)
+        d_novel = wm.disagreement(torch.tensor([0.1, 0.1, 0.1, 0.7]))
+        assert d_novel > d_home
+
+    def test_worldmodel_default_has_no_ensemble(self):
+        wm = WorldModel()
+        assert wm.ensemble is None
+
+    def test_kernel_dynamics_ensemble_runs(self):
+        ck = ConsciousKernel(
+            action_mode="efe", preference=torch.tensor([0.7, 0.1, 0.1, 0.1]),
+            dynamics_ensemble=5, efe_epistemic_mode="disagreement",
+            efe_epistemic_weight=100.0, efe_n_samples=16, efe_obs_norm="l1",
+        )
+        result = None
+        for _ in range(10):
+            result = ck.step(torch.rand(4))
+        assert result.action.shape == (4,)
 
 
 class TestKernelEpistemic:
