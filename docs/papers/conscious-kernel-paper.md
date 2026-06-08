@@ -150,6 +150,8 @@ El kernel **transfiere**: aprende a balancear ~177 pasos (**8× sobre random, 35
 ### 4.1 Ψ es una heurística, no una medida de consciencia
 Ψ no es la φ de IIT ni una energía libre; es un parámetro de orden acotado, calibrado para discriminar coherencia de ruido. Lo declaramos como tal y documentamos sus constantes como **calibración**. Su valor está en ser una señal monótona y robusta de integración, útil (p. ej.) como material introspectivo para el agente acoplado (Yvyra).
 
+Para hablar de "consciencia" **con rigor** —en vez de tratar Ψ como una pseudo-medida— auditamos el kernel contra las **indicator properties** de Butlin & Long et al. (2023), el lenguaje de la ciencia de la consciencia. Resultado honesto y conservador (`docs/INDICATOR_PROPERTIES.md`): satisface con fuerza los indicadores de **predictive processing (PP-1)** y **agencia/embodiment (AE-1, AE-2)** —su núcleo de diseño—, de forma **parcial** los de global-workspace, recurrencia y higher-order (8/14), y **carece** de attention-schema (AST-1), quality-space (HOT-4) y querying secuencial del workspace (GWT-4). Crucialmente, y siguiendo a los propios autores: **tener indicadores no es ser consciente** — esto actualiza credencias sobre propiedades funcionales, no afirma experiencia.
+
 ### 4.2 Zeta, degradado a componente probado
 El nombre histórico permanece, pero la evidencia propia desmonta su rol central. Lo honesto es presentar zeta como una **decisión de diseño probada y mayormente falsada** (un resultado negativo valioso), salvo en CA espacial.
 
