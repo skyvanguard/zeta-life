@@ -105,3 +105,53 @@ class TestDreamerControl:
             obs = state
             dists.append(float(torch.linalg.vector_norm(state - TARGET)))
         assert st.mean(dists[-60:]) < 0.2
+
+
+class TestDecoupledAction:
+    """action_dim decoupled from obs_dim + neg_distance regulation reward."""
+
+    def test_default_action_dim_equals_obs(self):
+        ck = ConsciousKernel()
+        assert ck.action_dim == ck.obs_dim == 4
+
+    def test_decoupled_dreamer_action_shape(self):
+        ck = ConsciousKernel(obs_dim=4, action_dim=2, action_mode="dreamer",
+                             preference=torch.zeros(4), dreamer_reward="neg_distance")
+        result = None
+        for _ in range(8):
+            result = ck.step(torch.randn(4) * 0.1)
+        assert result.action.shape == (2,)
+
+    def test_neg_distance_preference_not_normalized(self):
+        goal = torch.tensor([0.0, 0.0, 0.0, 0.0])
+        ck = ConsciousKernel(obs_dim=4, action_dim=2, action_mode="dreamer",
+                             preference=goal, dreamer_reward="neg_distance")
+        assert torch.allclose(ck.preference, goal)  # raw target, not a distribution
+
+    def test_neg_distance_reward_value(self):
+        ck = ConsciousKernel(obs_dim=4, action_dim=2, action_mode="dreamer",
+                             preference=torch.zeros(4), dreamer_reward="neg_distance")
+        r = ck._reward_from_pred(torch.tensor([[3.0, 4.0, 0.0, 0.0], [0.0, 0.0, 0.0, 0.0]]))
+        assert r.shape == (2,)
+        assert float(r[0]) == pytest.approx(-5.0, abs=1e-4)   # -||[3,4,0,0]||
+        assert float(r[1]) == pytest.approx(0.0, abs=1e-4)
+
+
+class TestCartpoleSmoke:
+    def test_kernel_runs_on_cartpole(self):
+        gym = pytest.importorskip("gymnasium")
+        import numpy as np
+        env = gym.make("CartPole-v1")
+        obs, _ = env.reset(seed=0)
+        scales = np.array([2.4, 3.0, 0.21, 3.0], dtype=np.float32)
+        ck = ConsciousKernel(obs_dim=4, action_dim=2, action_mode="dreamer",
+                             preference=torch.zeros(4), dreamer_reward="neg_distance",
+                             actor_explore=0.3, reflect_interval=10**9,
+                             dream_interval=10**9)
+        for _ in range(30):
+            result = ck.step(torch.tensor(obs / scales, dtype=torch.float32))
+            obs, _, term, trunc, _ = env.step(int(torch.argmax(result.action).item()))
+            if term or trunc:
+                obs, _ = env.reset()
+        env.close()
+        assert result.action.shape == (2,)

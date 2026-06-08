@@ -12,7 +12,7 @@ Presentamos el **Conscious Kernel**: una unidad adaptativa de **inferencia activ
 `PERCIBIR → PREDECIR → COMPARAR → ACTUALIZAR → MEMORIZAR → ACTUAR → REFLEXIONAR → SOÑAR`
 sobre un modelo del mundo aprendido, un modelo de sí mismo recursivo, errores de predicción ponderados por precisión, memoria complementaria (rápida/lenta), selección de acción por energía libre esperada (EFE), e identidad persistente entre sesiones. Sobre el kernel se construye un **organismo darwiniano** multi-kernel.
 
-El proyecto nació integrando los ceros de la función zeta de Riemann con sistemas de vida artificial. Esta reescritura documenta un cambio honesto de tesis: **los valores específicos de zeta no son load-bearing** fuera de un dominio (autómatas celulares espaciales); el motor real es la inferencia activa. Reportamos, con el mismo rigor, lo que **funciona** y lo que **no**: (i) un índice de integración Ψ **auto-calibrante** y robusto; (ii) que una red equiespaciada (Fourier) **iguala o supera** a zeta en el camino temporal; (iii) **control continuo** que alcanza objetivos arbitrarios (cierra el verbo "controlar"); (iv) que el refinamiento CEM **no aporta** en control unimodal; y (v) que una señal epistémica de **disagreement** de ensemble **no produce un efecto confiable** de exploración bajo una comparación controlada (un positivo aparente previo resultó ser un artefacto de RNG, corregido — un caso de estudio del propio rigor). Un primer **benchmark externo** (Mackey-Glass) es **acotante**: como agente condicionado por acción, el kernel queda por debajo de baselines simples en predicción pura — pero en **control model-based bajo dinámica desconocida** ese mismo diseño es una **ventaja** (alcanza el objetivo donde un controlador model-free fracasa), y un **actor amortizado estilo Dreamer** entrenado en imaginación iguala/supera a la búsqueda a ~60–130× menos costo por acción. El código, 19 experimentos y 491 tests son reproducibles.
+El proyecto nació integrando los ceros de la función zeta de Riemann con sistemas de vida artificial. Esta reescritura documenta un cambio honesto de tesis: **los valores específicos de zeta no son load-bearing** fuera de un dominio (autómatas celulares espaciales); el motor real es la inferencia activa. Reportamos, con el mismo rigor, lo que **funciona** y lo que **no**: (i) un índice de integración Ψ **auto-calibrante** y robusto; (ii) que una red equiespaciada (Fourier) **iguala o supera** a zeta en el camino temporal; (iii) **control continuo** que alcanza objetivos arbitrarios (cierra el verbo "controlar"); (iv) que el refinamiento CEM **no aporta** en control unimodal; y (v) que una señal epistémica de **disagreement** de ensemble **no produce un efecto confiable** de exploración bajo una comparación controlada (un positivo aparente previo resultó ser un artefacto de RNG, corregido — un caso de estudio del propio rigor). Un primer **benchmark externo** (Mackey-Glass) es **acotante**: como agente condicionado por acción, el kernel queda por debajo de baselines simples en predicción pura — pero en **control model-based bajo dinámica desconocida** ese mismo diseño es una **ventaja** (alcanza el objetivo donde un controlador model-free fracasa), y un **actor amortizado estilo Dreamer** entrenado en imaginación iguala/supera a la búsqueda a ~60–130× menos costo por acción. En un benchmark RL **externo** (CartPole-v1) el kernel **transfiere parcialmente** (166 vs 22 de random; 33% del óptimo) como regulación de inferencia activa pura, sin reward externo. El código, 20 experimentos y 496 tests son reproducibles.
 
 **Palabras clave:** inferencia activa, principio de energía libre, consciencia computacional, integración emergente, curiosidad por disagreement, sistemas darwinianos multi-agente.
 
@@ -132,6 +132,17 @@ La selección de acción por *búsqueda* (shooting/CEM) cuesta O(n_samples) roll
 
 El actor **iguala** a la búsqueda en D=4 y la **supera** en D=8/16 (la búsqueda con `n_samples` fijo se degrada al crecer la dimensión; el actor generaliza), eligiendo acciones a **costo O(1)** (un forward) — **~60–130× más barato por acción**. Es el upgrade #1 de la lista de trabajo relacionado, y un positivo claro: **mismo o mejor control, inferencia mucho más barata, y la ventaja crece con la dimensión.**
 
+### 3.9 Benchmark RL externo: CartPole-v1 (`exp_cartpole.py`)
+Primer test en un entorno RL externo reconocido (gymnasium), enmarcado como **regulación de inferencia activa**: preferencia = estado vertical (goal), reward = −distancia (`dreamer_reward="neg_distance"`), acción 2-símplex → argmax → acción discreta. **Sin reward externo.**
+
+| política | largo de episodio (cap 500) |
+|---|---|
+| random | 22 |
+| heurística (casi óptima) | 500 |
+| **kernel (eval greedy)** | **166 ± 16** |
+
+El kernel **transfiere**: aprende a balancear ~166 pasos (**7.4× sobre random, 33% del techo**) puramente como regulación a un estado-objetivo. Honesto y **acotante**: queda muy por debajo del óptimo y la **curva de aprendizaje oscila** (actor-crítico online sin replay de transiciones completo). Es el primer dato en un benchmark RL externo — **transferencia parcial real, no SOTA** — y la validación externa que el estratega marcó como pendiente.
+
 ---
 
 ## 4. Discusión
@@ -157,16 +168,20 @@ Recurrentemente, las extensiones (horizonte, epistémico-proxy, CEM, espectro ze
 | Curiosidad por disagreement | **No** (controlado) | paired diff +0.025, t=0.30, n.s. — el "2×" previo era un artefacto de RNG |
 | Control model-based (dinámica desconocida) | **Sí** | kernel 0.046 vs naive model-free 0.85 (aprende e invierte la permutación) |
 | Planificación amortizada (Dreamer) | **Sí** | iguala/supera a la búsqueda (D=16: 0.100 vs 0.159) a ~60–130× menos costo/acción |
+| Benchmark RL externo (CartPole-v1) | **Parcial** | greedy 166 vs random 22 vs óptimo 500: transfiere (7.4×), no SOTA, aprendizaje inestable |
 
 ### 4.5 Limitaciones
 - Energía libre = solo término de accuracy (sin KL/complejidad).
 - El ensemble es de cabezas con latente compartido (captura incertidumbre del predictor, no de la transición).
-- Entornos mayormente de baja dimensión (4-D símplex). El benchmark externo de
-  *predicción* (Mackey-Glass, §3.6) es ACOTANTE: el kernel, como agente, queda por
-  debajo de baselines simples — no es un predictor SOTA. El lado de *control*
-  (§3.7) sí muestra una ventaja real (model-based vs model-free bajo dinámica
-  desconocida), pero todavía en una tarea símplex auto-construida; falta validar
-  control en un benchmark RL externo (gym/DMC) y en experiencia real (Yvyra).
+- Entornos mayormente de baja dimensión. El benchmark externo de *predicción*
+  (Mackey-Glass, §3.6) es ACOTANTE (el kernel no es un predictor SOTA). El de
+  *control* externo (CartPole-v1, §3.9) muestra **transferencia parcial real**
+  (166 vs random 22, 33% del óptimo) pero **no SOTA y con aprendizaje inestable**;
+  falta un actor-crítico con replay/estabilización y validación en experiencia
+  real (Yvyra).
+- El actor-crítico Dreamer es online sin replay de transiciones completo → la
+  curva de CartPole oscila; estabilizarlo (replay, normalización de returns) es el
+  siguiente paso de ingeniería.
 - Ψ sigue dependiendo de una constante de escala FE→Φ (`psi_fe_scale`), documentada como calibración, no derivada.
 
 ---
@@ -175,7 +190,7 @@ Recurrentemente, las extensiones (horizonte, epistémico-proxy, CEM, espectro ze
 Inferencia activa / FEP (Friston et al.; reseña deep-learning arXiv:2207.06415); world models y control model-based por imaginación latente (**Dreamer**, Hafner et al. — el SOTA externo y nuestra principal vía de mejora del planner); exploración por **desacuerdo de ensemble** (**Plan2Explore**, Sekar et al. ICML 2020; Pathak et al. 2019 — la versión a escala de nuestra curiosidad); Complementary Learning Systems (McClelland/O'Reilly 1995; Kumaran et al. TICS 2016); medición de consciencia: críticas a Φ de IIT (intratable / mal definido) que motivan tratar Ψ como heurística, y el marco de **indicator properties** de Butlin & Long et al. (2023) como el lenguaje riguroso a adoptar (recurrencia/GWT/predictive/attention/agency, varios ya presentes en el kernel); LLM-agents + inferencia activa y auto-reporte (Prakki 2024) — relevante al puente Yvyra, con la caución de la metacognición limitada de los LLM. La conexión número-teórica original (Montgomery–Odlyzko sobre la estadística GUE de los ceros) se documenta como hipótesis testeada, no load-bearing. **Lista de lectura completa, mapeada a cada componente, en [`docs/RELATED_WORK.md`](../RELATED_WORK.md).**
 
 ## 6. Conclusión
-El Conscious Kernel es un sustrato de inferencia activa coherente y honesto que **aprende** (predicción), **controla** (EFE continuo y un actor amortizado estilo Dreamer que iguala/supera a la búsqueda a costo O(1)), **integra** (Ψ robusto) y tiene un camino para **acoplarse a un agente vivo** (Yvyra). El aporte metodológico es tanto el sistema como la disciplina de falsación: incluyendo el desmontaje del propio claim que dio nombre al proyecto y la **retractación de un resultado propio** (la curiosidad) que una revisión adversarial mostró confundido por RNG.
+El Conscious Kernel es un sustrato de inferencia activa coherente y honesto que **aprende** (predicción), **controla** (EFE continuo y un actor amortizado estilo Dreamer que iguala/supera a la búsqueda a costo O(1); transfiere parcialmente a CartPole externo), **integra** (Ψ robusto) y tiene un camino para **acoplarse a un agente vivo** (Yvyra). El aporte metodológico es tanto el sistema como la disciplina de falsación: incluyendo el desmontaje del propio claim que dio nombre al proyecto y la **retractación de un resultado propio** (la curiosidad) que una revisión adversarial mostró confundido por RNG.
 
 ---
 
@@ -192,6 +207,7 @@ PYTHONPATH=src python experiments/kernel/exp_curiosity.py
 PYTHONPATH=src python experiments/kernel/exp_realtask.py
 PYTHONPATH=src python experiments/kernel/exp_modelcontrol.py
 PYTHONPATH=src python experiments/kernel/exp_dreamer.py
+PYTHONPATH=src python experiments/kernel/exp_cartpole.py    # pip install gymnasium
 PYTHONPATH=src python experiments/kernel/exp_yvyra_bridge.py
 ```
 Salidas (figuras + `.txt`) en `results/`. Diseño del puente en `docs/YVYRA_BRIDGE.md`; índice de integración en `src/zeta_life/integration/formal_equations.py`.

@@ -59,7 +59,7 @@ que el estado del arte.
 1. ✅ **HECHO — Imaginación latente + actor-crítico estilo Dreamer** (`action_mode="dreamer"`, `exp_dreamer.py`): el actor amortizado iguala/supera a la búsqueda en control model-based a ~60–130× menos costo por acción, con ventaja creciente en dimensión. Falta llevarlo a un benchmark RL externo (item 4).
 2. **Adoptar el marco de indicator properties de Butlin** para el claim de "consciencia" — mapear el kernel a recurrencia/GWT/predictive/attention/agency en vez de (o además de) Ψ. Bajo costo, alta integridad y publicable. [§5]
 3. **Ensemble de dinámica real** (no cabezas de latente compartido) + planificación profunda para reintentar la curiosidad por disagreement en un régimen donde Plan2Explore sí funciona. [§3]
-4. **Benchmark externo de control** (DeepMind Control / gym vía la interfaz Dreamer) — la validación que el estratega marcó como #1. [§2]
+4. 🟡 **PARCIAL — Benchmark externo de control** (CartPole-v1, `exp_cartpole.py`): el kernel transfiere parcialmente (greedy 166 vs random 22; 33% del óptimo) como regulación de inferencia activa, pero el actor-crítico online es inestable. Falta estabilizarlo (replay) y probar DMC/continuo.
 5. **Validar el auto-reporte de Yvyra** (consistencia de los 4 ejes) antes de cerrar el loop, grounded en la literatura de metacognición LLM. [§6]
 
 > Lectura honesta del escaneo: el kernel está **alineado con líneas de investigación legítimas** (inferencia activa, world models, Plan2Explore, CLS, indicator properties), pero con implementaciones **más simples** que el SOTA. El mayor retorno está en adoptar la maquinaria Dreamer (control) y el marco de Butlin (consciencia), no en más adornos.

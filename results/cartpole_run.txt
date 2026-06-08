@@ -1,0 +1,21 @@
+======================================================================
+  CARTPOLE-v1 — the kernel on an external RL benchmark
+======================================================================
+  steps=20000  warmup=1500  seeds=[0, 1]
+  metric = mean episode length over last 25% of episodes (cap 500)
+
+  random    : mean ep length = 22.5
+  heuristic : mean ep length = 500.0
+  kernel    : greedy eval = 165.8 ± 16.1  (training tail = 105.0)
+    (kernel training episodes per seed: [251, 245])
+
+======================================================================
+  VERDICT
+======================================================================
+  kernel >> random (learned to balance): True (165.8 vs 22.5)
+  fraction of heuristic ceiling:         0.33 (165.8 / 500.0)
+
+  FINDING: the kernel learns to balance well above random but stays
+  below the heuristic ceiling — partial transfer, honestly bounded.
+======================================================================
+  plot saved: results\cartpole.png

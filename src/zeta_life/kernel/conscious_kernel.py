@@ -100,6 +100,7 @@ class ConsciousKernel:
     def __init__(
         self,
         obs_dim: int = 4,
+        action_dim: int | None = None,
         latent_dim: int = 32,
         embed_dim: int = 16,
         reflect_interval: int = 5,
@@ -138,9 +139,14 @@ class ConsciousKernel:
         critic_lr: float = 3e-4,
         actor_explore: float = 0.0,
         dreamer_epistemic_weight: float = 0.0,
+        dreamer_reward: str = "kl",
         temporal_features: OscillatorBank | None = None,
     ) -> None:
         self.obs_dim = obs_dim
+        # Action dimensionality, decoupled from obs_dim (defaults to obs_dim for
+        # backward compat). Lets the kernel control envs whose action space differs
+        # from its observation space (e.g. CartPole: obs 4, action 2).
+        self.action_dim = action_dim if action_dim is not None else obs_dim
         self.latent_dim = latent_dim
         self.embed_dim = embed_dim
         self.reflect_interval = reflect_interval
@@ -203,10 +209,16 @@ class ConsciousKernel:
         # model trained on the action ACTUALLY taken (the alignment that makes
         # planning work; see the agency investigation).
         self.action_mode = action_mode
-        self.preference = (
-            (preference / preference.sum()).detach()
-            if preference is not None else None
-        )
+        # Preference C. For the simplex-KL reward it is normalised to a
+        # distribution; for the "neg_distance" Dreamer reward it is a raw target
+        # STATE (e.g. a regulation goal) and must NOT be normalised.
+        self.dreamer_reward = dreamer_reward
+        if preference is None:
+            self.preference = None
+        elif dreamer_reward == "neg_distance":
+            self.preference = preference.detach()
+        else:
+            self.preference = (preference / preference.sum()).detach()
         self.explore_eps = explore_eps
         self.efe_epistemic_weight = efe_epistemic_weight
         # Continuous action candidates + planning horizon (the "controla" work).
@@ -280,7 +292,7 @@ class ConsciousKernel:
 
         # --- Core components ---
         self.world_model = WorldModel(
-            obs_dim, latent_dim, obs_dim, temporal_dim=temporal_dim,
+            obs_dim, latent_dim, self.action_dim, temporal_dim=temporal_dim,
             disagreement_heads=wm_disagreement_heads,
         )
         # If the feature bank has trainable frequencies (the "learned" arm), fold
@@ -296,7 +308,7 @@ class ConsciousKernel:
         self.critic = None
         self._latent_buffer = None
         if action_mode == "dreamer":
-            self.actor = Actor(latent_dim, obs_dim)
+            self.actor = Actor(latent_dim, self.action_dim)
             self.critic = Critic(latent_dim)
             self.actor_optimizer = torch.optim.Adam(self.actor.parameters(), lr=actor_lr)
             self.critic_optimizer = torch.optim.Adam(self.critic.parameters(), lr=critic_lr)
@@ -322,7 +334,11 @@ class ConsciousKernel:
             p.requires_grad_(False)
 
         # --- State ---
-        self.last_action = torch.zeros(obs_dim)
+        self.last_action = torch.zeros(self.action_dim)
+        # The previous self-state (obs_dim) feeding the interoceptive/memory
+        # channels. Equals last_action when action_dim == obs_dim (byte-identical);
+        # decoupled when the action space differs from the observation space.
+        self._last_self_state = torch.zeros(obs_dim)
         self.t: int = 0
         self.energy: float = 5.0
         # EMA of the mean precision; the self-calibrating half-point for F_i.
@@ -369,7 +385,7 @@ class ConsciousKernel:
         # ---- 1. PREDICT (prior) ----
         # predict() returns tensors with grad_fn for learning
         predicted_obs, _ = self.world_model.predict(self.last_action, tf_vec)
-        predicted_self = self.self_model.predict_self(self.last_action)
+        predicted_self = self.self_model.predict_self(self._last_self_state)
         raw_self = F.softmax(stimulus, dim=-1)
         if self.action_mode == "efe" and self.preference is not None:
             # Active-inference action selection. predict() above already advanced
@@ -385,6 +401,11 @@ class ConsciousKernel:
         else:
             actual_self = raw_self
 
+        # Self-state for the interoceptive/memory channels (always obs_dim). When
+        # the action space matches the observation space this IS the action
+        # (byte-identical to before); when decoupled it is the obs distribution.
+        self_state = actual_self if self.action_dim == self.obs_dim else raw_self
+
         # ---- 3. COMPARE ----
         # Build predictions/observations dicts for 4 channels
         predictions = {
@@ -395,7 +416,7 @@ class ConsciousKernel:
         }
         observations = {
             'perceptual': stimulus,
-            'interoceptive': actual_self,
+            'interoceptive': self_state,
             'temporal': torch.zeros(self.obs_dim),
             'epistemic': torch.zeros(self.obs_dim),
         }
@@ -433,12 +454,12 @@ class ConsciousKernel:
         surprise = max(
             errors[ch]['magnitude'].item() for ch in self.error_engine.channels
         )
-        dominant = self._dominant_name(actual_self)
+        dominant = self._dominant_name(self_state)
 
         episode = Episode(
             stimulus=stimulus.detach(),
             observation=stimulus.detach(),
-            archetype_state=actual_self.detach(),
+            archetype_state=self_state.detach(),
             surprise=surprise,
             dominant=dominant,
             timestamp=self.t,
@@ -449,18 +470,19 @@ class ConsciousKernel:
         )
         self.fast_memory.store(episode)
         self.slow_memory.integrate(
-            actual_self.detach(),
-            actual_self.detach(),
+            self_state.detach(),
+            self_state.detach(),
         )
 
         # ---- 6. ACT ----
         action = actual_self.detach()
         self.last_action = action
+        self._last_self_state = self_state.detach()
 
         # ---- 7. REFLECT ----
         reflected = False
         if self.t % self.reflect_interval == 0:
-            self.self_model.reflect(actual_self.detach(), depth=3)
+            self.self_model.reflect(self_state.detach(), depth=3)
             reflected = True
 
         # ---- 8. DREAM ----
@@ -706,12 +728,19 @@ class ConsciousKernel:
         with torch.no_grad():
             a = self.actor(z).squeeze(0)
         if self.actor_explore > 0.0:
-            logits = a.clamp(min=1e-6).log() + self.actor_explore * torch.randn(self.obs_dim)
+            logits = a.clamp(min=1e-6).log() + self.actor_explore * torch.randn(self.action_dim)
             a = F.softmax(logits, dim=-1)
         return a.detach()
 
     def _reward_from_pred(self, pred: Tensor) -> Tensor:
-        """Reward = -KL(preference || simplex(pred)), batched. Shape (B,)."""
+        """Imagination reward, batched, shape (B,).
+
+        "kl" (default): -KL(preference || simplex(pred)) for simplex tasks.
+        "neg_distance": -||pred - preference|| for regulation to a raw target
+        STATE (e.g. CartPole upright), where preference is not a distribution.
+        """
+        if self.dreamer_reward == "neg_distance":
+            return -torch.linalg.vector_norm(pred - self.preference, dim=-1)
         p = pred.clamp(min=0.0)
         s = p.sum(dim=-1, keepdim=True)
         proj = torch.where(
