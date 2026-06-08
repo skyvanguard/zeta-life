@@ -21,7 +21,6 @@ Components:
 
 from __future__ import annotations
 
-from collections import deque
 from dataclasses import dataclass
 
 import torch
@@ -36,6 +35,7 @@ from .dream_engine import DreamEngine
 from .persistence import PersistenceLayer
 from .temporal_features import OscillatorBank
 from .policy import Actor, Critic
+from .replay import ReplayBuffer
 from ..integration.formal_equations import compute_phi_c, compute_psi, compute_psi_hill
 
 
@@ -145,6 +145,8 @@ class ConsciousKernel:
         critic_tau: float = 0.98,
         return_norm: bool = True,
         actor_entropy: float = 0.0,
+        replay_capacity: int = 10000,
+        replay_wm: bool = True,
         temporal_features: OscillatorBank | None = None,
     ) -> None:
         self.obs_dim = obs_dim
@@ -284,7 +286,10 @@ class ConsciousKernel:
         self.critic_tau = critic_tau
         self.return_norm = return_norm
         self.actor_entropy = actor_entropy
+        self.replay_wm = replay_wm
+        self._replay_capacity = replay_capacity
         self._ret_scale = None
+        self._prev_stimulus: Tensor | None = None
         if action_candidates is not None:
             self._action_candidates = [a.detach() for a in action_candidates]
         else:
@@ -318,10 +323,12 @@ class ConsciousKernel:
             if trainable:
                 self.world_model.optimizer.add_param_group({"params": trainable})
 
-        # Dreamer actor/critic + a small replay buffer of recent latents.
+        # Dreamer actor/critic + a transition replay buffer (DreamerV3-style):
+        # behaviour is learned in imagination from states sampled across the whole
+        # replay (re-encoded with the current model), not just recent online states.
         self.actor = None
         self.critic = None
-        self._latent_buffer = None
+        self._replay = None
         self.critic_target = None
         if action_mode == "dreamer":
             self.actor = Actor(latent_dim, self.action_dim)
@@ -330,7 +337,7 @@ class ConsciousKernel:
             self.critic_target.load_state_dict(self.critic.state_dict())
             self.actor_optimizer = torch.optim.Adam(self.actor.parameters(), lr=actor_lr)
             self.critic_optimizer = torch.optim.Adam(self.critic.parameters(), lr=critic_lr)
-            self._latent_buffer = deque(maxlen=1000)
+            self._replay = ReplayBuffer(self._replay_capacity)
 
         self.self_model = SelfModel(obs_dim, embed_dim)
         self.error_engine = PredictionErrorEngine(4)
@@ -462,10 +469,14 @@ class ConsciousKernel:
         # staying frozen at its initial value.
         self.error_engine.update_precisions(errors)
 
-        # Dreamer: buffer the posterior latent and improve the actor/critic in
-        # imagination (no effect in other action modes).
-        if self.action_mode == "dreamer" and self._latent_buffer is not None:
-            self._latent_buffer.append(self.world_model.latent_state.detach().clone())
+        # Dreamer: store the real transition (prev_obs, action, obs) and improve
+        # the actor/critic in imagination from replayed states (no effect in other
+        # modes). self.last_action is still the action that produced this stimulus
+        # (it is overwritten at the ACT step below).
+        if self.action_mode == "dreamer" and self._replay is not None:
+            if self._prev_stimulus is not None:
+                self._replay.add(self._prev_stimulus, self.last_action, stimulus)
+            self._prev_stimulus = stimulus.detach().clone()
             self._train_behavior()
 
         # ---- 5. MEMORIZE ----
@@ -785,13 +796,27 @@ class ConsciousKernel:
         return returns
 
     def _train_behavior(self) -> None:
-        """Improve actor & critic in imagination (Dreamer-style value gradients)."""
-        if (self.preference is None or self._latent_buffer is None
-                or len(self._latent_buffer) < self.imag_rollouts):
+        """Improve actor & critic in imagination from replayed states (DreamerV3)."""
+        if (self.preference is None or self._replay is None
+                or len(self._replay) < self.imag_rollouts):
             return
         B, H = self.imag_rollouts, self.imag_horizon
-        idxs = torch.randint(0, len(self._latent_buffer), (B,))
-        z = torch.stack([self._latent_buffer[int(i)] for i in idxs]).detach()
+        obs_b, act_b, next_b = self._replay.sample(B)
+
+        # Ground the world model on a diverse batch of replayed transitions, so it
+        # keeps modelling rare states' dynamics instead of only the recent stream.
+        if self.replay_wm and self.world_model.temporal_dim == 0:
+            z_wm = self.world_model.encoder(obs_b)
+            z2 = self.world_model.transition(act_b, z_wm)
+            wm_loss = ((self.world_model.predictor(z2) - next_b) ** 2).sum(dim=-1).mean()
+            self.world_model.optimizer.zero_grad()
+            wm_loss.backward()
+            self.world_model.optimizer.step()
+
+        # Imagine from replayed start states, re-encoded with the current model
+        # (storing observations not latents avoids staleness as the model learns).
+        with torch.no_grad():
+            z = self.world_model.encoder(obs_b)
         zs, rewards, entropies = [z], [], []
         for _ in range(H):
             a = self.actor(z)

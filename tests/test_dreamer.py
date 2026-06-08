@@ -10,6 +10,7 @@ import torch
 from zeta_life.kernel import ConsciousKernel
 from zeta_life.kernel.world_model import WorldModel
 from zeta_life.kernel.policy import Actor, Critic
+from zeta_life.kernel.replay import ReplayBuffer
 
 TARGET = torch.tensor([0.7, 0.1, 0.1, 0.1])
 TARGET = TARGET / TARGET.sum()
@@ -51,7 +52,7 @@ class TestPolicy:
 class TestDreamerKernel:
     def test_default_has_no_actor(self):
         ck = ConsciousKernel()
-        assert ck.actor is None and ck.critic is None and ck._latent_buffer is None
+        assert ck.actor is None and ck.critic is None and ck._replay is None
 
     def test_dreamer_steps_valid_action(self):
         ck = ConsciousKernel(action_mode="dreamer", preference=TARGET)
@@ -105,6 +106,27 @@ class TestDreamerControl:
             obs = state
             dists.append(float(torch.linalg.vector_norm(state - TARGET)))
         assert st.mean(dists[-60:]) < 0.2
+
+
+class TestReplayBuffer:
+    def test_add_len_and_capacity(self):
+        rb = ReplayBuffer(capacity=3)
+        for i in range(5):
+            rb.add(torch.tensor([float(i)]), torch.tensor([0.0]), torch.tensor([float(i + 1)]))
+        assert len(rb) == 3  # capacity bound
+
+    def test_sample_shapes(self):
+        rb = ReplayBuffer(capacity=100)
+        for _ in range(10):
+            rb.add(torch.rand(4), torch.rand(2), torch.rand(4))
+        obs, act, nxt = rb.sample(8)
+        assert obs.shape == (8, 4) and act.shape == (8, 2) and nxt.shape == (8, 4)
+
+    def test_kernel_dreamer_populates_replay(self):
+        ck = ConsciousKernel(action_mode="dreamer", preference=TARGET)
+        for _ in range(12):
+            ck.step(torch.rand(4))
+        assert ck._replay is not None and len(ck._replay) > 0
 
 
 class TestDecoupledAction:

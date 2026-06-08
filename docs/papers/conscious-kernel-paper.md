@@ -12,7 +12,7 @@ Presentamos el **Conscious Kernel**: una unidad adaptativa de **inferencia activ
 `PERCIBIR → PREDECIR → COMPARAR → ACTUALIZAR → MEMORIZAR → ACTUAR → REFLEXIONAR → SOÑAR`
 sobre un modelo del mundo aprendido, un modelo de sí mismo recursivo, errores de predicción ponderados por precisión, memoria complementaria (rápida/lenta), selección de acción por energía libre esperada (EFE), e identidad persistente entre sesiones. Sobre el kernel se construye un **organismo darwiniano** multi-kernel.
 
-El proyecto nació integrando los ceros de la función zeta de Riemann con sistemas de vida artificial. Esta reescritura documenta un cambio honesto de tesis: **los valores específicos de zeta no son load-bearing** fuera de un dominio (autómatas celulares espaciales); el motor real es la inferencia activa. Reportamos, con el mismo rigor, lo que **funciona** y lo que **no**: (i) un índice de integración Ψ **auto-calibrante** y robusto; (ii) que una red equiespaciada (Fourier) **iguala o supera** a zeta en el camino temporal; (iii) **control continuo** que alcanza objetivos arbitrarios (cierra el verbo "controlar"); (iv) que el refinamiento CEM **no aporta** en control unimodal; y (v) que una señal epistémica de **disagreement** (de un ensemble de dinámica independiente) **sí impulsa exploración** bajo comparación controlada **cuando el término epistémico está ponderado de forma conmensurable** (pareado +0.30, t=3.7, 9/10) — corrigiendo un null previo que estaba *subponderado*, y un sobre-claim aún anterior que era un artefacto de RNG; un caso de estudio de seguir la evidencia hasta revisar la propia conclusión en ambas direcciones. Un primer **benchmark externo** (Mackey-Glass) es **acotante**: como agente condicionado por acción, el kernel queda por debajo de baselines simples en predicción pura — pero en **control model-based bajo dinámica desconocida** ese mismo diseño es una **ventaja** (alcanza el objetivo donde un controlador model-free fracasa), y un **actor amortizado estilo Dreamer** entrenado en imaginación iguala/supera a la búsqueda a ~60–130× menos costo por acción. En un benchmark RL **externo** (CartPole-v1) el kernel **transfiere parcialmente** (177 vs 22 de random; 35% del óptimo, con estabilizadores DreamerV3 que aún dejan la curva oscilante) como regulación de inferencia activa pura, sin reward externo. El código, 20 experimentos y 496 tests son reproducibles.
+El proyecto nació integrando los ceros de la función zeta de Riemann con sistemas de vida artificial. Esta reescritura documenta un cambio honesto de tesis: **los valores específicos de zeta no son load-bearing** fuera de un dominio (autómatas celulares espaciales); el motor real es la inferencia activa. Reportamos, con el mismo rigor, lo que **funciona** y lo que **no**: (i) un índice de integración Ψ **auto-calibrante** y robusto; (ii) que una red equiespaciada (Fourier) **iguala o supera** a zeta en el camino temporal; (iii) **control continuo** que alcanza objetivos arbitrarios (cierra el verbo "controlar"); (iv) que el refinamiento CEM **no aporta** en control unimodal; y (v) que una señal epistémica de **disagreement** (de un ensemble de dinámica independiente) **sí impulsa exploración** bajo comparación controlada **cuando el término epistémico está ponderado de forma conmensurable** (pareado +0.30, t=3.7, 9/10) — corrigiendo un null previo que estaba *subponderado*, y un sobre-claim aún anterior que era un artefacto de RNG; un caso de estudio de seguir la evidencia hasta revisar la propia conclusión en ambas direcciones. Un primer **benchmark externo** (Mackey-Glass) es **acotante**: como agente condicionado por acción, el kernel queda por debajo de baselines simples en predicción pura — pero en **control model-based bajo dinámica desconocida** ese mismo diseño es una **ventaja** (alcanza el objetivo donde un controlador model-free fracasa), y un **actor amortizado estilo Dreamer** entrenado en imaginación iguala/supera a la búsqueda a ~60–130× menos costo por acción. En un benchmark RL **externo** (CartPole-v1) el kernel **transfiere parcialmente** (~164 vs 22 de random; ~33% del óptimo) como regulación de inferencia activa pura, sin reward externo; un loop con **replay de transiciones** estilo DreamerV3 mejora la curva (pico ~50% del techo) pero no cierra la brecha (colapso tardío) — eso requeriría paridad DreamerV3 completa. El código, 20 experimentos y 496 tests son reproducibles.
 
 **Palabras clave:** inferencia activa, principio de energía libre, consciencia computacional, integración emergente, curiosidad por disagreement, sistemas darwinianos multi-agente.
 
@@ -150,9 +150,11 @@ Primer test en un entorno RL externo reconocido (gymnasium), enmarcado como **re
 |---|---|
 | random | 22 |
 | heurística (casi óptima) | 500 |
-| **kernel (eval greedy)** | **177 ± 43** |
+| **kernel (eval greedy)** | **~164 ± 21** |
 
-El kernel **transfiere**: aprende a balancear ~177 pasos (**8× sobre random, 35% del techo**) puramente como regulación a un estado-objetivo. Honesto y **acotante**: queda muy por debajo del óptimo. Añadimos estabilizadores estilo **DreamerV3** (target critic por EMA, normalización de returns, gradient clipping); mejoran modestamente la marca (training tail 105→132) **pero la curva sigue oscilando** — el actor-crítico es *online* sobre un buffer de latentes no-estacionario, así que al mejorar la política olvida cómo recuperar de estados raros. El fix completo es el loop DreamerV3 entero (replay de **transiciones** + reentreno del world model), un rebuild mayor. Es el primer dato en un benchmark RL externo — **transferencia parcial real, no SOTA** — y la validación externa que el estratega marcó como pendiente.
+El kernel **transfiere**: aprende a balancear ~164 pasos (**~7× sobre random, ~33% del techo**) puramente como regulación a un estado-objetivo. Honesto y **acotante**: queda muy por debajo del óptimo.
+
+**Estabilización (el arco honesto):** (1) estabilizadores estilo DreamerV3 (target critic EMA, normalización de returns, grad clip) elevaron el training tail 105→132 pero la curva seguía oscilando con caídas catastróficas. (2) Implementamos el **loop con replay de transiciones** completo (buffer de observaciones re-encodeadas con el modelo actual + grounding del world model en transiciones diversas + imaginación desde estados de replay). Esto **mejoró la forma de la curva** —sube de forma clara hasta un **pico ~250 (50% del techo)** en vez de oscilar alrededor de ~100— **pero NO resolvió el problema**: sobre entrenamiento largo aparece un **colapso tardío** (pico → declive) y el eval greedy se mantiene en ~33% del techo, sin superar a los estabilizadores simples. El replay también mejoró la sanidad del control model-based (`exp_dreamer.py`, D=8: 0.047 vs 0.081). Honesto: el replay de transiciones es la arquitectura más principista y eleva el pico, pero **cerrar la brecha al techo requiere paridad DreamerV3 completa** (world model recurrente entrenado sobre **secuencias**/RSSM + **reward model** aprendido), más allá del replay. Es el primer dato en un benchmark RL externo — **transferencia parcial real, no SOTA**.
 
 ---
 
@@ -181,20 +183,20 @@ Recurrentemente, las extensiones (horizonte, epistémico-proxy, CEM, espectro ze
 | Curiosidad por disagreement | **Sí** (con peso conmensurable) | pareado +0.30, t=3.7, 9/10 a `weight=500`; el null previo (+0.025) estaba subponderado (señal O(1e-3)); el "2×" original sí era artefacto de RNG. Ensemble de dinámica independiente = señal más principista |
 | Control model-based (dinámica desconocida) | **Sí** | kernel 0.046 vs naive model-free 0.85 (aprende e invierte la permutación) |
 | Planificación amortizada (Dreamer) | **Sí** | iguala/supera a la búsqueda (D=16: 0.100 vs 0.159) a ~60–130× menos costo/acción |
-| Benchmark RL externo (CartPole-v1) | **Parcial** | greedy 177 vs random 22 vs óptimo 500: transfiere (8×), no SOTA; estabilizadores DreamerV3 ayudan poco, sigue oscilando |
+| Benchmark RL externo (CartPole-v1) | **Parcial** | greedy ~164 vs random 22 vs óptimo 500: transfiere (~7×), no SOTA; replay de transiciones mejora la curva (pico ~50% del techo) pero hay colapso tardío |
 
 ### 4.5 Limitaciones
 - Energía libre = solo término de accuracy (sin KL/complejidad).
-- El ensemble es de cabezas con latente compartido (captura incertidumbre del predictor, no de la transición).
 - Entornos mayormente de baja dimensión. El benchmark externo de *predicción*
   (Mackey-Glass, §3.6) es ACOTANTE (el kernel no es un predictor SOTA). El de
   *control* externo (CartPole-v1, §3.9) muestra **transferencia parcial real**
-  (166 vs random 22, 33% del óptimo) pero **no SOTA y con aprendizaje inestable**;
-  falta un actor-crítico con replay/estabilización y validación en experiencia
-  real (Yvyra).
-- El actor-crítico Dreamer es online sin replay de transiciones completo → la
-  curva de CartPole oscila; estabilizarlo (replay, normalización de returns) es el
-  siguiente paso de ingeniería.
+  (~164 vs random 22, ~33% del óptimo) pero **no SOTA**; falta validación en
+  experiencia real (Yvyra).
+- **CartPole no alcanza el techo aun con replay de transiciones.** El loop con
+  replay mejora la curva (pico ~50% del techo) pero hay **colapso tardío** y el
+  eval se queda en ~33%. Cerrar la brecha requiere paridad DreamerV3 completa: un
+  world model **recurrente entrenado sobre secuencias** (RSSM) y un **reward model
+  aprendido**, no solo replay de transiciones de un paso.
 - Ψ sigue dependiendo de una constante de escala FE→Φ (`psi_fe_scale`), documentada como calibración, no derivada.
 
 ---
