@@ -12,7 +12,7 @@ Presentamos el **Conscious Kernel**: una unidad adaptativa de **inferencia activ
 `PERCIBIR → PREDECIR → COMPARAR → ACTUALIZAR → MEMORIZAR → ACTUAR → REFLEXIONAR → SOÑAR`
 sobre un modelo del mundo aprendido, un modelo de sí mismo recursivo, errores de predicción ponderados por precisión, memoria complementaria (rápida/lenta), selección de acción por energía libre esperada (EFE), e identidad persistente entre sesiones. Sobre el kernel se construye un **organismo darwiniano** multi-kernel.
 
-El proyecto nació integrando los ceros de la función zeta de Riemann con sistemas de vida artificial. Esta reescritura documenta un cambio honesto de tesis: **los valores específicos de zeta no son load-bearing** fuera de un dominio (autómatas celulares espaciales); el motor real es la inferencia activa. Reportamos, con el mismo rigor, lo que **funciona** y lo que **no**: (i) un índice de integración Ψ **auto-calibrante** y robusto; (ii) que una red equiespaciada (Fourier) **iguala o supera** a zeta en el camino temporal; (iii) **control continuo** que alcanza objetivos arbitrarios (cierra el verbo "controlar"); (iv) que el refinamiento CEM **no aporta** en control unimodal; y (v) que una señal epistémica genuina (**disagreement** de ensemble) **sí impulsa exploración/curiosidad** donde un proxy de entropía no lo hacía. El código, 16 experimentos y 475 tests son reproducibles.
+El proyecto nació integrando los ceros de la función zeta de Riemann con sistemas de vida artificial. Esta reescritura documenta un cambio honesto de tesis: **los valores específicos de zeta no son load-bearing** fuera de un dominio (autómatas celulares espaciales); el motor real es la inferencia activa. Reportamos, con el mismo rigor, lo que **funciona** y lo que **no**: (i) un índice de integración Ψ **auto-calibrante** y robusto; (ii) que una red equiespaciada (Fourier) **iguala o supera** a zeta en el camino temporal; (iii) **control continuo** que alcanza objetivos arbitrarios (cierra el verbo "controlar"); (iv) que el refinamiento CEM **no aporta** en control unimodal; y (v) que una señal epistémica de **disagreement** de ensemble **no produce un efecto confiable** de exploración bajo una comparación controlada (un positivo aparente previo resultó ser un artefacto de RNG, corregido — un caso de estudio del propio rigor). El código, 16 experimentos y 480 tests son reproducibles.
 
 **Palabras clave:** inferencia activa, principio de energía libre, consciencia computacional, integración emergente, curiosidad por disagreement, sistemas darwinianos multi-agente.
 
@@ -93,8 +93,8 @@ El horizonte > 1 **no aportó** aquí (consistente con la investigación de agen
 ### 3.4 CEM: un negativo honesto (`exp_cem.py`)
 El Cross-Entropy Method está implementado, pero **no mejora de forma confiable** al random shooting en el control inercial: barriendo dimensión 4→32 a presupuesto igualado, la diferencia cambia de signo y queda dentro del ruido. Razón estructural: la tarea es unimodal (la acción óptima *es* el objetivo), sin paisaje rugoso que explotar. CEM se conserva como capacidad para regímenes más duros.
 
-### 3.5 Curiosidad por disagreement: un positivo (`exp_curiosity.py`)
-Dotando al término epistémico de una señal **real** (disagreement de ensemble) en un entorno de dos regímenes que esconde dinámica tras la exploración, el agente **curioso visita el régimen novel ~2× más** que el pragmático (0.30 vs 0.13 de fracción de tiempo, 8 semillas). La dirección es reproducible; la varianza es alta (la exploración lo es). Es la **primera extensión que ayuda** — el disagreement genuino logra lo que el proxy de entropía no.
+### 3.5 Curiosidad por disagreement: un negativo bajo control (`exp_curiosity.py`)
+En un entorno de dos regímenes que esconde dinámica tras la exploración, dotamos al término epistémico de una señal **real** (disagreement de ensemble). Una versión preliminar mostró al agente curioso visitando el régimen novel ~2× más — pero una **revisión adversarial encontró un confound de RNG**: construir/entrenar el ensemble corría el stuck global de torch, del que el muestreador de acción EFE también toma, así que "ensemble on vs off" **no era una comparación controlada**. Corregido (RNG dedicado para el masking + el brazo pragmático carga el mismo ensemble con peso 0), el efecto **se desploma**: pragmático 0.282 vs curioso 0.308, **diferencia pareada +0.025 (t=0.30, n=16, no significativa)**, con el curioso ganando 7/16 semillas (casi una moneda). Conclusión honesta: el disagreement-curiosity **no impulsa exploración de forma confiable** en este régimen; el positivo aparente era el artefacto. (Es un buen caso de estudio de por qué importan las comparaciones controladas y la verificación adversarial.)
 
 ---
 
@@ -107,7 +107,7 @@ Dotando al término epistémico de una señal **real** (disagreement de ensemble
 El nombre histórico permanece, pero la evidencia propia desmonta su rol central. Lo honesto es presentar zeta como una **decisión de diseño probada y mayormente falsada** (un resultado negativo valioso), salvo en CA espacial.
 
 ### 4.3 El patrón "tijera"
-Recurrentemente, las extensiones (horizonte, epistémico-proxy, CEM, espectro especial) **lucen solo donde el método simple falla**; donde el método simple basta, no se necesitan. La curiosidad por disagreement (§3.5) es la excepción que ayuda porque ataca un fallo real (exploración) que el método simple no resuelve.
+Recurrentemente, las extensiones (horizonte, epistémico-proxy, CEM, espectro zeta, y —tras corregir el confound— también el disagreement-curiosity) **no aportan de forma confiable** en estos regímenes 4-D. La curiosidad parecía la excepción, pero no sobrevivió a una comparación controlada (§3.5). Lo que sí ayuda es estructural: precisiones aprendidas, acción continua (espacio de acción correcto) y memoria complementaria. La lección meta: separar la extensión del confound (RNG, espacio de acción, basis-matching) suele convertir un "ayuda" en un "no aporta".
 
 ### 4.4 Ledger de honestidad (qué ayudó y qué no)
 
@@ -118,7 +118,7 @@ Recurrentemente, las extensiones (horizonte, epistémico-proxy, CEM, espectro es
 | Acción continua EFE (control) | **Sí** | error 0.05 vs 0.35 (one-hots) |
 | Horizonte > 1 | No | sin ganancia en control inercial |
 | CEM | No (confiable) | dentro del ruido, signo cambia |
-| Curiosidad por disagreement | **Sí** | 2× exploración del régimen novel |
+| Curiosidad por disagreement | **No** (controlado) | paired diff +0.025, t=0.30, n.s. — el "2×" previo era un artefacto de RNG |
 
 ### 4.5 Limitaciones
 - Energía libre = solo término de accuracy (sin KL/complejidad).
@@ -132,7 +132,7 @@ Recurrentemente, las extensiones (horizonte, epistémico-proxy, CEM, espectro es
 Inferencia activa / FEP (Friston et al.); Complementary Learning Systems (McClelland, O'Reilly et al.); exploración por desacuerdo de modelos (p. ej. Plan2Explore, *disagreement-based exploration*); Integrated Information Theory (Tononi) como vocabulario, no como implementación; Global Workspace Theory (Baars) como metáfora de arbitraje. La conexión número-teórica original (Montgomery–Odlyzko sobre la estadística GUE de los ceros) se documenta como hipótesis testeada, no usada de forma load-bearing.
 
 ## 6. Conclusión
-El Conscious Kernel es un sustrato de inferencia activa coherente y honesto que **aprende** (predicción), **controla** (EFE continuo), **integra** (Ψ robusto), **explora con curiosidad** (disagreement) y tiene un camino para **acoplarse a un agente vivo** (Yvyra). El aporte metodológico es tanto el sistema como la disciplina de falsación: incluyendo el desmontaje del propio claim que dio nombre al proyecto.
+El Conscious Kernel es un sustrato de inferencia activa coherente y honesto que **aprende** (predicción), **controla** (EFE continuo), **integra** (Ψ robusto) y tiene un camino para **acoplarse a un agente vivo** (Yvyra). El aporte metodológico es tanto el sistema como la disciplina de falsación: incluyendo el desmontaje del propio claim que dio nombre al proyecto y la **retractación de un resultado propio** (la curiosidad) que una revisión adversarial mostró confundido por RNG.
 
 ---
 

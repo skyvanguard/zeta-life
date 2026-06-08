@@ -2,24 +2,26 @@
   CURIOSITY — does ensemble disagreement drive exploration?
 ======================================================================
   C (home, regime A) = [0.7, 0.1, 0.1, 0.1]
-  epistemic_weight=30.0  steps=600  seeds=[0, 1, 2, 3, 4, 5, 6, 7]
+  epistemic_weight=30.0  steps=600  seeds=16
   metric = fraction of steps in regime B (the novel regime)
+  CONTROLLED: pragmatic & curious differ ONLY in efe_epistemic_weight
+  (both carry the ensemble; head masking on a dedicated RNG)
 
   reactive       : time in regime B = 0.000 ± 0.000
-  efe-pragmatic  : time in regime B = 0.132 ± 0.193
-  efe-curious    : time in regime B = 0.301 ± 0.233
+  efe-pragmatic  : time in regime B = 0.282 ± 0.177
+  efe-curious    : time in regime B = 0.308 ± 0.288
 
 ======================================================================
-  VERDICT
+  VERDICT (paired, controlled)
 ======================================================================
-  curious vs pragmatic time-in-B: 0.301 vs 0.132
+  curious vs pragmatic time-in-B: 0.308 vs 0.282
+  paired mean diff = +0.025  (se=0.086, t=0.30, n=16)
+  curious wins on 7/16 seeds
 
-  FINDING: the real epistemic (disagreement) signal DRIVES exploration —
-  the curious agent visits the novel regime ~2x more than the pragmatic
-  one. The direction is reproducible across seed counts, though seed
-  variance is high (exploration is intrinsically variable). This is the
-  first extension that helps: genuine disagreement works where the coarse
-  entropy proxy (agency investigation) did not.
-  [PASS]
+  FINDING: disagreement-curiosity shows a POSITIVE DIRECTION but it is
+  NOT statistically significant at n=16 (paired t=0.30). It is a
+  tendency, not a reliable driver — exploration is high-variance and
+  per-seed it is close to a coin flip. Honest, deflated from the earlier
+  overclaimed '~2x / it works'.
 ======================================================================
   plot saved: results\curiosity.png

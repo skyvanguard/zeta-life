@@ -31,6 +31,7 @@ honest question is whether curiosity raises it above the pragmatic baseline.
 from __future__ import annotations
 
 import sys
+import math
 import argparse
 import statistics as st
 from pathlib import Path
@@ -44,9 +45,15 @@ C = torch.tensor([0.7, 0.1, 0.1, 0.1])
 C = C / C.sum()
 EPISTEMIC_WEIGHT = 30.0
 
+# Controlled design: pragmatic and curious are IDENTICAL except efe_epistemic_weight.
+# Both carry the disagreement ensemble (so head construction + training consume the
+# same RNG), and head masking uses a dedicated generator (C1 fix), so the EFE action
+# sampler draws from the same global stream in both arms. The only difference is
+# whether disagreement enters the cost -> a genuinely controlled comparison.
 ARMS = {
     "reactive":      dict(action_mode="reactive"),
     "efe-pragmatic": dict(action_mode="efe", efe_n_samples=24, efe_obs_norm="l1",
+                          wm_disagreement_heads=5, efe_epistemic_mode="disagreement",
                           efe_epistemic_weight=0.0),
     "efe-curious":   dict(action_mode="efe", efe_n_samples=24, efe_obs_norm="l1",
                           wm_disagreement_heads=5, efe_epistemic_mode="disagreement",
@@ -81,47 +88,57 @@ def run(arm: str, n_steps: int, seed: int) -> float:
     return sum(in_b[-tail:]) / tail
 
 
-def run_arm(arm: str, seeds, n_steps):
-    vals = [run(arm, n_steps, s) for s in seeds]
-    return st.mean(vals), (st.pstdev(vals) if len(vals) > 1 else 0.0)
-
-
 def main(n_steps: int, seeds: list[int], plot: bool) -> bool:
     print("=" * 70)
     print("  CURIOSITY — does ensemble disagreement drive exploration?")
     print("=" * 70)
     print(f"  C (home, regime A) = {[round(float(x), 2) for x in C]}")
-    print(f"  epistemic_weight={EPISTEMIC_WEIGHT}  steps={n_steps}  seeds={seeds}")
+    print(f"  epistemic_weight={EPISTEMIC_WEIGHT}  steps={n_steps}  seeds={len(seeds)}")
     print(f"  metric = fraction of steps in regime B (the novel regime)")
+    print(f"  CONTROLLED: pragmatic & curious differ ONLY in efe_epistemic_weight")
+    print(f"  (both carry the ensemble; head masking on a dedicated RNG)")
     print()
 
-    res = {}
+    # Per-seed values for paired analysis.
+    per_arm = {arm: [run(arm, n_steps, s) for s in seeds] for arm in ARMS}
+    res = {arm: (st.mean(v), st.pstdev(v) if len(v) > 1 else 0.0)
+           for arm, v in per_arm.items()}
     for arm in ARMS:
-        m, s = run_arm(arm, seeds, n_steps)
-        res[arm] = (m, s)
-        print(f"  {arm:15s}: time in regime B = {m:.3f} ± {s:.3f}")
+        print(f"  {arm:15s}: time in regime B = {res[arm][0]:.3f} ± {res[arm][1]:.3f}")
     print()
 
+    # Paired test: curious - pragmatic on the SAME seed (now a valid pairing).
+    diffs = [c - p for c, p in zip(per_arm["efe-curious"], per_arm["efe-pragmatic"])]
+    n = len(diffs)
+    md = st.mean(diffs)
+    sd = st.stdev(diffs) if n > 1 else 0.0
+    se = sd / math.sqrt(n) if n > 1 and sd > 0 else float("inf")
+    t = md / se if se not in (0.0, float("inf")) else 0.0
+    wins = sum(d > 0 for d in diffs)
+
     print("=" * 70)
-    print("  VERDICT")
+    print("  VERDICT (paired, controlled)")
     print("=" * 70)
-    prag = res["efe-pragmatic"][0]
-    cur = res["efe-curious"][0]
-    print(f"  curious vs pragmatic time-in-B: {cur:.3f} vs {prag:.3f}")
-    explores = cur > prag + 0.10
+    print(f"  curious vs pragmatic time-in-B: "
+          f"{res['efe-curious'][0]:.3f} vs {res['efe-pragmatic'][0]:.3f}")
+    print(f"  paired mean diff = {md:+.3f}  (se={se:.3f}, t={t:.2f}, n={n})")
+    print(f"  curious wins on {wins}/{n} seeds")
     print()
-    if explores:
-        print("  FINDING: the real epistemic (disagreement) signal DRIVES exploration —")
-        print("  the curious agent visits the novel regime ~2x more than the pragmatic")
-        print("  one. The direction is reproducible across seed counts, though seed")
-        print("  variance is high (exploration is intrinsically variable). This is the")
-        print("  first extension that helps: genuine disagreement works where the coarse")
-        print("  entropy proxy (agency investigation) did not.")
+    significant = abs(t) > 2.0  # ~p<0.05 for n>~10
+    positive = md > 0
+    if positive and significant:
+        print("  FINDING: disagreement-curiosity RELIABLY increases exploration")
+        print(f"  (paired t={t:.2f} > 2). Genuine info-gain works where the entropy")
+        print("  proxy did not.")
+    elif positive:
+        print("  FINDING: disagreement-curiosity shows a POSITIVE DIRECTION but it is")
+        print(f"  NOT statistically significant at n={n} (paired t={t:.2f}). It is a")
+        print("  tendency, not a reliable driver — exploration is high-variance and")
+        print("  per-seed it is close to a coin flip. Honest, deflated from the earlier")
+        print("  overclaimed '~2x / it works'.")
     else:
-        print("  FINDING: even with a real disagreement signal, curiosity does not raise")
-        print("  exploration here — an honest negative (the pragmatic pull dominates, or")
-        print("  the regime is reachable/learned without seeking it).")
-    print(f"  [{'PASS' if explores else 'INCONCLUSIVE'}]")
+        print("  FINDING: no positive effect under the controlled design — an honest")
+        print("  negative. The earlier apparent effect was likely the RNG confound.")
     print("=" * 70)
 
     if plot:
@@ -129,7 +146,7 @@ def main(n_steps: int, seeds: list[int], plot: bool) -> bool:
             _plot(res)
         except Exception as e:  # noqa: BLE001
             print(f"  (plot skipped: {e})")
-    return explores
+    return positive and significant
 
 
 def _plot(res: dict) -> None:
@@ -145,7 +162,7 @@ def _plot(res: dict) -> None:
            capsize=4, color=["#7f8c8d", "#e67e22", "#2980b9"])
     ax.set_xticks(x); ax.set_xticklabels(arms, rotation=10)
     ax.set_ylabel("fraction of time in the novel regime B")
-    ax.set_title("Curiosity: ensemble disagreement drives exploration")
+    ax.set_title("Curiosity (controlled): disagreement does NOT reliably increase exploration")
     ax.grid(True, axis="y", alpha=0.3)
     out = Path("results") / "curiosity.png"
     out.parent.mkdir(exist_ok=True)

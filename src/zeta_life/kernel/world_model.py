@@ -101,6 +101,12 @@ class WorldModel(nn.Module):
             self.head_optimizer = torch.optim.Adam(
                 self.heads.parameters(), lr=learning_rate
             )
+            # Dedicated RNG for bootstrap masking so head training does NOT perturb
+            # the global torch stream (which the EFE action sampler draws from).
+            # Without this, enabling the ensemble silently shifts downstream action
+            # randomness, making "ensemble on vs off" an uncontrolled comparison.
+            self._head_rng = torch.Generator()
+            self._head_rng.manual_seed(20260608)
 
     def encode(self, observation: Tensor) -> Tensor:
         """Encode an observation into latent space (bottom-up).
@@ -322,7 +328,7 @@ class WorldModel(nn.Module):
         loss = torch.zeros((), dtype=latent.dtype)
         used = False
         for head in self.heads:
-            if float(torch.rand(1).item()) < 0.5:
+            if float(torch.rand(1, generator=self._head_rng).item()) < 0.5:
                 loss = loss + torch.sum((head(latent) - target) ** 2)
                 used = True
         if used:
