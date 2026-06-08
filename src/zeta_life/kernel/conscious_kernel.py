@@ -21,6 +21,7 @@ Components:
 
 from __future__ import annotations
 
+from collections import deque
 from dataclasses import dataclass
 
 import torch
@@ -34,6 +35,7 @@ from .complementary_memory import Episode, FastMemory, SlowMemory
 from .dream_engine import DreamEngine
 from .persistence import PersistenceLayer
 from .temporal_features import OscillatorBank
+from .policy import Actor, Critic
 from ..integration.formal_equations import compute_phi_c, compute_psi, compute_psi_hill
 
 
@@ -128,6 +130,14 @@ class ConsciousKernel:
         efe_cem_elite_frac: float = 0.3,
         efe_epistemic_mode: str = "entropy",
         wm_disagreement_heads: int = 0,
+        imag_horizon: int = 5,
+        imag_rollouts: int = 8,
+        imag_lambda: float = 0.95,
+        imag_gamma: float = 0.97,
+        actor_lr: float = 3e-4,
+        critic_lr: float = 3e-4,
+        actor_explore: float = 0.0,
+        dreamer_epistemic_weight: float = 0.0,
         temporal_features: OscillatorBank | None = None,
     ) -> None:
         self.obs_dim = obs_dim
@@ -238,6 +248,17 @@ class ConsciousKernel:
         # disagreement is ~O(1e-2), so efe_epistemic_weight must be large
         # (O(10-100)) for it to compete with the pragmatic KL.
         self.efe_epistemic_mode = efe_epistemic_mode
+        # Dreamer-style behaviour learning (action_mode="dreamer"): an amortized
+        # actor trained in imagination with a critic and value gradients through
+        # the differentiable latent dynamics; reward = -EFE toward the preference.
+        # The actor acts at constant cost per step (no search). Modules are created
+        # below once latent_dim/obs_dim are known.
+        self.imag_horizon = imag_horizon
+        self.imag_rollouts = imag_rollouts
+        self.imag_lambda = imag_lambda
+        self.imag_gamma = imag_gamma
+        self.actor_explore = actor_explore
+        self.dreamer_epistemic_weight = dreamer_epistemic_weight
         if action_candidates is not None:
             self._action_candidates = [a.detach() for a in action_candidates]
         else:
@@ -269,6 +290,18 @@ class ConsciousKernel:
             trainable = [p for p in temporal_features.parameters() if p.requires_grad]
             if trainable:
                 self.world_model.optimizer.add_param_group({"params": trainable})
+
+        # Dreamer actor/critic + a small replay buffer of recent latents.
+        self.actor = None
+        self.critic = None
+        self._latent_buffer = None
+        if action_mode == "dreamer":
+            self.actor = Actor(latent_dim, obs_dim)
+            self.critic = Critic(latent_dim)
+            self.actor_optimizer = torch.optim.Adam(self.actor.parameters(), lr=actor_lr)
+            self.critic_optimizer = torch.optim.Adam(self.critic.parameters(), lr=critic_lr)
+            self._latent_buffer = deque(maxlen=200)
+
         self.self_model = SelfModel(obs_dim, embed_dim)
         self.error_engine = PredictionErrorEngine(4)
         self.fast_memory = FastMemory(500, 0.3)
@@ -343,6 +376,9 @@ class ConsciousKernel:
             # the latent, so imagine() inside the planner uses the current latent;
             # the planner rebuilds the future temporal codes phi(t+1..t+H) itself.
             actual_self = self._select_action_efe(raw_self)
+        elif self.action_mode == "dreamer" and self.preference is not None:
+            # Amortized actor: act from the current latent at constant cost.
+            actual_self = self._select_action_dreamer()
         elif self.latent_weight > 0.0:
             latent_bias = self._latent_to_action(self.world_model.latent_state.detach())
             actual_self = F.softmax(raw_self + self.latent_weight * latent_bias, dim=-1)
@@ -386,6 +422,12 @@ class ConsciousKernel:
         # precision term in Psi actually reflects channel reliability instead of
         # staying frozen at its initial value.
         self.error_engine.update_precisions(errors)
+
+        # Dreamer: buffer the posterior latent and improve the actor/critic in
+        # imagination (no effect in other action modes).
+        if self.action_mode == "dreamer" and self._latent_buffer is not None:
+            self._latent_buffer.append(self.world_model.latent_state.detach().clone())
+            self._train_behavior()
 
         # ---- 5. MEMORIZE ----
         surprise = max(
@@ -653,6 +695,86 @@ class ConsciousKernel:
             mu = elite_logits.mean(dim=0)
             sigma = elite_logits.std(dim=0) + 1e-3
         return best
+
+    # ------------------------------------------------------------------
+    # Dreamer-style behaviour learning (amortized actor + critic)
+    # ------------------------------------------------------------------
+
+    def _select_action_dreamer(self) -> Tensor:
+        """Act with the amortized actor on the current latent (constant cost)."""
+        z = self.world_model.latent_state.detach().unsqueeze(0)
+        with torch.no_grad():
+            a = self.actor(z).squeeze(0)
+        if self.actor_explore > 0.0:
+            logits = a.clamp(min=1e-6).log() + self.actor_explore * torch.randn(self.obs_dim)
+            a = F.softmax(logits, dim=-1)
+        return a.detach()
+
+    def _reward_from_pred(self, pred: Tensor) -> Tensor:
+        """Reward = -KL(preference || simplex(pred)), batched. Shape (B,)."""
+        p = pred.clamp(min=0.0)
+        s = p.sum(dim=-1, keepdim=True)
+        proj = torch.where(
+            s > 1e-8, p / s.clamp(min=1e-8),
+            torch.full_like(pred, 1.0 / pred.shape[-1]),
+        )
+        log_proj = proj.clamp(min=1e-6).log()
+        log_C = self.preference.clamp(min=1e-6).log()
+        kl = (self.preference * (log_C - log_proj)).sum(dim=-1)
+        return -kl
+
+    @staticmethod
+    def _lambda_returns(rewards, values, gamma: float, lam: float):
+        """TD(lambda) returns. rewards: list[(B,)] len H; values: list[(B,)] len H+1.
+
+        R_t = r_t + gamma[(1-lam) V_{t+1} + lam R_{t+1}], R_H bootstraps with V_H.
+        """
+        H = len(rewards)
+        returns = [None] * H
+        nxt = values[H]
+        for t in reversed(range(H)):
+            nxt = rewards[t] + gamma * ((1 - lam) * values[t + 1] + lam * nxt)
+            returns[t] = nxt
+        return returns
+
+    def _train_behavior(self) -> None:
+        """Improve actor & critic in imagination (Dreamer-style value gradients)."""
+        if (self.preference is None or self._latent_buffer is None
+                or len(self._latent_buffer) < self.imag_rollouts):
+            return
+        B, H = self.imag_rollouts, self.imag_horizon
+        idxs = torch.randint(0, len(self._latent_buffer), (B,))
+        z = torch.stack([self._latent_buffer[int(i)] for i in idxs]).detach()
+        zs, rewards = [z], []
+        for _ in range(H):
+            a = self.actor(z)
+            z, pred = self.world_model.imagine_grad(z, a)
+            zs.append(z)
+            rewards.append(self._reward_from_pred(pred))
+        values = [self.critic(zt) for zt in zs]  # len H+1
+
+        # Critic: regress V(z_t) onto detached lambda-returns.
+        crit_targets = self._lambda_returns(
+            [r.detach() for r in rewards], [v.detach() for v in values],
+            self.imag_gamma, self.imag_lambda)
+        critic_loss = torch.stack(
+            [(values[t] - crit_targets[t]) ** 2 for t in range(H)]).mean()
+        self.critic_optimizer.zero_grad()
+        critic_loss.backward(retain_graph=True)
+        self.critic_optimizer.step()
+
+        # Actor: maximize lambda-returns (value gradients through the dynamics;
+        # bootstrap value detached so the actor does not backprop into the critic).
+        actor_returns = self._lambda_returns(
+            rewards, [v.detach() for v in values], self.imag_gamma, self.imag_lambda)
+        actor_loss = -torch.stack(actor_returns).mean()
+        self.actor_optimizer.zero_grad()
+        actor_loss.backward()
+        self.actor_optimizer.step()
+
+        # Hygiene: clear imagination grads that leaked into the world model
+        # (the world model is trained only by real data, never by imagination).
+        self.world_model.optimizer.zero_grad()
 
     # ------------------------------------------------------------------
     # Persistence

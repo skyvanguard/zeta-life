@@ -56,7 +56,7 @@ que el estado del arte.
 
 ## Qué adoptar, en orden de valor
 
-1. **Imaginación latente + actor-crítico estilo Dreamer** para la selección de acción (reemplazar shooting/CEM). Es el mayor salto para que el lado de **control** del kernel compita en tareas reales. [§2]
+1. ✅ **HECHO — Imaginación latente + actor-crítico estilo Dreamer** (`action_mode="dreamer"`, `exp_dreamer.py`): el actor amortizado iguala/supera a la búsqueda en control model-based a ~60–130× menos costo por acción, con ventaja creciente en dimensión. Falta llevarlo a un benchmark RL externo (item 4).
 2. **Adoptar el marco de indicator properties de Butlin** para el claim de "consciencia" — mapear el kernel a recurrencia/GWT/predictive/attention/agency en vez de (o además de) Ψ. Bajo costo, alta integridad y publicable. [§5]
 3. **Ensemble de dinámica real** (no cabezas de latente compartido) + planificación profunda para reintentar la curiosidad por disagreement en un régimen donde Plan2Explore sí funciona. [§3]
 4. **Benchmark externo de control** (DeepMind Control / gym vía la interfaz Dreamer) — la validación que el estratega marcó como #1. [§2]

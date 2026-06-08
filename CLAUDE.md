@@ -40,9 +40,9 @@ zeta-life/
 │   ├── core/            # zeta_constants, vertex, tetrahedral geometry
 │   └── utils/           # statistics helpers
 ├── experiments/
-│   ├── kernel/          # 18 experiments (the live research)
+│   ├── kernel/          # 19 experiments (the live research)
 │   └── datasets/        # 1 experiment (Psi on real data)
-├── tests/               # 25 test files (481 tests)
+├── tests/               # 26 test files (491 tests)
 ├── results/             # experiment outputs (PNG + run .txt)
 ├── docs/                # reports, papers, plans, theory
 ├── models/              # trained weights (.pt)
@@ -170,6 +170,8 @@ The competing consciousness formalisms (psyche `ConsciousnessIndex`, hierarchica
 | `efe_cem_iters` | 0 | EFE: Cross-Entropy Method refinement (0 = random shooting). Capability for hard action landscapes; no reliable gain in the unimodal control task (`exp_cem.py`) |
 | `wm_disagreement_heads` | 0 | World-model ensemble heads for an epistemic (disagreement) signal (0 = off). Under a *controlled* comparison it gives **no reliable** exploration gain in the 4-D regime (`exp_curiosity.py`; an earlier apparent ~2x was an RNG confound, now fixed). Head masking uses a dedicated RNG; kept as a capability |
 | `efe_epistemic_mode` | entropy / disagreement | EFE epistemic term: coarse outcome-entropy proxy vs real world-model disagreement |
+| `action_mode` | reactive / efe / **dreamer** | `dreamer` = amortized actor+critic trained in imagination (value gradients); O(1) action cost, matches/beats search on control (`exp_dreamer.py`) |
+| `imag_horizon` / `imag_rollouts` | 5 / 8 | Dreamer imagination horizon and rollout batch (per-step behaviour learning) |
 
 ## Documentation
 

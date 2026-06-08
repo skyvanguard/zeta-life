@@ -283,6 +283,47 @@ class WorldModel(nn.Module):
 
         return predictions
 
+    def imagine_grad(
+        self,
+        latent: Tensor,
+        action: Tensor,
+        temporal_feat: Tensor | None = None,
+    ) -> tuple[Tensor, Tensor]:
+        """Differentiable one-step transition from a GIVEN (batched) latent.
+
+        Unlike :meth:`imagine` (a ``no_grad`` rollout from ``latent_state``), this
+        keeps the computation graph so gradients flow through the transition and
+        predictor — the basis for Dreamer-style behaviour learning in imagination.
+        Does NOT touch ``self.latent_state``.
+
+        Parameters
+        ----------
+        latent : Tensor
+            Latent of shape ``(B, latent_dim)``.
+        action : Tensor
+            Action of shape ``(B, action_dim)``.
+        temporal_feat : Tensor | None
+            Temporal feature ``(B, temporal_dim)`` or ``(temporal_dim,)``
+            (broadcast). Required when ``temporal_dim > 0``.
+
+        Returns
+        -------
+        tuple[Tensor, Tensor]
+            ``(next_latent, predicted_obs)`` with gradients, shapes
+            ``(B, latent_dim)`` and ``(B, obs_dim)``.
+        """
+        if self.temporal_dim > 0:
+            if temporal_feat is None:
+                raise ValueError("temporal_feat required when temporal_dim > 0")
+            if temporal_feat.dim() == 1:
+                temporal_feat = temporal_feat.unsqueeze(0).expand(action.shape[0], -1)
+            gru_in = torch.cat([action, temporal_feat], dim=-1)
+        else:
+            gru_in = action
+        next_latent = self.transition(gru_in, latent)
+        predicted_obs = self.predictor(next_latent)
+        return next_latent, predicted_obs
+
     def update_from_error(self, error: Tensor) -> float:
         """Update the model from a prediction error signal.
 

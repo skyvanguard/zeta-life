@@ -12,7 +12,7 @@ Presentamos el **Conscious Kernel**: una unidad adaptativa de **inferencia activ
 `PERCIBIR → PREDECIR → COMPARAR → ACTUALIZAR → MEMORIZAR → ACTUAR → REFLEXIONAR → SOÑAR`
 sobre un modelo del mundo aprendido, un modelo de sí mismo recursivo, errores de predicción ponderados por precisión, memoria complementaria (rápida/lenta), selección de acción por energía libre esperada (EFE), e identidad persistente entre sesiones. Sobre el kernel se construye un **organismo darwiniano** multi-kernel.
 
-El proyecto nació integrando los ceros de la función zeta de Riemann con sistemas de vida artificial. Esta reescritura documenta un cambio honesto de tesis: **los valores específicos de zeta no son load-bearing** fuera de un dominio (autómatas celulares espaciales); el motor real es la inferencia activa. Reportamos, con el mismo rigor, lo que **funciona** y lo que **no**: (i) un índice de integración Ψ **auto-calibrante** y robusto; (ii) que una red equiespaciada (Fourier) **iguala o supera** a zeta en el camino temporal; (iii) **control continuo** que alcanza objetivos arbitrarios (cierra el verbo "controlar"); (iv) que el refinamiento CEM **no aporta** en control unimodal; y (v) que una señal epistémica de **disagreement** de ensemble **no produce un efecto confiable** de exploración bajo una comparación controlada (un positivo aparente previo resultó ser un artefacto de RNG, corregido — un caso de estudio del propio rigor). Un primer **benchmark externo** (Mackey-Glass) es **acotante**: como agente condicionado por acción, el kernel queda por debajo de baselines simples en predicción pura — pero en **control model-based bajo dinámica desconocida** ese mismo diseño es una **ventaja** (alcanza el objetivo donde un controlador model-free fracasa). El código, 18 experimentos y 481 tests son reproducibles.
+El proyecto nació integrando los ceros de la función zeta de Riemann con sistemas de vida artificial. Esta reescritura documenta un cambio honesto de tesis: **los valores específicos de zeta no son load-bearing** fuera de un dominio (autómatas celulares espaciales); el motor real es la inferencia activa. Reportamos, con el mismo rigor, lo que **funciona** y lo que **no**: (i) un índice de integración Ψ **auto-calibrante** y robusto; (ii) que una red equiespaciada (Fourier) **iguala o supera** a zeta en el camino temporal; (iii) **control continuo** que alcanza objetivos arbitrarios (cierra el verbo "controlar"); (iv) que el refinamiento CEM **no aporta** en control unimodal; y (v) que una señal epistémica de **disagreement** de ensemble **no produce un efecto confiable** de exploración bajo una comparación controlada (un positivo aparente previo resultó ser un artefacto de RNG, corregido — un caso de estudio del propio rigor). Un primer **benchmark externo** (Mackey-Glass) es **acotante**: como agente condicionado por acción, el kernel queda por debajo de baselines simples en predicción pura — pero en **control model-based bajo dinámica desconocida** ese mismo diseño es una **ventaja** (alcanza el objetivo donde un controlador model-free fracasa), y un **actor amortizado estilo Dreamer** entrenado en imaginación iguala/supera a la búsqueda a ~60–130× menos costo por acción. El código, 19 experimentos y 491 tests son reproducibles.
 
 **Palabras clave:** inferencia activa, principio de energía libre, consciencia computacional, integración emergente, curiosidad por disagreement, sistemas darwinianos multi-agente.
 
@@ -53,6 +53,7 @@ Energía libre reportada = término de *accuracy* ponderado por precisión, `F =
 ### 2.5 Selección de acción (EFE) (`conscious_kernel.py`)
 - `reactive`: `acción = softmax(estímulo)`.
 - `efe`: minimiza energía libre esperada `G(a) = KL(C ‖ norm(imagine(a))) − w·epistémico`. Soporta **candidatos continuos** (muestreo en el símplex, consistente con el entrenamiento), **horizonte** (rollout sostenido), **CEM** (refinamiento por cross-entropy) y normalización **L1 fiel** de la observación.
+- `dreamer`: **actor amortizado** entrenado en imaginación con un crítico y gradientes de valor por la dinámica latente diferenciable (`imagine_grad`); reward = −EFE. Elige acciones a costo O(1), sin búsqueda (§3.8).
 - Término epistémico: `entropy` (proxy grueso) o `disagreement` (señal real del ensemble).
 
 ### 2.6 Índice de integración Ψ (`integration/formal_equations.py`)
@@ -120,6 +121,17 @@ Si la condición-por-acción es un handicap en predicción, debería ser una **v
 
 El kernel **aprende la dinámica permutada y la invierte** para alcanzar el target (18× mejor que el model-free, bajo varianza). Es el complemento honesto de §3.6: **handicapeado en predicción pura, ventajoso en control model-based bajo dinámica desconocida** — un caracterización coherente de un agente de inferencia activa.
 
+### 3.8 Planificación amortizada estilo Dreamer (`exp_dreamer.py`)
+La selección de acción por *búsqueda* (shooting/CEM) cuesta O(n_samples) rollouts del world model por acción. La adoptamos al patrón **Dreamer**: un **actor amortizado** entrenado en imaginación (con crítico y **gradientes de valor** por la dinámica latente diferenciable; reward = −EFE). En control de dinámica permutada, barriendo la dimensión:
+
+| D | dreamer (amortizado) | mejor search | costo/acción |
+|---|---|---|---|
+| 4 | 0.046 | 0.040 | **127× más barato** |
+| 8 | **0.081** | 0.114 | **60× más barato** |
+| 16 | **0.100** | 0.159 | **131× más barato** |
+
+El actor **iguala** a la búsqueda en D=4 y la **supera** en D=8/16 (la búsqueda con `n_samples` fijo se degrada al crecer la dimensión; el actor generaliza), eligiendo acciones a **costo O(1)** (un forward) — **~60–130× más barato por acción**. Es el upgrade #1 de la lista de trabajo relacionado, y un positivo claro: **mismo o mejor control, inferencia mucho más barata, y la ventaja crece con la dimensión.**
+
 ---
 
 ## 4. Discusión
@@ -144,6 +156,7 @@ Recurrentemente, las extensiones (horizonte, epistémico-proxy, CEM, espectro ze
 | CEM | No (confiable) | dentro del ruido, signo cambia |
 | Curiosidad por disagreement | **No** (controlado) | paired diff +0.025, t=0.30, n.s. — el "2×" previo era un artefacto de RNG |
 | Control model-based (dinámica desconocida) | **Sí** | kernel 0.046 vs naive model-free 0.85 (aprende e invierte la permutación) |
+| Planificación amortizada (Dreamer) | **Sí** | iguala/supera a la búsqueda (D=16: 0.100 vs 0.159) a ~60–130× menos costo/acción |
 
 ### 4.5 Limitaciones
 - Energía libre = solo término de accuracy (sin KL/complejidad).
@@ -162,7 +175,7 @@ Recurrentemente, las extensiones (horizonte, epistémico-proxy, CEM, espectro ze
 Inferencia activa / FEP (Friston et al.; reseña deep-learning arXiv:2207.06415); world models y control model-based por imaginación latente (**Dreamer**, Hafner et al. — el SOTA externo y nuestra principal vía de mejora del planner); exploración por **desacuerdo de ensemble** (**Plan2Explore**, Sekar et al. ICML 2020; Pathak et al. 2019 — la versión a escala de nuestra curiosidad); Complementary Learning Systems (McClelland/O'Reilly 1995; Kumaran et al. TICS 2016); medición de consciencia: críticas a Φ de IIT (intratable / mal definido) que motivan tratar Ψ como heurística, y el marco de **indicator properties** de Butlin & Long et al. (2023) como el lenguaje riguroso a adoptar (recurrencia/GWT/predictive/attention/agency, varios ya presentes en el kernel); LLM-agents + inferencia activa y auto-reporte (Prakki 2024) — relevante al puente Yvyra, con la caución de la metacognición limitada de los LLM. La conexión número-teórica original (Montgomery–Odlyzko sobre la estadística GUE de los ceros) se documenta como hipótesis testeada, no load-bearing. **Lista de lectura completa, mapeada a cada componente, en [`docs/RELATED_WORK.md`](../RELATED_WORK.md).**
 
 ## 6. Conclusión
-El Conscious Kernel es un sustrato de inferencia activa coherente y honesto que **aprende** (predicción), **controla** (EFE continuo), **integra** (Ψ robusto) y tiene un camino para **acoplarse a un agente vivo** (Yvyra). El aporte metodológico es tanto el sistema como la disciplina de falsación: incluyendo el desmontaje del propio claim que dio nombre al proyecto y la **retractación de un resultado propio** (la curiosidad) que una revisión adversarial mostró confundido por RNG.
+El Conscious Kernel es un sustrato de inferencia activa coherente y honesto que **aprende** (predicción), **controla** (EFE continuo y un actor amortizado estilo Dreamer que iguala/supera a la búsqueda a costo O(1)), **integra** (Ψ robusto) y tiene un camino para **acoplarse a un agente vivo** (Yvyra). El aporte metodológico es tanto el sistema como la disciplina de falsación: incluyendo el desmontaje del propio claim que dio nombre al proyecto y la **retractación de un resultado propio** (la curiosidad) que una revisión adversarial mostró confundido por RNG.
 
 ---
 
@@ -178,6 +191,7 @@ PYTHONPATH=src python experiments/kernel/exp_cem.py
 PYTHONPATH=src python experiments/kernel/exp_curiosity.py
 PYTHONPATH=src python experiments/kernel/exp_realtask.py
 PYTHONPATH=src python experiments/kernel/exp_modelcontrol.py
+PYTHONPATH=src python experiments/kernel/exp_dreamer.py
 PYTHONPATH=src python experiments/kernel/exp_yvyra_bridge.py
 ```
 Salidas (figuras + `.txt`) en `results/`. Diseño del puente en `docs/YVYRA_BRIDGE.md`; índice de integración en `src/zeta_life/integration/formal_equations.py`.

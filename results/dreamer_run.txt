@@ -1,0 +1,35 @@
+========================================================================
+  DREAMER (amortized) vs SEARCH — model-based control across dimension
+========================================================================
+  task = permuted-dynamics control; dims=[4, 8, 16]; steps=500; seeds=[0, 1]
+  metrics = control error ||state-C|| and us/action (after training)
+
+  --- D=4 ---
+    efe-shooting : err = 0.0532 ± 0.0004   cost =   3504.9 us/action
+    efe-cem      : err = 0.0401 ± 0.0018   cost =   3460.1 us/action
+    dreamer      : err = 0.0460 ± 0.0019   cost =     60.8 us/action
+
+  --- D=8 ---
+    efe-shooting : err = 0.1244 ± 0.0090   cost =   4908.4 us/action
+    efe-cem      : err = 0.1144 ± 0.0065   cost =   6394.0 us/action
+    dreamer      : err = 0.0813 ± 0.0192   cost =     34.5 us/action
+
+  --- D=16 ---
+    efe-shooting : err = 0.1585 ± 0.0048   cost =   5723.8 us/action
+    efe-cem      : err = 0.1643 ± 0.0082   cost =   5961.4 us/action
+    dreamer      : err = 0.1002 ± 0.0161   cost =     50.0 us/action
+
+========================================================================
+  VERDICT
+========================================================================
+  D= 4: dreamer 0.0460 vs best-search 0.0401 -> matches=True; dreamer is 57.7x cheaper per action
+  D= 8: dreamer 0.0813 vs best-search 0.1144 -> matches=True; dreamer is 142.2x cheaper per action
+  D=16: dreamer 0.1002 vs best-search 0.1585 -> matches=True; dreamer is 114.4x cheaper per action
+
+  FINDING: the amortized actor MATCHES search on model-based control
+  across dimensions, while choosing actions at O(1) cost (one network
+  forward) vs search's O(n_samples) rollouts. Dreamer-style planning is
+  the right upgrade: same control, far cheaper inference.
+  [PASS]
+========================================================================
+  plot saved: results\dreamer.png
