@@ -133,6 +133,41 @@ def test_hill_discrimination_does_not_collapse_over_long_horizon():
     assert coherent - noise > 0.5
 
 
+def _run_hill_half(stimulus_fn, n_steps: int, prec_half: float):
+    torch.manual_seed(0)
+    ck = ConsciousKernel(
+        psi_mode="hill", psi_fe_scale=5.0, psi_hill_n=4.0,
+        psi_hill_K=0.1, alpha=1.0, psi_prec_half=prec_half,
+    )
+    psis = [ck.step(stimulus_fn(t)).psi for t in range(n_steps)]
+    return sum(psis[-30:]) / 30
+
+
+def test_psi_insensitive_to_former_clamp_constant():
+    """The fixed psi_prec_half clamp is no longer load-bearing.
+
+    With the self-calibrating half-point (EMA of mean precision), the former
+    magic constant is only an EMA bootstrap. Discrimination must hold across
+    wildly different psi_prec_half values, and the steady-state Psi must be ~the
+    same -- i.e. the metric no longer depends on hand-tuning that clamp.
+    """
+    pattern = torch.tensor([0.5, 0.2, 0.2, 0.1])
+    coh = lambda t: pattern + 0.01 * torch.randn(4)            # noqa: E731
+    noise = lambda t: torch.softmax(torch.randn(4), dim=-1)    # noqa: E731
+
+    coh_lo = _run_hill_half(coh, 300, prec_half=1.0)
+    coh_hi = _run_hill_half(coh, 300, prec_half=100.0)
+    noise_lo = _run_hill_half(noise, 300, prec_half=1.0)
+    noise_hi = _run_hill_half(noise, 300, prec_half=100.0)
+
+    # Both bootstrap values discriminate coherent from noise...
+    assert coh_lo > 0.7 and coh_hi > 0.7
+    assert noise_lo < 0.4 and noise_hi < 0.4
+    # ...and coherent Psi converges to ~the same value regardless of the former
+    # clamp constant (the adaptive half-point has absorbed it).
+    assert abs(coh_lo - coh_hi) < 0.15
+
+
 def test_cubic_mode_saturates_as_documented():
     # The known limitation we are fixing: cubic Psi saturates to 1.0 for both
     # coherent and noisy input (this is why hill mode exists).

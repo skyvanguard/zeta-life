@@ -110,6 +110,8 @@ class ConsciousKernel:
         psi_hill_n: float = 4.0,
         psi_hill_K: float = 0.1,
         psi_prec_half: float = 5.0,
+        psi_prec_adaptive: bool = True,
+        psi_prec_decay: float = 0.99,
         psi_w_prec: float = 0.45,
         psi_w_ref: float = 0.15,
         action_mode: str = "reactive",
@@ -127,34 +129,41 @@ class ConsciousKernel:
         self.save_interval = save_interval
         self.latent_weight = latent_weight
         self.alpha = alpha
-        # Psi metric configuration.
-        #   psi_mode="hill"   -> DEFAULT. Bounded Hill metric that discriminates
-        #                        degrees of integration (see compute_psi_hill).
-        #                        The cubic form saturates to 1.0 for any
-        #                        supercritical input, so it cannot separate
-        #                        coherent input from noise — hill is the usable
-        #                        metric and is therefore the default.
-        #   psi_mode="cubic"  -> original Psi = B^3 + Phi (clamped). Kept to
-        #                        reproduce earlier (pre-fix) paper results.
-        # psi_fe_scale controls how strongly free energy maps to Phi:
-        #   Phi = 1/(1 + psi_fe_scale * free_energy). Larger values are needed when
-        #   the system's free energy is small (e.g. after the interoceptive fix).
+        # --- Psi: integration index (ENGINEERING HEURISTIC) ---
+        # IMPORTANT: Psi is a bounded, monotone integration *heuristic*, not a
+        # derived or proven measure of consciousness (it is neither IIT's phi nor
+        # a free energy). It maps kernel signals (free energy, precision, coherence
+        # cost) onto a [0,1) order parameter that discriminates coherent input from
+        # noise. The constants below are CALIBRATION, not theory.
+        #
+        #   psi_mode="hill"  -> DEFAULT and recommended. Bounded Hill metric that
+        #                       discriminates degrees of integration.
+        #   psi_mode="cubic" -> DEPRECATED. Psi = B^3 + Phi saturates to 1.0 for
+        #                       any supercritical input (cannot discriminate);
+        #                       kept only to reproduce earlier paper results.
+        #   psi_fe_scale     -> calibration of the free-energy -> Phi reference
+        #                       scale: Phi = 1/(1 + psi_fe_scale * free_energy).
+        #                       Phi is NOT scale-invariant; this sets the
+        #                       free-energy operating point and is task-dependent.
         self.psi_mode = psi_mode
         self.psi_fe_scale = psi_fe_scale
         self.psi_hill_n = psi_hill_n
         self.psi_hill_K = psi_hill_K
-        # Binding-force (F_i) calibration for the critical threshold Phi_c.
-        #   F_i = psi_w_prec * prec_term + psi_w_ref * reflection_convergence
-        #   prec_term = prec_mean / (prec_mean + psi_prec_half)   in [0, 1)
-        # The bounded prec_term replaces the old unbounded `prec_mean / 10`, which
-        # was calibrated for precisions ~O(1). Once update_precisions() began
-        # training precisions toward inverse-error-variance they grew to O(10-50),
-        # inflating F_i above alpha so Phi_c = F_i/(alpha-C) exceeded Phi for ALL
-        # inputs -> B<0 -> Psi collapsed to 0 and stopped discriminating coherence
-        # from noise. Capping F_i at (psi_w_prec + psi_w_ref) keeps Phi_c safely
-        # below Phi for coherent input even as precisions saturate, so Psi stays
-        # supercritical for structure and subcritical for noise indefinitely.
+        # Binding force F_i = psi_w_prec * prec_term + psi_w_ref * reflection_conv,
+        # with prec_term = prec_mean / (prec_mean + half)  in [0, 1).
+        # SELF-CALIBRATING half-point (psi_prec_adaptive=True, default): `half`
+        # tracks an EMA of the mean precision, so prec_term stays near 0.5 however
+        # large the trained precisions grow. This REPLACES the old fixed
+        # psi_prec_half clamp: that constant had to be retuned every time the
+        # substrate improved (training precisions toward inverse-error-variance
+        # made them grow to O(10-50), inflating F_i past alpha so Phi_c > Phi for
+        # ALL inputs -> Psi collapsed to 0). With the adaptive half, F_i is bounded
+        # and scale-invariant by construction; no reactive clamp is needed.
+        # psi_prec_half is now only the EMA bootstrap / the fixed fallback when
+        # psi_prec_adaptive=False.
         self.psi_prec_half = psi_prec_half
+        self.psi_prec_adaptive = psi_prec_adaptive
+        self.psi_prec_decay = psi_prec_decay
         self.psi_w_prec = psi_w_prec
         self.psi_w_ref = psi_w_ref
 
@@ -230,6 +239,8 @@ class ConsciousKernel:
         self.last_action = torch.zeros(obs_dim)
         self.t: int = 0
         self.energy: float = 5.0
+        # EMA of the mean precision; the self-calibrating half-point for F_i.
+        self._prec_ref: float | None = None
         self._last_result: StepResult | None = None
 
     # ------------------------------------------------------------------
@@ -380,22 +391,24 @@ class ConsciousKernel:
         return result
 
     # ------------------------------------------------------------------
-    # Consciousness computation (Psi = B^3 + Phi)
+    # Integration index Psi (engineering heuristic; bounded Hill metric)
     # ------------------------------------------------------------------
 
     def _compute_psi(self, free_energy: float) -> float:
-        """Derive formal consciousness index Psi from kernel signals.
+        """Compute the integration index Psi from kernel signals.
 
-        Maps internal kernel signals to the formal equation parameters:
-        - Phi (integrated information): inverse of free energy + memory bonus
-        - F_i (binding force): mean precision + reflection convergence bonus
+        Psi is an ENGINEERING HEURISTIC (bounded, monotone), NOT a proven
+        consciousness measure. It maps kernel signals onto the integration
+        equations:
+        - Phi (integration): inverse free energy (calibrated) + memory bonus
+        - F_i (binding force): self-calibrated precision term + reflection conv.
         - C (coherence cost): mean recent prediction errors
         - alpha: coupling parameter (constructor arg)
 
         Returns
         -------
         float
-            Consciousness index clamped to [0, 1].
+            Integration index in [0, 1] (Hill mode) or clamped to [0, 1] (cubic).
         """
         # Phi: inverse of free energy + episodic memory bonus.
         # The cubic mode keeps the historical /10 scaling; the hill mode uses a
@@ -409,15 +422,21 @@ class ConsciousKernel:
         mem_ratio = len(self.fast_memory) / 500.0
         phi = phi_base + 0.2 * mem_ratio  # range ~[0.0, 1.2]
 
-        # F_i: bounded precision term + reflection convergence bonus.
-        # prec_term saturates in [0, 1) so trained precisions (which grow without
-        # bound as inverse error variance) cannot inflate F_i past its cap of
-        # (psi_w_prec + psi_w_ref). That cap keeps Phi_c below Phi for coherent
-        # input, which is what lets Psi discriminate structure from noise even at
-        # long horizons. See the constructor note for the full rationale.
+        # F_i: self-calibrated precision term + reflection convergence bonus.
+        # The saturating half-point tracks an EMA of the mean precision (adaptive
+        # mode), so prec_term stays near 0.5 however large the trained precisions
+        # grow -> F_i is bounded and scale-invariant by construction, with no fixed
+        # clamp to retune. See the constructor note.
         precisions = self.error_engine.precisions  # tensor (4,)
         prec_mean = float(precisions.mean().item())
-        prec_term = prec_mean / (prec_mean + self.psi_prec_half)
+        if self._prec_ref is None:
+            self._prec_ref = max(prec_mean, self.psi_prec_half)
+        else:
+            d = self.psi_prec_decay
+            self._prec_ref = d * self._prec_ref + (1.0 - d) * prec_mean
+        half = self._prec_ref if self.psi_prec_adaptive else self.psi_prec_half
+        denom = prec_mean + half
+        prec_term = prec_mean / denom if denom > 0 else 0.0
         F_i = self.psi_w_prec * prec_term
         if self.self_model.reflection_history:
             last_ref = self.self_model.reflection_history[-1]

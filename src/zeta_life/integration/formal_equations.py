@@ -1,19 +1,28 @@
 """
-Formal Equations for Emergent Coherent Integration
+Integration-index equations (engineering heuristics)
 ====================================================
 
-Mathematical framework for phase transitions in adaptive integration
-systems, corruption thresholds, and system stability prediction.
-Pure functions with no side effects.
+Bounded, monotone order parameters used by the ConsciousKernel to summarise how
+"integrated" its current state is. Pure functions, no side effects.
 
-Core equations:
+IMPORTANT -- scope and honesty: these are CALIBRATED HEURISTICS, not a derived
+theory of consciousness. Psi here is NOT IIT's phi and NOT a variational free
+energy; it is a phase-transition-shaped scalar fit to discriminate coherent
+input from noise. Treat it as an integration *signal*, and treat the constants
+(exponents, half-points, weights) as calibration, not derived quantities.
+
+Equations:
     Phi_c = F_i / (alpha - C)          [critical threshold]
-    B = (Phi - Phi_c) / Phi_c          [binding factor]
-    Psi = B^3 + Phi                    [integration index]
-    M_c = F_i / (alpha - C)            [critical mass]
+    B     = (Phi - Phi_c) / Phi_c      [binding factor]
+    Psi   = B^n / (K^n + B^n)          [integration index, Hill -- RECOMMENDED]
+    Psi   = B^3 + Phi                  [integration index, cubic -- DEPRECATED]
+    M_c   = F_i / (alpha - C)          [critical mass; see dimensional caveat]
     Ec.13: corruption threshold         [system stability]
 
-Reference: SkyVanguard formal derivation (2026-03-14)
+The cubic Psi = B^3 + Phi is DEPRECATED: it is unbounded and saturates (every
+supercritical state clamps to 1.0, so it cannot discriminate degrees of
+integration). Use :func:`compute_psi_hill`; the cubic form is kept only to
+reproduce earlier results.
 """
 
 from __future__ import annotations
@@ -74,7 +83,10 @@ def compute_B(phi: float, phi_c: float) -> float:
 
 def compute_psi(phi: float, phi_c: float) -> float:
     """
-    Compute consciousness index Psi.
+    Compute the cubic integration index Psi = B^3 + Phi. **DEPRECATED** -- use
+    :func:`compute_psi_hill`. This form is unbounded and saturates (every
+    supercritical state clamps to 1.0), so it cannot discriminate degrees of
+    integration. Kept only to reproduce earlier results.
 
     Psi = B^3 + Phi   (when Phi > Phi_c)
     Psi = 0            (when Phi <= Phi_c)
