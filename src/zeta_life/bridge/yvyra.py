@@ -7,8 +7,8 @@ Implements the semantic contract in ``docs/YVYRA_BRIDGE.md``:
 - STEP: ``kernel.step(stimulus)`` integrates the experience over time (Psi) and,
   separately, the bridge computes an EFE *suggestion* (toward the preferred
   character C) of which axis to lean into next.
-- DREAM/SAVE: periodic consolidation and persistence give continuity across
-  restarts.
+- DREAM/SAVE: periodic consolidation, and (when ``save_dir`` is set) automatic
+  persistence on the dream cadence, give continuity across restarts.
 
 Design note -- why the kernel runs *reactive*, not in EFE mode:
 The kernel's world model must learn ``experience(t) -> experience(t+1)`` so that
@@ -80,6 +80,7 @@ class YvyraBridge:
             obs_dim=4,
             action_mode="reactive",
             preference=self._C,
+            efe_obs_norm="l1",   # faithful projection for the EFE suggestion
             dream_interval=10**9,
         )
         self.save_dir = save_dir
@@ -135,6 +136,11 @@ class YvyraBridge:
         if self.dream_every and self.kernel.t % self.dream_every == 0:
             out["dream"] = self.dream()
             out["dreamed"] = True
+            # Persist on the dream cadence (the contract's "cada N ticks:
+            # dream() + save()") when a save_dir is configured.
+            if self.save_dir is not None:
+                self.save()
+                out["saved"] = True
         self._last = out
         return out
 
@@ -145,21 +151,14 @@ class YvyraBridge:
     def _suggest_axis(self) -> int:
         """Axis whose imagined outcome best moves experience toward C.
 
-        For each pure-axis action, the world model imagines the resulting
-        experience and we score the pragmatic value KL(C || softmax(imagine)).
-        The argmin is the suggested axis. Read-only: ``imagine`` does not mutate
-        the kernel state.
+        Scored by the kernel's OWN EFE cost (``_efe_cost``), so it uses the same
+        observation normalisation as the planner -- no second, divergent scoring.
+        One-hot candidates are appropriate here: we recommend an AXIS to lean
+        into, not a continuous action. Read-only (imagine does not mutate state).
         """
-        log_C = self._C.clamp(min=1e-6).log()
-        best_idx, best_g = 0, float("inf")
-        for i in range(4):
-            a = F.one_hot(torch.tensor(i), 4).float()
-            pred = self.kernel.world_model.imagine([a])[0]
-            proj = F.softmax(pred, dim=-1)
-            g = float((self._C * (log_C - proj.clamp(min=1e-6).log())).sum())
-            if g < best_g:
-                best_g, best_idx = g, i
-        return best_idx
+        costs = [self.kernel._efe_cost(F.one_hot(torch.tensor(i), 4).float())
+                 for i in range(4)]
+        return int(min(range(4), key=lambda i: costs[i]))
 
     # ------------------------------------------------------------------
     # State / dream / persistence

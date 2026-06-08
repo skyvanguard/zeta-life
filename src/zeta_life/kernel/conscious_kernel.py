@@ -167,7 +167,8 @@ class ConsciousKernel:
         # substrate improved (training precisions toward inverse-error-variance
         # made them grow to O(10-50), inflating F_i past alpha so Phi_c > Phi for
         # ALL inputs -> Psi collapsed to 0). With the adaptive half, F_i is bounded
-        # and scale-invariant by construction; no reactive clamp is needed.
+        # and ASYMPTOTICALLY scale-invariant -- there is a brief transient while
+        # the EMA tracks a new precision scale -- with no reactive clamp to retune.
         # psi_prec_half is now only the fixed fallback when psi_prec_adaptive=False
         # (adaptive mode bootstraps the EMA from the initial precision scale, so it
         # is genuinely independent of this constant).
@@ -214,12 +215,14 @@ class ConsciousKernel:
         self.efe_sample_scale = efe_sample_scale
         self.efe_horizon = efe_horizon
         self.efe_discount = efe_discount
-        # How the imagined observation is turned into a distribution before the
-        # KL to the preference. The observations ARE distributions (normalised
-        # states), so "l1" (clamp + divide by sum) is faithful and lets the
-        # planner score continuous actions near a non-vertex target correctly.
-        # "softmax" (default, legacy) re-flattens the prediction, which rewards
-        # only EXTREME (one-hot) actions and caps control on non-vertex targets.
+        # How the imagined observation is projected to the simplex before the KL
+        # to the preference (see _to_simplex). "l1" floors at 0 and L1-normalises:
+        # exact for the near-simplex outputs the predictor learns (it is trained
+        # on simplex observations), with negative outliers floored to ~0 -- NOT a
+        # general faithful map of arbitrary R^n. It lets the planner score
+        # continuous actions near a non-vertex target correctly. "softmax"
+        # (default, legacy) re-flattens the prediction, rewarding only EXTREME
+        # (one-hot) actions and capping control on non-vertex targets.
         self.efe_obs_norm = efe_obs_norm
         # Cross-Entropy Method (CEM) for continuous action selection. When
         # efe_cem_iters > 0 the planner refines a Gaussian sampling distribution
@@ -231,7 +234,9 @@ class ConsciousKernel:
         self.efe_cem_elite_frac = efe_cem_elite_frac
         # Epistemic term of the EFE: "entropy" (default, coarse outcome-entropy
         # proxy) or "disagreement" (the world model's ensemble disagreement, a
-        # real info-gain signal -- requires wm_disagreement_heads > 0).
+        # real info-gain signal -- requires wm_disagreement_heads > 0). NOTE:
+        # disagreement is ~O(1e-2), so efe_epistemic_weight must be large
+        # (O(10-100)) for it to compete with the pragmatic KL.
         self.efe_epistemic_mode = efe_epistemic_mode
         if action_candidates is not None:
             self._action_candidates = [a.detach() for a in action_candidates]
@@ -335,8 +340,9 @@ class ConsciousKernel:
         raw_self = F.softmax(stimulus, dim=-1)
         if self.action_mode == "efe" and self.preference is not None:
             # Active-inference action selection. predict() above already advanced
-            # the latent, so imagine() inside the planner uses the current latent.
-            actual_self = self._select_action_efe(raw_self, tf_vec)
+            # the latent, so imagine() inside the planner uses the current latent;
+            # the planner rebuilds the future temporal codes phi(t+1..t+H) itself.
+            actual_self = self._select_action_efe(raw_self)
         elif self.latent_weight > 0.0:
             latent_bias = self._latent_to_action(self.world_model.latent_state.detach())
             actual_self = F.softmax(raw_self + self.latent_weight * latent_bias, dim=-1)
@@ -472,9 +478,9 @@ class ConsciousKernel:
 
         # F_i: self-calibrated precision term + reflection convergence bonus.
         # The saturating half-point tracks an EMA of the mean precision (adaptive
-        # mode), so prec_term stays near 0.5 however large the trained precisions
-        # grow -> F_i is bounded and scale-invariant by construction, with no fixed
-        # clamp to retune. See the constructor note.
+        # mode), so prec_term settles near 0.5 however large the trained precisions
+        # grow -> F_i is bounded and ASYMPTOTICALLY scale-invariant (a brief
+        # transient while the EMA tracks), with no fixed clamp to retune.
         precisions = self.error_engine.precisions  # tensor (4,)
         prec_mean = float(precisions.mean().item())
         if self._prec_ref is None:
@@ -509,9 +515,7 @@ class ConsciousKernel:
     # Action selection (active inference)
     # ------------------------------------------------------------------
 
-    def _select_action_efe(
-        self, reactive_action: Tensor, temporal_feat: Tensor | None = None
-    ) -> Tensor:
+    def _select_action_efe(self, reactive_action: Tensor) -> Tensor:
         """Select an action by minimising expected free energy toward `preference`.
 
         For each candidate action ``a`` (the configured candidate set plus the
@@ -534,11 +538,9 @@ class ConsciousKernel:
             a = torch.rand(self.obs_dim)
             return (a / a.sum()).detach()
 
-        feat = temporal_feat.detach() if temporal_feat is not None else None
-
         # CEM refinement (continuous) takes over when configured.
         if self.efe_cem_iters > 0:
-            return self._select_action_cem(reactive_action, feat)
+            return self._select_action_cem(reactive_action)
 
         # Otherwise: flat candidate set = discrete basis + sampled CONTINUOUS
         # simplex actions (training-consistent) + the reactive action.
@@ -551,63 +553,99 @@ class ConsciousKernel:
 
         best, best_g = reactive_action.detach(), float("inf")
         for a in candidates:
-            g = self._efe_cost(a, feat)
+            g = self._efe_cost(a)
             if g < best_g:
                 best_g, best = g, a.detach()
         return best
 
-    def _efe_cost(self, a: Tensor, feat: Tensor | None) -> float:
-        """Expected free energy of sustaining action ``a`` over the horizon.
+    def _to_simplex(self, x: Tensor) -> Tensor:
+        """Project a (possibly unbounded) predictor output onto the simplex.
 
-        G = sum_t discount^t [ KL(preference || norm(imagine_t))
-                               - epistemic_weight * H(norm(imagine_t)) ].
-        ``imagine`` broadcasts a single temporal feature across the rollout and
-        does not mutate kernel state, so this is read-only.
+        "l1": floor at 0 and L1-normalise. Exact for the near-simplex outputs the
+        predictor learns (it is trained on simplex-valued observations); negative
+        outliers are floored to ~0 ("channel absent"), with a uniform fallback if
+        nothing is positive. NOT a general faithful map of arbitrary R^n -- only
+        of the predictor's trained range. "softmax": the legacy flattening map
+        (over-rewards extreme one-hot actions; caps control on non-vertex targets).
+        """
+        if self.efe_obs_norm == "l1":
+            p = x.clamp(min=0.0)
+            s = p.sum()
+            if float(s) <= 1e-8:
+                return torch.full_like(x, 1.0 / x.numel())
+            return p / s
+        return F.softmax(x, dim=-1)
+
+    def _horizon_features(self, horizon: int) -> list[Tensor] | None:
+        """Future temporal codes phi(t+1..t+horizon) for an anticipatory rollout.
+
+        Returns None when no temporal bank is configured. Using the FUTURE codes
+        (not a frozen phi(t) broadcast to every step) is what makes a horizon>1
+        plan genuinely anticipatory.
+        """
+        if self.temporal_features is None:
+            return None
+        return [self.temporal_features(self.t + k).detach()
+                for k in range(1, horizon + 1)]
+
+    def _efe_cost(self, a: Tensor) -> float:
+        """Expected free energy of committing to action ``a``.
+
+        Pragmatic value is summed and discounted over the horizon:
+            sum_t discount^t * KL(preference || simplex(imagine_t)).
+        Epistemic value depends on the mode:
+          - "entropy":      per-step, discounted outcome entropy (a coarse proxy);
+          - "disagreement": a single-step info-gain BONUS from the world model's
+            ensemble disagreement on the committed action (the immediate
+            information gain, NOT horizon-summed). Its magnitude is ~O(1e-2), so
+            efe_epistemic_weight must be large (O(10-100)) to compete with the
+            pragmatic KL.
+        With a temporal bank the rollout uses the FUTURE codes phi(t+1..t+H), so a
+        horizon>1 plan is anticipatory. imagine() does not mutate state (read-only).
         """
         pref = self.preference
         log_pref = pref.clamp(min=1e-6).log()
         horizon = max(1, self.efe_horizon)
-        preds = self.world_model.imagine([a] * horizon, feat)
+        feats = self._horizon_features(horizon)
+        preds = self.world_model.imagine([a] * horizon, feats)
         g, disc = 0.0, 1.0
         for pred_obs in preds:
-            if self.efe_obs_norm == "l1":
-                p = pred_obs.clamp(min=1e-6)
-                proj = p / p.sum()
-            else:
-                proj = F.softmax(pred_obs, dim=-1)
+            proj = self._to_simplex(pred_obs)
             log_proj = proj.clamp(min=1e-6).log()
             pragmatic = float((pref * (log_pref - log_proj)).sum())  # KL(pref||proj)
             g += disc * pragmatic
             if self.efe_epistemic_mode == "entropy":
-                # Coarse epistemic proxy: outcome entropy (per imagined step).
                 entropy = float(-(proj * log_proj).sum())
                 g -= disc * self.efe_epistemic_weight * entropy
             disc *= self.efe_discount
         if self.efe_epistemic_mode == "disagreement":
-            # Real info-gain signal: the world model's ensemble disagreement on
-            # this action (favour actions toward regions the model has not learned).
-            g -= self.efe_epistemic_weight * self.world_model.disagreement(a, feat)
+            first_feat = feats[0] if feats is not None else None
+            g -= self.efe_epistemic_weight * self.world_model.disagreement(a, first_feat)
         return g
 
-    def _select_action_cem(self, reactive_action: Tensor, feat: Tensor | None) -> Tensor:
+    def _select_action_cem(self, reactive_action: Tensor) -> Tensor:
         """Cross-Entropy Method action search in logit space.
 
         Iteratively samples a population of continuous simplex actions from a
         Gaussian over logits, keeps the elite (lowest expected free energy), and
-        refits the Gaussian to them. Returns the best action found. Finds better
-        actions per sample than one-shot random shooting, especially under a
-        tight budget.
+        refits the Gaussian to them. The discrete basis and the reactive action
+        are ALSO scored, so CEM never returns worse than the flat candidate set.
         """
         obs_dim = self.obs_dim
         pop = self.efe_n_samples if self.efe_n_samples > 0 else 16
         elite_n = max(2, int(pop * self.efe_cem_elite_frac))
+        # Seed the incumbent with the discrete basis + reactive action.
+        best, best_g = reactive_action.detach(), float("inf")
+        for a0 in self._action_candidates + [reactive_action]:
+            c0 = self._efe_cost(a0)
+            if c0 < best_g:
+                best_g, best = c0, a0.detach()
         mu = torch.zeros(obs_dim)
         sigma = torch.full((obs_dim,), self.efe_sample_scale)
-        best, best_g = reactive_action.detach(), float("inf")
         for _ in range(self.efe_cem_iters):
             logits = mu + sigma * torch.randn(pop, obs_dim)
             actions = F.softmax(logits, dim=-1)
-            costs = [self._efe_cost(actions[i], feat) for i in range(pop)]
+            costs = [self._efe_cost(actions[i]) for i in range(pop)]
             elite = sorted(range(pop), key=lambda i: costs[i])[:elite_n]
             if costs[elite[0]] < best_g:
                 best_g, best = costs[elite[0]], actions[elite[0]].detach()

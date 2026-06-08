@@ -87,3 +87,44 @@ class TestControl:
         dist = _control_dist(
             dict(action_mode="efe", efe_n_samples=16, efe_cem_iters=3, efe_obs_norm="l1"))
         assert dist < 0.12, f"CEM did not reach the target (dist={dist:.3f})"
+
+
+class TestEFEFixes:
+    """Locks in the correctness fixes from the adversarial review."""
+
+    def test_to_simplex_handles_negatives(self):
+        # H5: l1 projection floors negatives and returns a valid distribution.
+        ck = ConsciousKernel(action_mode="efe", preference=TARGET, efe_obs_norm="l1")
+        proj = ck._to_simplex(torch.tensor([2.0, -1.0, 0.5, -3.0]))
+        assert abs(float(proj.sum()) - 1.0) < 1e-5
+        assert (proj >= 0).all()
+        assert proj[1] == 0.0 and proj[3] == 0.0  # negatives floored
+
+    def test_to_simplex_uniform_fallback(self):
+        ck = ConsciousKernel(action_mode="efe", preference=TARGET, efe_obs_norm="l1")
+        proj = ck._to_simplex(torch.tensor([-1.0, -2.0, -3.0, -4.0]))
+        assert torch.allclose(proj, torch.full((4,), 0.25), atol=1e-6)
+
+    def test_horizon_features_are_anticipatory(self):
+        # H4: with a temporal bank, the horizon uses DISTINCT future codes
+        # phi(t+1..t+H), not a frozen present code.
+        from zeta_life.kernel.temporal_features import OscillatorBank
+        ck = ConsciousKernel(action_mode="efe", preference=TARGET,
+                             temporal_features=OscillatorBank.zeta(M=8))
+        ck.t = 5
+        feats = ck._horizon_features(3)
+        assert feats is not None and len(feats) == 3
+        assert not torch.allclose(feats[0], feats[1])  # distinct future steps
+
+    def test_horizon_features_none_without_bank(self):
+        ck = ConsciousKernel(action_mode="efe", preference=TARGET)
+        assert ck._horizon_features(3) is None
+
+    def test_efe_temporal_horizon_runs(self):
+        from zeta_life.kernel.temporal_features import OscillatorBank
+        ck = ConsciousKernel(action_mode="efe", preference=TARGET, efe_obs_norm="l1",
+                             efe_n_samples=8, efe_horizon=3,
+                             temporal_features=OscillatorBank.zeta(M=8))
+        for _ in range(5):
+            result = ck.step(torch.rand(4))
+        assert result.action.shape == (4,)

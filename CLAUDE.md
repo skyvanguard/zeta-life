@@ -42,7 +42,7 @@ zeta-life/
 ├── experiments/
 │   ├── kernel/          # 16 experiments (the live research)
 │   └── datasets/        # 1 experiment (Psi on real data)
-├── tests/               # 25 test files (475 tests)
+├── tests/               # 25 test files (480 tests)
 ├── results/             # experiment outputs (PNG + run .txt)
 ├── docs/                # reports, papers, plans, theory
 ├── models/              # trained weights (.pt)
