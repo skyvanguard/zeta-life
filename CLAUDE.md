@@ -40,9 +40,9 @@ zeta-life/
 │   ├── core/            # zeta_constants, vertex, tetrahedral geometry
 │   └── utils/           # statistics helpers
 ├── experiments/
-│   ├── kernel/          # 13 experiments (the live research)
+│   ├── kernel/          # 14 experiments (the live research)
 │   └── datasets/        # 1 experiment (Psi on real data)
-├── tests/               # 22 test files (462 tests)
+├── tests/               # 23 test files (467 tests)
 ├── results/             # experiment outputs (PNG + run .txt)
 ├── docs/                # reports, papers, plans, theory
 ├── models/              # trained weights (.pt)
@@ -165,6 +165,8 @@ The competing consciousness formalisms (psyche `ConsciousnessIndex`, hierarchica
 | `reflect_interval` | 5 | Self-reflection cadence |
 | `dream_interval` | 50 | Dream consolidation cadence |
 | `action_mode` | reactive / efe | Reactive softmax vs expected-free-energy planning |
+| `efe_n_samples` | 0 / 48 | EFE: add N sampled CONTINUOUS candidate actions (0 = one-hots only). Continuous + `efe_obs_norm="l1"` lets the planner reach non-vertex targets (see `exp_control.py`) |
+| `efe_horizon` | 1 | EFE planning horizon (sustained-action rollout). >1 found YAGNI in the 4-D env |
 
 ## Documentation
 

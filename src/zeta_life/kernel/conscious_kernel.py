@@ -119,6 +119,11 @@ class ConsciousKernel:
         action_candidates: list[Tensor] | None = None,
         explore_eps: float = 0.0,
         efe_epistemic_weight: float = 0.0,
+        efe_n_samples: int = 0,
+        efe_sample_scale: float = 1.5,
+        efe_horizon: int = 1,
+        efe_discount: float = 1.0,
+        efe_obs_norm: str = "softmax",
         temporal_features: OscillatorBank | None = None,
     ) -> None:
         self.obs_dim = obs_dim
@@ -189,6 +194,29 @@ class ConsciousKernel:
         )
         self.explore_eps = explore_eps
         self.efe_epistemic_weight = efe_epistemic_weight
+        # Continuous action candidates + planning horizon (the "controla" work).
+        #   efe_n_samples > 0 -> in addition to the discrete candidates, sample
+        #     this many CONTINUOUS simplex actions (softmax of Gaussian logits,
+        #     scale efe_sample_scale). The agency investigation found the original
+        #     one-hot-only candidate set is OUT OF DISTRIBUTION for a world model
+        #     trained on continuous actions, which caps control on non-vertex
+        #     targets; sampled continuous candidates are training-consistent and
+        #     let the planner actually reach arbitrary targets.
+        #   efe_horizon > 1 -> evaluate each candidate as a SUSTAINED action over
+        #     this many imagined steps, summing discounted (efe_discount) expected
+        #     free energy. Helps when the environment has inertia.
+        # Defaults (0, 1) are byte-identical to the prior discrete 1-step planner.
+        self.efe_n_samples = efe_n_samples
+        self.efe_sample_scale = efe_sample_scale
+        self.efe_horizon = efe_horizon
+        self.efe_discount = efe_discount
+        # How the imagined observation is turned into a distribution before the
+        # KL to the preference. The observations ARE distributions (normalised
+        # states), so "l1" (clamp + divide by sum) is faithful and lets the
+        # planner score continuous actions near a non-vertex target correctly.
+        # "softmax" (default, legacy) re-flattens the prediction, which rewards
+        # only EXTREME (one-hot) actions and caps control on non-vertex targets.
+        self.efe_obs_norm = efe_obs_norm
         if action_candidates is not None:
             self._action_candidates = [a.detach() for a in action_candidates]
         else:
@@ -490,14 +518,34 @@ class ConsciousKernel:
         pref = self.preference
         log_pref = pref.clamp(min=1e-6).log()
         feat = temporal_feat.detach() if temporal_feat is not None else None
+
+        # Candidate set: discrete basis + sampled CONTINUOUS simplex actions
+        # (training-consistent) + the reactive action.
+        candidates = list(self._action_candidates)
+        if self.efe_n_samples > 0:
+            logits = torch.randn(self.efe_n_samples, self.obs_dim) * self.efe_sample_scale
+            samples = F.softmax(logits, dim=-1)
+            candidates += [samples[i] for i in range(self.efe_n_samples)]
+        candidates.append(reactive_action)
+
+        horizon = max(1, self.efe_horizon)
         best, best_g = reactive_action.detach(), float("inf")
-        for a in self._action_candidates + [reactive_action]:
-            pred_obs = self.world_model.imagine([a], feat)[0]
-            proj = F.softmax(pred_obs, dim=-1)
-            log_proj = proj.clamp(min=1e-6).log()
-            pragmatic = float((pref * (log_pref - log_proj)).sum())  # KL(pref || proj)
-            entropy = float(-(proj * log_proj).sum())
-            g = pragmatic - self.efe_epistemic_weight * entropy
+        for a in candidates:
+            # Evaluate `a` as a SUSTAINED action over the horizon; imagine()
+            # broadcasts a single temporal feature across the rollout.
+            preds = self.world_model.imagine([a] * horizon, feat)
+            g, disc = 0.0, 1.0
+            for pred_obs in preds:
+                if self.efe_obs_norm == "l1":
+                    p = pred_obs.clamp(min=1e-6)
+                    proj = p / p.sum()
+                else:
+                    proj = F.softmax(pred_obs, dim=-1)
+                log_proj = proj.clamp(min=1e-6).log()
+                pragmatic = float((pref * (log_pref - log_proj)).sum())  # KL(pref||proj)
+                entropy = float(-(proj * log_proj).sum())
+                g += disc * (pragmatic - self.efe_epistemic_weight * entropy)
+                disc *= self.efe_discount
             if g < best_g:
                 best_g, best = g, a.detach()
         return best

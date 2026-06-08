@@ -1,0 +1,23 @@
+======================================================================
+  CONTROL — continuous EFE action selection (closing 'controla')
+======================================================================
+  target C = [0.7, 0.1, 0.1, 0.1]  (non-vertex)
+  steps=500  warmup=250  seeds=[0, 1, 2]
+  metric = ||state - C|| over last 20% (LOWER = better control)
+
+  reactive       : dist = 0.5196 ± 0.0000   cosine = 0.6934
+  efe-discrete   : dist = 0.3464 ± 0.0000   cosine = 0.9707
+  efe-continuous : dist = 0.0506 ± 0.0035   cosine = 0.9977
+  efe-cont-h4    : dist = 0.0784 ± 0.0043   cosine = 0.9945
+
+======================================================================
+  VERDICT
+======================================================================
+  continuous < discrete (fine actions help):  True (0.0506 vs 0.3464)
+  continuous reaches the target (dist<0.1):   True (0.0506)
+  vs reactive baseline:                       0.5196
+  horizon-4 vs horizon-1:                     0.0784 vs 0.0506 (no clear gain (YAGNI, per agency))
+
+  [PASS] continuous EFE controls the state to a non-vertex target; the one-hot planner cannot
+======================================================================
+  plot saved: results\control.png
