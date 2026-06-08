@@ -1,0 +1,29 @@
+======================================================================
+  REAL TASK — Mackey-Glass one-step prediction (NMSE, test half)
+======================================================================
+  series: Mackey-Glass tau=17, n=3000, var=1.000 (normalised)
+  metric = NMSE over the test half (last 1500 steps); lower=better
+
+  persistence : NMSE = 0.0216 ± 0.0000
+  AR(16)      : NMSE = 0.0000 ± 0.0000
+  plain GRU   : NMSE = 0.0229 ± 0.0026
+  kernel WM (direct): NMSE = 0.0460 ± 0.0101
+  kernel (agent): NMSE = 0.1811 ± 0.0030
+
+======================================================================
+  VERDICT
+======================================================================
+  core (kernel WM, raw input) vs plain GRU : 0.0460 vs 0.0229 (worse)
+  agent loop (softmax action) vs core      : 0.1811 vs 0.0460 (big handicap)
+  best simple baseline (AR/persistence)    : 0.0000
+
+  FINDING:
+  - Even the core underperforms a plain GRU (0.046 vs 0.023).
+  - But the full AGENT loop is much worse: it feeds the transition
+    softmax(obs) (a constant for obs_dim=1), destroying the input signal.
+    The kernel is an ACTION-CONDITIONED agent, not a sequence predictor;
+    on pure prediction that design is a real handicap.
+  - Linear AR essentially solves one-step Mackey-Glass (0.0000); no
+    nonlinear model is needed for the 1-step horizon. Honest, bounding result.
+======================================================================
+  plot saved: results\realtask.png

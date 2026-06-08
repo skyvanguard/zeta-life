@@ -162,7 +162,7 @@ zeta-life/
 |   +-- utils/           # Shared utilities
 |
 |-- experiments/
-|   |-- kernel/          # 16 kernel experiments (the live research)
+|   |-- kernel/          # 17 kernel experiments (the live research)
 |   +-- datasets/        # 1 experiment (Psi on real data)
 |
 |-- tests/               # 25 test files (480 tests)

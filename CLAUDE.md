@@ -40,7 +40,7 @@ zeta-life/
 │   ├── core/            # zeta_constants, vertex, tetrahedral geometry
 │   └── utils/           # statistics helpers
 ├── experiments/
-│   ├── kernel/          # 16 experiments (the live research)
+│   ├── kernel/          # 17 experiments (the live research)
 │   └── datasets/        # 1 experiment (Psi on real data)
 ├── tests/               # 25 test files (480 tests)
 ├── results/             # experiment outputs (PNG + run .txt)

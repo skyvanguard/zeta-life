@@ -12,7 +12,7 @@ Presentamos el **Conscious Kernel**: una unidad adaptativa de **inferencia activ
 `PERCIBIR → PREDECIR → COMPARAR → ACTUALIZAR → MEMORIZAR → ACTUAR → REFLEXIONAR → SOÑAR`
 sobre un modelo del mundo aprendido, un modelo de sí mismo recursivo, errores de predicción ponderados por precisión, memoria complementaria (rápida/lenta), selección de acción por energía libre esperada (EFE), e identidad persistente entre sesiones. Sobre el kernel se construye un **organismo darwiniano** multi-kernel.
 
-El proyecto nació integrando los ceros de la función zeta de Riemann con sistemas de vida artificial. Esta reescritura documenta un cambio honesto de tesis: **los valores específicos de zeta no son load-bearing** fuera de un dominio (autómatas celulares espaciales); el motor real es la inferencia activa. Reportamos, con el mismo rigor, lo que **funciona** y lo que **no**: (i) un índice de integración Ψ **auto-calibrante** y robusto; (ii) que una red equiespaciada (Fourier) **iguala o supera** a zeta en el camino temporal; (iii) **control continuo** que alcanza objetivos arbitrarios (cierra el verbo "controlar"); (iv) que el refinamiento CEM **no aporta** en control unimodal; y (v) que una señal epistémica de **disagreement** de ensemble **no produce un efecto confiable** de exploración bajo una comparación controlada (un positivo aparente previo resultó ser un artefacto de RNG, corregido — un caso de estudio del propio rigor). El código, 16 experimentos y 480 tests son reproducibles.
+El proyecto nació integrando los ceros de la función zeta de Riemann con sistemas de vida artificial. Esta reescritura documenta un cambio honesto de tesis: **los valores específicos de zeta no son load-bearing** fuera de un dominio (autómatas celulares espaciales); el motor real es la inferencia activa. Reportamos, con el mismo rigor, lo que **funciona** y lo que **no**: (i) un índice de integración Ψ **auto-calibrante** y robusto; (ii) que una red equiespaciada (Fourier) **iguala o supera** a zeta en el camino temporal; (iii) **control continuo** que alcanza objetivos arbitrarios (cierra el verbo "controlar"); (iv) que el refinamiento CEM **no aporta** en control unimodal; y (v) que una señal epistémica de **disagreement** de ensemble **no produce un efecto confiable** de exploración bajo una comparación controlada (un positivo aparente previo resultó ser un artefacto de RNG, corregido — un caso de estudio del propio rigor). Un primer **benchmark externo** (Mackey-Glass) es **acotante**: como agente condicionado por acción, el kernel queda por debajo de baselines simples en predicción pura. El código, 17 experimentos y 480 tests son reproducibles.
 
 **Palabras clave:** inferencia activa, principio de energía libre, consciencia computacional, integración emergente, curiosidad por disagreement, sistemas darwinianos multi-agente.
 
@@ -96,6 +96,19 @@ El Cross-Entropy Method está implementado, pero **no mejora de forma confiable*
 ### 3.5 Curiosidad por disagreement: un negativo bajo control (`exp_curiosity.py`)
 En un entorno de dos regímenes que esconde dinámica tras la exploración, dotamos al término epistémico de una señal **real** (disagreement de ensemble). Una versión preliminar mostró al agente curioso visitando el régimen novel ~2× más — pero una **revisión adversarial encontró un confound de RNG**: construir/entrenar el ensemble corría el stuck global de torch, del que el muestreador de acción EFE también toma, así que "ensemble on vs off" **no era una comparación controlada**. Corregido (RNG dedicado para el masking + el brazo pragmático carga el mismo ensemble con peso 0), el efecto **se desploma**: pragmático 0.282 vs curioso 0.308, **diferencia pareada +0.025 (t=0.30, n=16, no significativa)**, con el curioso ganando 7/16 semillas (casi una moneda). Conclusión honesta: el disagreement-curiosity **no impulsa exploración de forma confiable** en este régimen; el positivo aparente era el artefacto. (Es un buen caso de estudio de por qué importan las comparaciones controladas y la verificación adversarial.)
 
+### 3.6 Tarea externa: Mackey-Glass (`exp_realtask.py`)
+Primer test fuera del símplex auto-construido: predicción one-step de **Mackey-Glass** (τ=17), un benchmark caótico canónico, contra baselines honestos (NMSE sobre la mitad de test):
+
+| modelo | NMSE ↓ |
+|---|---|
+| AR(16) lineal | ~0.000 |
+| persistencia | 0.022 |
+| GRU plano | 0.023 |
+| kernel WM (núcleo, señal cruda) | 0.046 |
+| kernel (loop agente, acción=softmax(obs)) | 0.181 |
+
+Hallazgo honesto, en dos partes: (a) el **núcleo** (world model con señal cruda) *transfiere* pero queda ~2× por debajo de un GRU dedicado; (b) el **loop agente completo** es ~8× peor, porque su transición recibe `softmax(obs)` (constante para obs_dim=1) y se pierde la señal — el kernel es un **agente condicionado por acción, no un predictor de secuencias**, y en predicción pura ese diseño es un handicap real. Además, AR lineal resuelve el horizonte de 1 paso (~0), así que ningún modelo no-lineal es necesario ahí. Es el primer dato de benchmark externo y acota dónde sirve el core.
+
 ---
 
 ## 4. Discusión
@@ -123,7 +136,12 @@ Recurrentemente, las extensiones (horizonte, epistémico-proxy, CEM, espectro ze
 ### 4.5 Limitaciones
 - Energía libre = solo término de accuracy (sin KL/complejidad).
 - El ensemble es de cabezas con latente compartido (captura incertidumbre del predictor, no de la transición).
-- Entornos de baja dimensión (4-D símplex); falta validación en tareas ricas/reales (objetivo del puente Yvyra).
+- Entornos mayormente de baja dimensión (4-D símplex). El primer benchmark
+  externo (Mackey-Glass, §3.6) es un resultado ACOTANTE, no de éxito: el loop
+  agente queda ~8× por debajo de baselines simples y el núcleo ~2× por debajo de
+  un GRU dedicado. El kernel es un sustrato de agente, no un predictor SOTA;
+  validación en tareas ricas/reales de control (vs predicción) sigue pendiente
+  (objetivo del puente Yvyra).
 - Ψ sigue dependiendo de una constante de escala FE→Φ (`psi_fe_scale`), documentada como calibración, no derivada.
 
 ---
@@ -146,6 +164,7 @@ PYTHONPATH=src python experiments/kernel/exp_spacing_statistics.py --kernel
 PYTHONPATH=src python experiments/kernel/exp_control.py
 PYTHONPATH=src python experiments/kernel/exp_cem.py
 PYTHONPATH=src python experiments/kernel/exp_curiosity.py
+PYTHONPATH=src python experiments/kernel/exp_realtask.py
 PYTHONPATH=src python experiments/kernel/exp_yvyra_bridge.py
 ```
 Salidas (figuras + `.txt`) en `results/`. Diseño del puente en `docs/YVYRA_BRIDGE.md`; índice de integración en `src/zeta_life/integration/formal_equations.py`.
