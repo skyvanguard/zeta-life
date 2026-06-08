@@ -1,0 +1,39 @@
+========================================================================
+  PSI ROBUSTNESS — self-calibrating vs fixed clamp
+========================================================================
+  steps=300  seeds=[0, 1, 2]  psi_prec_half sweep=[0.5, 1.0, 2.0, 5.0, 20.0, 50.0, 100.0]
+  metric = steady-state Psi (last 30 steps); gap = coherent - noise
+
+  --- adaptive ---
+     half  coherent    noise      gap
+      0.5    1.0000   0.3165   0.6835
+      1.0    1.0000   0.3165   0.6835
+      2.0    1.0000   0.3165   0.6835
+      5.0    1.0000   0.3165   0.6835
+     20.0    1.0000   0.3165   0.6835
+     50.0    1.0000   0.3165   0.6835
+    100.0    1.0000   0.3165   0.6835
+
+  --- fixed ---
+     half  coherent    noise      gap
+      0.5    1.0000   0.1051   0.8949
+      1.0    1.0000   0.1281   0.8719
+      2.0    1.0000   0.2169   0.7831
+      5.0    1.0000   0.4404   0.5596
+     20.0    1.0000   0.9996   0.0004
+     50.0    1.0000   1.0000   0.0000
+    100.0    1.0000   1.0000   0.0000
+
+========================================================================
+  VERDICT
+========================================================================
+  discrimination gap across the sweep:
+    adaptive: min=0.6835 max=0.6835 spread=0.0000
+    fixed:    min=0.0000 max=0.8949 spread=0.8949
+
+  adaptive gap is flatter than fixed (clamp not load-bearing): True
+  adaptive discriminates across the whole sweep (gap>0.5):     True
+
+  [PASS] the self-calibrating Psi removes the clamp dependence while keeping discrimination
+========================================================================
+  plot saved: results\psi_robustness.png

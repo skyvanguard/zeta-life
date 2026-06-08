@@ -159,8 +159,9 @@ class ConsciousKernel:
         # made them grow to O(10-50), inflating F_i past alpha so Phi_c > Phi for
         # ALL inputs -> Psi collapsed to 0). With the adaptive half, F_i is bounded
         # and scale-invariant by construction; no reactive clamp is needed.
-        # psi_prec_half is now only the EMA bootstrap / the fixed fallback when
-        # psi_prec_adaptive=False.
+        # psi_prec_half is now only the fixed fallback when psi_prec_adaptive=False
+        # (adaptive mode bootstraps the EMA from the initial precision scale, so it
+        # is genuinely independent of this constant).
         self.psi_prec_half = psi_prec_half
         self.psi_prec_adaptive = psi_prec_adaptive
         self.psi_prec_decay = psi_prec_decay
@@ -430,7 +431,10 @@ class ConsciousKernel:
         precisions = self.error_engine.precisions  # tensor (4,)
         prec_mean = float(precisions.mean().item())
         if self._prec_ref is None:
-            self._prec_ref = max(prec_mean, self.psi_prec_half)
+            # Bootstrap from the system's OWN initial precision scale, not from
+            # psi_prec_half — this keeps adaptive mode genuinely independent of the
+            # former clamp constant (psi_prec_half only matters when adaptive=False).
+            self._prec_ref = max(prec_mean, 1e-6)
         else:
             d = self.psi_prec_decay
             self._prec_ref = d * self._prec_ref + (1.0 - d) * prec_mean
