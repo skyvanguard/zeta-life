@@ -1,14 +1,21 @@
 """
-Zeta Life - Artificial Consciousness through Riemann Zeta Function
+Zeta Life - Emergent coherent integration via active inference
 
-A research framework integrating the Riemann zeta function's non-trivial zeros
-with artificial life systems, emergent intelligence, and Jungian psychology.
+A research framework for machine consciousness built around the active-inference
+Conscious Kernel: a learned world model, recursive self-model, precision-weighted
+prediction errors, complementary (fast/slow) memory, expected-free-energy agency,
+and persistent identity -- with a Darwinian multi-kernel organism on top.
 
-Core Systems:
-- ZetaOrganism: Multi-agent emergent intelligence
-- ZetaPsyche: Jungian archetype-based consciousness
-- ZetaConsciousness: Hierarchical consciousness architecture
-- ZetaCellular: Cellular automata with zeta-derived kernels
+Core:
+- ConsciousKernel:   active-inference agent              (zeta_life.kernel)
+- ConsciousOrganism: Darwinian multi-kernel competition  (zeta_life.kernel)
+- formal_equations:  the integration index Psi           (zeta_life.integration)
+
+Legacy (frozen, slated for archival): psyche (Jungian archetypes), the
+hierarchical/IPUESA integration stack, organism (Fi-Mi swarm), evolution.
+
+The Riemann zeta zeros (the project's namesake) are an optional, tested temporal
+component -- not load-bearing outside the spatial cellular automata.
 
 Author: Francisco Ruiz
 License: MIT

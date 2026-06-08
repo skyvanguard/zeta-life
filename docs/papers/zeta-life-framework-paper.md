@@ -6,6 +6,35 @@
 
 ---
 
+> ## ⚠️ Erratum / Nota del autor (2026-06)
+>
+> Experimentos posteriores y controlados de este mismo proyecto **falsifican
+> parcialmente la tesis central** de este paper. La afirmación de que *los valores
+> específicos* de los zeros de Riemann son load-bearing no se sostiene fuera de un
+> único dominio:
+>
+> - **Autómatas celulares (espacial):** el kernel zeta sí gana (resultado #1, +134%
+>   vs Moore, vence también a UNIFORM, p<0.001). **Aquí la tesis se sostiene.**
+> - **Dinámica de consciencia/psyche:** ZETA == UNIFORM (Δ≈0, **p=1.0**); el paper
+>   ya lo reportaba en sus resultados negativos. Lo que importa es *tener modulación
+>   estructurada*, no las frecuencias de zeta.
+> - **Kernel / predicción temporal (active inference):** una red equiespaciada
+>   (Fourier) **iguala o supera** a zeta, incluso en señales construidas con
+>   frecuencias zeta; la repulsión de niveles GUE de los zeros es funcionalmente
+>   plana. Ver `results/zeta_vs_baselines_run.txt` y `results/spacing_statistics_run.txt`.
+> - **RNN:** la mejora del ~10% conjeturada **no fue validada** (0–6%, dependiente
+>   de semilla).
+>
+> **Reencuadre.** El centro de gravedad real del proyecto se desplazó a un
+> **kernel de inferencia activa** (`src/zeta_life/kernel/`) cuyo índice de
+> integración Ψ y cuya dinámica **no dependen de zeta**. Tratá los zeros de zeta
+> como una **decisión de diseño probada y mayormente falsada** (un resultado
+> negativo valioso, coherente con el ethos de falsificación del propio paper), no
+> como la Contribución #1. El resto de este documento se conserva como registro
+> histórico.
+
+---
+
 ## Resumen
 
 Presentamos Zeta-Life, un framework de investigación que unifica tres dominios tradicionalmente separados: las matemáticas de los zeros de la función zeta de Riemann, el comportamiento emergente en sistemas multi-agente, y definiciones operacionales de identidad funcional. El framework se construye sobre una intuición matemática clave: los zeros de zeta ocupan la línea crítica Re(s)=1/2, representando una frontera natural de "borde del caos" que produce dinámicas ni rígidas ni aleatorias. Demostramos esta unificación a través de cinco resultados principales: (1) autómatas celulares con kernels ponderados por zeta muestran +134% de supervivencia versus vecindarios Moore estándar; (2) organismos multi-agente exhiben 11 propiedades emergentes sin programación explícita; (3) la metodología IPUESA operacionaliza "self" como un atractor medible alcanzando 6/6 criterios dentro de un régimen calibrado estrecho; (4) la arquitectura de vértices abstractos permite investigación sin sesgo de dinámicas de identidad; (5) comportamiento de compensación emergente refleja predicciones teóricas de psicología profunda. Nuestro enfoque de falsificación sistemática documenta no solo éxitos sino fracasos críticos, revelando que la identidad funcional es alcanzable pero frágil—existiendo solo dentro de una "zona Goldilocks" precisa. Liberamos el código completo (93,000+ líneas), 72 experimentos y notebooks interactivos para reproducción y extensión.

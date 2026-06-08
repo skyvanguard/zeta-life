@@ -5,7 +5,7 @@
 [![Python 3.9+](https://img.shields.io/badge/python-3.9+-blue.svg)](https://www.python.org/downloads/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Code style: ruff](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/astral-sh/ruff/main/assets/badge/v2.json)](https://github.com/astral-sh/ruff)
-[![Tests](https://img.shields.io/badge/tests-766%20passed-brightgreen.svg)](tests/)
+[![Tests](https://img.shields.io/badge/tests-802%20passed-brightgreen.svg)](tests/)
 
 ---
 
@@ -51,11 +51,12 @@ The integration index $\Psi$ is derived from internal signals:
 - $C$ (coherence cost) from recent prediction errors
 
 ```python
+import torch
 from zeta_life.kernel import ConsciousKernel
 
-kernel = ConsciousKernel(state_dim=32, alpha=1.0)
-result = kernel.step(stimulus)
-print(result.psi)       # integration index [0, 1]
+kernel = ConsciousKernel(obs_dim=4, latent_dim=32, alpha=1.0)
+result = kernel.step(torch.randn(4))
+print(result.psi)          # integration index [0, 1]
 print(result.free_energy)  # prediction error magnitude
 ```
 
@@ -64,15 +65,18 @@ print(result.free_energy)  # prediction error magnitude
 Multiple kernels compete for a shared `GlobalWorkspace` via proposal strength. Energy-managed spawning, merging, and death create a Darwinian selection process at the kernel level.
 
 ```python
+import torch
 from zeta_life.kernel import ConsciousOrganism
 
-organism = ConsciousOrganism(n_kernels=5, state_dim=32)
-result = organism.step(stimulus)
-print(result.psi)           # organism-level integration
-print(result.active_kernels) # surviving kernel count
+organism = ConsciousOrganism(obs_dim=4, initial_kernels=5)
+result = organism.step(torch.randn(4))
+print(result.psi)         # organism-level integration
+print(result.population)  # surviving kernel count
 ```
 
-### Hierarchical Integration (Cells -> Clusters -> Organism)
+### Hierarchical Integration (Cells -> Clusters -> Organism) — legacy
+
+> **Legacy.** A parallel consciousness formalism not used by the live kernel; kept for reference, slated for archival.
 
 A separate simulation layer models multi-level integration with bidirectional information flow:
 
@@ -86,13 +90,15 @@ Cell Level       (individual micro-psyches with archetypes)
 
 The formal equations predict **corruption thresholds** (how much damage before collapse) and **critical mass** (minimum units needed for integration to emerge).
 
-### Zeta Function as Temporal Binding
+### Zeta Function as Temporal Binding (optional — tested, not load-bearing)
 
-The Riemann zeta function's non-trivial zeros provide the temporal structure:
+The Riemann zeta zeros give an *optional* temporal basis:
 
 $$K_\sigma(t) = 2 \sum_n \exp\!\bigl(-\sigma\,|\gamma_n|\bigr)\,\cos(\gamma_n\, t)$$
 
-where $\gamma_n$ are the imaginary parts of zeta zeros (14.134, 21.022, 25.011, ...). These frequencies drive memory consolidation in the DreamEngine and temporal binding in the ZetaRNN.
+where $\gamma_n$ are the imaginary parts of zeta zeros (14.134, 21.022, 25.011, ...). They drive the DreamEngine's consolidation rhythm and are available as an optional `OscillatorBank` time code for the world model.
+
+**Honest result (this project's own experiments).** The *specific* zeta spectrum is **not** load-bearing. In the kernel, an equispaced **Fourier lattice matches or beats zeta** at temporal prediction — even on a zeta-structured signal — and zeta's GUE level-repulsion is functionally flat (`results/zeta_vs_baselines_run.txt`, `results/spacing_statistics_run.txt`). In the consciousness dynamics, ZETA == UNIFORM (p=1.0). Zeta genuinely wins only in the spatial cellular automata. **Recommendation:** fixed temporal basis → `OscillatorBank.fourier`/`log_spaced`; adaptive → `learned`. Zeta is kept as a documented, tested design choice — not the thesis.
 
 ---
 
@@ -122,9 +128,9 @@ import torch
 from zeta_life.kernel import ConsciousKernel
 
 # Create a kernel and run it for 100 steps
-kernel = ConsciousKernel(state_dim=32)
+kernel = ConsciousKernel(obs_dim=4, latent_dim=32)
 for i in range(100):
-    stimulus = torch.randn(32)
+    stimulus = torch.randn(4)
     result = kernel.step(stimulus)
 
 print(f"Psi: {result.psi:.4f}")
@@ -148,7 +154,7 @@ python experiments/kernel/exp_organism_emergence.py
 ### Run Tests
 
 ```bash
-pytest tests/ -v   # 766 tests
+PYTHONPATH=src pytest tests/ -q   # ~802 tests (or `pip install -e .` first)
 ```
 
 ---
@@ -158,21 +164,21 @@ pytest tests/ -v   # 766 tests
 ```
 zeta-life/
 |-- src/zeta_life/
-|   |-- kernel/          # Active Inference kernel + organism
-|   |-- integration/     # Hierarchical integration (formal equations)
-|   |-- core/            # Zeta constants, RNN, resonance, tetrahedral space
-|   |-- organism/        # Multi-agent emergent intelligence (Fi-Mi dynamics)
-|   |-- evolution/       # Evolutionary parameter optimization (IPUESA)
-|   |-- psyche/          # Legacy archetype system (experimental)
-|   |-- datasets/        # Real-world dataset adapters
-|   +-- utils/           # Shared utilities
+|   |-- kernel/          # CORE - Active Inference kernel + Darwinian organism
+|   |-- integration/     # formal_equations.py (CORE) + hierarchical/IPUESA stack (legacy)
+|   |-- datasets/        # Real-world dataset adapters (for Psi validation)
+|   |-- core/            # zeta_constants/vertex/tetrahedral (core) + zeta_memory/rnn/resonance (legacy)
+|   |-- utils/           # Shared utilities
+|   |-- organism/        # legacy - Fi-Mi swarm artificial life
+|   |-- psyche/          # legacy - Jungian archetype consciousness (superseded by kernel)
+|   +-- evolution/       # legacy - GA optimizer for IPUESA hyperparameters
 |
 |-- experiments/
-|   |-- kernel/          # Kernel validation experiments
-|   +-- datasets/        # Phase transition + real data experiments
+|   |-- kernel/          # 11 kernel experiments (the live research)
+|   +-- datasets/        # 2 experiments (Psi on real data, phase transitions)
 |
-|-- tests/               # 766 unit tests
-+-- docs/                # Documentation and plans
+|-- tests/               # 40 test files (~802 tests)
++-- docs/                # Documentation, papers, plans
 ```
 
 ---
@@ -197,7 +203,7 @@ These are implemented as pure functions in `integration/formal_equations.py` and
 - **Complementary Learning Systems** (McClelland et al.) -- fast episodic + slow semantic memory
 - **Darwinian Brain** -- multi-kernel competition via Global Workspace
 - **Integrated Information Theory** (Tononi) -- Phi as integration measure
-- **Riemann zeta zeros** -- temporal binding frequencies for memory consolidation
+- **Riemann zeta zeros** -- optional temporal basis (tested; not load-bearing except in spatial CA -- see "Zeta Function as Temporal Binding")
 
 ---
 
