@@ -31,7 +31,9 @@
 > como una **decisión de diseño probada y mayormente falsada** (un resultado
 > negativo valioso, coherente con el ethos de falsificación del propio paper), no
 > como la Contribución #1. El resto de este documento se conserva como registro
-> histórico.
+> histórico. **La tesis vigente está en
+> [`conscious-kernel-paper.md`](./conscious-kernel-paper.md)** (El Conscious
+> Kernel: integración coherente emergente por inferencia activa).
 
 ---
 
