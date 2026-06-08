@@ -1,0 +1,24 @@
+======================================================================
+  CEM vs RANDOM SHOOTING — does refinement help this control task?
+======================================================================
+  matched budget=48/step  CEM iters=3  dims=[4, 8, 16, 32]
+  steps=300  seeds=[0, 1, 2, 3, 4]  metric=||state-C|| over last 20%
+
+   dim           random              cem  rel.improv
+     4    0.0714 ± 0.0096    0.0566 ± 0.0075      20.7%
+     8    0.1565 ± 0.0298    0.1653 ± 0.0182      -5.6%
+    16    0.2065 ± 0.0185    0.2142 ± 0.0183      -3.7%
+    32    0.1841 ± 0.0113    0.1950 ± 0.0145      -5.9%
+
+======================================================================
+  VERDICT (characterisation, not a win/lose gate)
+======================================================================
+  rel. improvement by dim: {4: 20.7, 8: -5.6, 16: -3.7, 32: -5.9} (%)
+  within seed noise by dim: {4: True, 8: True, 16: True, 32: True}
+
+  FINDING: no reliable CEM advantage in this regime — the sign flips
+  across dims and the gaps sit within seed noise. The inertial control
+  task is unimodal, so random shooting already suffices (agency scissor).
+  CEM is kept as a capability for harder action landscapes.
+======================================================================
+  plot saved: results\cem.png

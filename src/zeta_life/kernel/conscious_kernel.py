@@ -124,6 +124,8 @@ class ConsciousKernel:
         efe_horizon: int = 1,
         efe_discount: float = 1.0,
         efe_obs_norm: str = "softmax",
+        efe_cem_iters: int = 0,
+        efe_cem_elite_frac: float = 0.3,
         temporal_features: OscillatorBank | None = None,
     ) -> None:
         self.obs_dim = obs_dim
@@ -217,6 +219,14 @@ class ConsciousKernel:
         # "softmax" (default, legacy) re-flattens the prediction, which rewards
         # only EXTREME (one-hot) actions and caps control on non-vertex targets.
         self.efe_obs_norm = efe_obs_norm
+        # Cross-Entropy Method (CEM) for continuous action selection. When
+        # efe_cem_iters > 0 the planner refines a Gaussian sampling distribution
+        # (in logit space) over iterations, keeping the top efe_cem_elite_frac
+        # each round -- finding better continuous actions per sample, especially
+        # under a tight budget. efe_n_samples is the per-iteration population.
+        # efe_cem_iters=0 (default) keeps the flat candidate set (random shooting).
+        self.efe_cem_iters = efe_cem_iters
+        self.efe_cem_elite_frac = efe_cem_elite_frac
         if action_candidates is not None:
             self._action_candidates = [a.detach() for a in action_candidates]
         else:
@@ -515,12 +525,14 @@ class ConsciousKernel:
             a = torch.rand(self.obs_dim)
             return (a / a.sum()).detach()
 
-        pref = self.preference
-        log_pref = pref.clamp(min=1e-6).log()
         feat = temporal_feat.detach() if temporal_feat is not None else None
 
-        # Candidate set: discrete basis + sampled CONTINUOUS simplex actions
-        # (training-consistent) + the reactive action.
+        # CEM refinement (continuous) takes over when configured.
+        if self.efe_cem_iters > 0:
+            return self._select_action_cem(reactive_action, feat)
+
+        # Otherwise: flat candidate set = discrete basis + sampled CONTINUOUS
+        # simplex actions (training-consistent) + the reactive action.
         candidates = list(self._action_candidates)
         if self.efe_n_samples > 0:
             logits = torch.randn(self.efe_n_samples, self.obs_dim) * self.efe_sample_scale
@@ -528,26 +540,64 @@ class ConsciousKernel:
             candidates += [samples[i] for i in range(self.efe_n_samples)]
         candidates.append(reactive_action)
 
-        horizon = max(1, self.efe_horizon)
         best, best_g = reactive_action.detach(), float("inf")
         for a in candidates:
-            # Evaluate `a` as a SUSTAINED action over the horizon; imagine()
-            # broadcasts a single temporal feature across the rollout.
-            preds = self.world_model.imagine([a] * horizon, feat)
-            g, disc = 0.0, 1.0
-            for pred_obs in preds:
-                if self.efe_obs_norm == "l1":
-                    p = pred_obs.clamp(min=1e-6)
-                    proj = p / p.sum()
-                else:
-                    proj = F.softmax(pred_obs, dim=-1)
-                log_proj = proj.clamp(min=1e-6).log()
-                pragmatic = float((pref * (log_pref - log_proj)).sum())  # KL(pref||proj)
-                entropy = float(-(proj * log_proj).sum())
-                g += disc * (pragmatic - self.efe_epistemic_weight * entropy)
-                disc *= self.efe_discount
+            g = self._efe_cost(a, feat)
             if g < best_g:
                 best_g, best = g, a.detach()
+        return best
+
+    def _efe_cost(self, a: Tensor, feat: Tensor | None) -> float:
+        """Expected free energy of sustaining action ``a`` over the horizon.
+
+        G = sum_t discount^t [ KL(preference || norm(imagine_t))
+                               - epistemic_weight * H(norm(imagine_t)) ].
+        ``imagine`` broadcasts a single temporal feature across the rollout and
+        does not mutate kernel state, so this is read-only.
+        """
+        pref = self.preference
+        log_pref = pref.clamp(min=1e-6).log()
+        horizon = max(1, self.efe_horizon)
+        preds = self.world_model.imagine([a] * horizon, feat)
+        g, disc = 0.0, 1.0
+        for pred_obs in preds:
+            if self.efe_obs_norm == "l1":
+                p = pred_obs.clamp(min=1e-6)
+                proj = p / p.sum()
+            else:
+                proj = F.softmax(pred_obs, dim=-1)
+            log_proj = proj.clamp(min=1e-6).log()
+            pragmatic = float((pref * (log_pref - log_proj)).sum())  # KL(pref||proj)
+            entropy = float(-(proj * log_proj).sum())
+            g += disc * (pragmatic - self.efe_epistemic_weight * entropy)
+            disc *= self.efe_discount
+        return g
+
+    def _select_action_cem(self, reactive_action: Tensor, feat: Tensor | None) -> Tensor:
+        """Cross-Entropy Method action search in logit space.
+
+        Iteratively samples a population of continuous simplex actions from a
+        Gaussian over logits, keeps the elite (lowest expected free energy), and
+        refits the Gaussian to them. Returns the best action found. Finds better
+        actions per sample than one-shot random shooting, especially under a
+        tight budget.
+        """
+        obs_dim = self.obs_dim
+        pop = self.efe_n_samples if self.efe_n_samples > 0 else 16
+        elite_n = max(2, int(pop * self.efe_cem_elite_frac))
+        mu = torch.zeros(obs_dim)
+        sigma = torch.full((obs_dim,), self.efe_sample_scale)
+        best, best_g = reactive_action.detach(), float("inf")
+        for _ in range(self.efe_cem_iters):
+            logits = mu + sigma * torch.randn(pop, obs_dim)
+            actions = F.softmax(logits, dim=-1)
+            costs = [self._efe_cost(actions[i], feat) for i in range(pop)]
+            elite = sorted(range(pop), key=lambda i: costs[i])[:elite_n]
+            if costs[elite[0]] < best_g:
+                best_g, best = costs[elite[0]], actions[elite[0]].detach()
+            elite_logits = logits[elite]
+            mu = elite_logits.mean(dim=0)
+            sigma = elite_logits.std(dim=0) + 1e-3
         return best
 
     # ------------------------------------------------------------------

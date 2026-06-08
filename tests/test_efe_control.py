@@ -24,6 +24,7 @@ class TestDefaults:
         assert ck.efe_horizon == 1
         assert ck.efe_discount == 1.0
         assert ck.efe_obs_norm == "softmax"
+        assert ck.efe_cem_iters == 0
 
 
 class TestPlannerValidity:
@@ -80,3 +81,9 @@ class TestControl:
         disc = _control_dist(
             dict(action_mode="efe", efe_n_samples=0, efe_obs_norm="softmax"))
         assert cont < disc * 0.7, f"continuous ({cont:.3f}) should beat discrete ({disc:.3f})"
+
+    def test_cem_also_reaches_target(self):
+        """CEM is a valid alternative search and also reaches the target."""
+        dist = _control_dist(
+            dict(action_mode="efe", efe_n_samples=16, efe_cem_iters=3, efe_obs_norm="l1"))
+        assert dist < 0.12, f"CEM did not reach the target (dist={dist:.3f})"
