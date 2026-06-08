@@ -5,19 +5,16 @@ Covers the pole/clamp/régimen-imposible issues found in the audit:
 - predict_system_stability: subcritical regime no longer mislabelled STABLE
 - compute_corruption_threshold: keeps negatives, validates inputs
 - compute_M_c: dimensional caveat documented (behavioural check only)
-- MicroPsyche.compute_surprise: L1 normalised to [0, 1]
 """
 from __future__ import annotations
 
 import pytest
-import torch
 
 from zeta_life.integration.formal_equations import (
     compute_B,
     compute_corruption_threshold,
     predict_system_stability,
 )
-from zeta_life.integration.micro_psyche import MicroPsyche
 
 
 # --- #7 compute_B: pole guarded -----------------------------------------
@@ -68,29 +65,3 @@ def test_corruption_threshold_rejects_negative_inputs():
 
 def test_corruption_threshold_zero_denominator():
     assert compute_corruption_threshold(F_i_b=1.0, alpha=1.0, M=0.0, alpha_s=1.0) == 0.0
-
-
-# --- #11 compute_surprise: normalised to [0, 1] --------------------------
-def _psyche_with_states(a, b):
-    mp = MicroPsyche.create_random()
-    mp.recent_states.clear()
-    mp.recent_states.append(torch.tensor(a))
-    mp.recent_states.append(torch.tensor(b))
-    return mp
-
-
-def test_surprise_normalised_max_is_one():
-    # Two opposite one-hot distributions: L1 = 2.0 -> normalised to 1.0.
-    mp = _psyche_with_states([1.0, 0.0, 0.0, 0.0], [0.0, 1.0, 0.0, 0.0])
-    assert mp.compute_surprise() == pytest.approx(1.0, abs=1e-6)
-
-
-def test_surprise_identical_states_zero():
-    mp = _psyche_with_states([0.25, 0.25, 0.25, 0.25], [0.25, 0.25, 0.25, 0.25])
-    assert mp.compute_surprise() == pytest.approx(0.0, abs=1e-6)
-
-
-def test_surprise_partial_in_unit_interval():
-    mp = _psyche_with_states([0.4, 0.3, 0.2, 0.1], [0.3, 0.3, 0.2, 0.2])
-    s = mp.compute_surprise()
-    assert 0.0 < s < 1.0

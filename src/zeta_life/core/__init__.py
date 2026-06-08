@@ -1,27 +1,13 @@
 """Core abstractions for Zeta Life.
 
-This module contains the abstract vertex system that replaces
-Jungian archetypes with semantically-neutral geometric vertices,
-plus the memory system for long-term state persistence.
+Shared primitives: the zeta constants and the abstract vertex / tetrahedral
+geometry. (The heavy zeta_memory / zeta_rnn / zeta_resonance modules were
+archived in the 2026-06 refocus; see the legacy/pre-refocus-snapshot branch.)
 """
 
 from .tetrahedral_space import TetrahedralSpace, get_tetrahedral_space
 from .vertex import BehaviorVector, Vertex, VertexBehaviors
 from .zeta_constants import KNOWN_ZETA_ZEROS, get_zeta_zeros
-from .zeta_memory import (
-    EpisodicMemory,
-    MemoryAwarePsyche,
-    ProceduralMemory,
-    SemanticMemory,
-    ZetaMemorySystem,
-)
-from .zeta_rnn import (
-    ZetaLSTM,
-    ZetaLSTMCell,
-    ZetaLSTMExperiment,
-    ZetaMemoryLayer,
-    ZetaSequenceGenerator,
-)
 
 __all__ = [
     # Zeta constants
@@ -33,16 +19,4 @@ __all__ = [
     'VertexBehaviors',
     'TetrahedralSpace',
     'get_tetrahedral_space',
-    # Memory system
-    'EpisodicMemory',
-    'SemanticMemory',
-    'ProceduralMemory',
-    'ZetaMemorySystem',
-    'MemoryAwarePsyche',
-    # RNN system
-    'ZetaMemoryLayer',
-    'ZetaLSTMCell',
-    'ZetaLSTM',
-    'ZetaSequenceGenerator',
-    'ZetaLSTMExperiment',
 ]

@@ -19,7 +19,6 @@ from zeta_life.integration.formal_equations import (
     compute_psi,
     predict_system_stability,
 )
-from zeta_life.psyche.zeta_conscious_self import ConsciousnessIndex
 
 
 class TestPhiC:
@@ -179,59 +178,3 @@ class TestSystemStability:
         )
         assert result['is_supercritical'] is True
         assert result['M_c'] < 100.0
-
-
-class TestConsciousnessIndexIntegration:
-    """Tests that ConsciousnessIndex works with formal equations."""
-
-    def test_backward_compatible_default(self):
-        """F_i=0 (default) → compute_total uses original weighted sum."""
-        ci = ConsciousnessIndex(
-            predictive=0.8, attention=0.7, integration=0.6,
-            self_luminosity=0.5, stability=0.4, meta_awareness=0.3
-        )
-        total = ci.compute_total()
-        expected = (
-            0.20 * 0.8 + 0.20 * 0.7 + 0.25 * 0.6 +
-            0.15 * 0.5 + 0.10 * 0.4 + 0.10 * 0.3
-        )
-        assert pytest.approx(total, rel=1e-3) == expected
-
-    def test_formal_psi_active(self):
-        """F_i > 0 → compute_total uses psi (clamped)."""
-        ci = ConsciousnessIndex(
-            predictive=0.8, attention=0.7, integration=0.6,
-            self_luminosity=0.5, stability=0.4, meta_awareness=0.3,
-            F_i=0.1, C=0.0, alpha=1.0
-        )
-        # phi_c = 0.1 / (1.0 - 0.0) = 0.1
-        # phi = weighted sum ~ 0.6
-        # B = (0.6 - 0.1) / 0.1 = 5.0
-        # psi = 125 + 0.6 = 125.6
-        # clamped to 1.0
-        total = ci.compute_total()
-        assert total == 1.0
-        assert ci.compute_psi_raw() > 1.0
-
-    def test_subcritical_psi(self):
-        """When phi < phi_c, psi = 0."""
-        ci = ConsciousnessIndex(
-            predictive=0.1, attention=0.1, integration=0.1,
-            self_luminosity=0.1, stability=0.1, meta_awareness=0.1,
-            F_i=5.0, C=0.0, alpha=1.0
-        )
-        # phi_c = 5.0, phi ~ 0.1 → subcritical
-        assert ci.psi == 0.0
-        assert ci.B < 0
-
-    def test_to_dict_includes_psi_when_active(self):
-        ci = ConsciousnessIndex(F_i=1.0, alpha=1.0, C=0.0)
-        d = ci.to_dict()
-        assert 'psi' in d
-        assert 'phi_c' in d
-        assert 'B' in d
-
-    def test_to_dict_excludes_psi_when_inactive(self):
-        ci = ConsciousnessIndex()
-        d = ci.to_dict()
-        assert 'psi' not in d

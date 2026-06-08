@@ -5,7 +5,7 @@
 [![Python 3.9+](https://img.shields.io/badge/python-3.9+-blue.svg)](https://www.python.org/downloads/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Code style: ruff](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/astral-sh/ruff/main/assets/badge/v2.json)](https://github.com/astral-sh/ruff)
-[![Tests](https://img.shields.io/badge/tests-802%20passed-brightgreen.svg)](tests/)
+[![Tests](https://img.shields.io/badge/tests-442%20passed-brightgreen.svg)](tests/)
 
 ---
 
@@ -74,21 +74,11 @@ print(result.psi)         # organism-level integration
 print(result.population)  # surviving kernel count
 ```
 
-### Hierarchical Integration (Cells -> Clusters -> Organism) — legacy
+### Hierarchical Integration (Cells -> Clusters -> Organism) — archived
 
-> **Legacy.** A parallel consciousness formalism not used by the live kernel; kept for reference, slated for archival.
-
-A separate simulation layer models multi-level integration with bidirectional information flow:
-
-```
-Organism Level   (global integration, top-down modulation)
-       ^v
-Cluster Level    (local coherence, inter-cluster binding)
-       ^v
-Cell Level       (individual micro-psyches with archetypes)
-```
-
-The formal equations predict **corruption thresholds** (how much damage before collapse) and **critical mass** (minimum units needed for integration to emerge).
+> **Archived (2026-06-08).** A parallel Cells→Clusters→Organism consciousness
+> formalism that the live kernel never used. Removed from the working tree in the
+> refocus; preserved on the `legacy/pre-refocus-snapshot` branch.
 
 ### Zeta Function as Temporal Binding (optional — tested, not load-bearing)
 
@@ -141,8 +131,8 @@ print(f"Dreamed: {result.dreamed}")
 ### Run Experiments
 
 ```bash
-# Phase transition analysis with real datasets
-python experiments/datasets/exp_phase_transitions.py
+# Psi validation on real datasets
+python experiments/datasets/exp_real_data_psi.py
 
 # Kernel validation (compositionality, grounding, emergence)
 python experiments/kernel/exp_conscious_kernel_validation.py
@@ -154,7 +144,7 @@ python experiments/kernel/exp_organism_emergence.py
 ### Run Tests
 
 ```bash
-PYTHONPATH=src pytest tests/ -q   # ~802 tests (or `pip install -e .` first)
+PYTHONPATH=src pytest tests/ -q   # 442 tests (or `pip install -e .` first)
 ```
 
 ---
@@ -165,20 +155,20 @@ PYTHONPATH=src pytest tests/ -q   # ~802 tests (or `pip install -e .` first)
 zeta-life/
 |-- src/zeta_life/
 |   |-- kernel/          # CORE - Active Inference kernel + Darwinian organism
-|   |-- integration/     # formal_equations.py (CORE) + hierarchical/IPUESA stack (legacy)
+|   |-- integration/     # formal_equations.py - the integration index Psi
 |   |-- datasets/        # Real-world dataset adapters (for Psi validation)
-|   |-- core/            # zeta_constants/vertex/tetrahedral (core) + zeta_memory/rnn/resonance (legacy)
-|   |-- utils/           # Shared utilities
-|   |-- organism/        # legacy - Fi-Mi swarm artificial life
-|   |-- psyche/          # legacy - Jungian archetype consciousness (superseded by kernel)
-|   +-- evolution/       # legacy - GA optimizer for IPUESA hyperparameters
+|   |-- core/            # zeta_constants, vertex, tetrahedral geometry
+|   +-- utils/           # Shared utilities
 |
 |-- experiments/
 |   |-- kernel/          # 11 kernel experiments (the live research)
-|   +-- datasets/        # 2 experiments (Psi on real data, phase transitions)
+|   +-- datasets/        # 1 experiment (Psi on real data)
 |
-|-- tests/               # 40 test files (~802 tests)
+|-- tests/               # 21 test files (442 tests)
 +-- docs/                # Documentation, papers, plans
+
+(Legacy subsystems -- psyche, hierarchical/IPUESA integration, organism,
+evolution -- were archived on 2026-06-08 to the legacy/pre-refocus-snapshot branch.)
 ```
 
 ---
@@ -193,7 +183,7 @@ zeta-life/
 | Critical mass | $M_c = \frac{F_i}{\alpha - C}$ | Minimum units for integration to emerge |
 | Corruption threshold | $1 - \frac{F_i}{\alpha \cdot M \cdot \alpha_s}$ | Maximum damage ratio before collapse |
 
-These are implemented as pure functions in `integration/formal_equations.py` and used by both the hierarchical simulation and the kernel's `_compute_psi()`.
+These are implemented as pure functions in `integration/formal_equations.py` and consumed by the kernel's `_compute_psi()`.
 
 ---
 

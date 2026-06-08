@@ -5,9 +5,9 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 > **Status note (2026-06-08):** This file was rewritten to match the repository's
 > actual current state. The project's center of gravity has moved to the
 > **active-inference Conscious Kernel** (`src/zeta_life/kernel/`). Several earlier
-> subsystems (psyche, hierarchical/IPUESA integration, evolution, organism) are
-> **legacy** — frozen, with no current experiments — and are slated for archival.
-> See "Core vs Legacy" below.
+> subsystems (psyche, hierarchical/IPUESA integration, evolution, organism) were
+> **archived on 2026-06-08** to the `legacy/pre-refocus-snapshot` branch and
+> removed from the working tree. See "Core vs Archived" below.
 
 ## What this project actually is
 
@@ -34,17 +34,14 @@ consolidation rhythm and in the cellular automata; optional in the kernel.
 zeta-life/
 ├── src/zeta_life/
 │   ├── kernel/          # CORE — active-inference Conscious Kernel (14 files)
-│   ├── integration/     # formal_equations.py (CORE) + hierarchical/IPUESA stack (LEGACY)
-│   ├── datasets/        # SUPPORTING — real/synthetic signal loaders for Psi validation
-│   ├── core/            # zeta_constants/vertex/tetrahedral (SUPPORTING) + zeta_memory/rnn/resonance (LEGACY)
-│   ├── utils/           # SUPPORTING — statistics helpers
-│   ├── organism/        # LEGACY — Fi-Mi swarm artificial life
-│   ├── psyche/          # LEGACY — Jungian/archetype consciousness (superseded by kernel)
-│   └── evolution/       # LEGACY — GA hyperparameter optimizer for IPUESA
+│   ├── integration/     # formal_equations.py — the integration index Psi
+│   ├── datasets/        # real/synthetic signal loaders for Psi validation
+│   ├── core/            # zeta_constants, vertex, tetrahedral geometry
+│   └── utils/           # statistics helpers
 ├── experiments/
 │   ├── kernel/          # 11 experiments (the live research)
-│   └── datasets/        # 2 experiments (Psi on real data, phase transitions)
-├── tests/               # 40 test files (~800 tests)
+│   └── datasets/        # 1 experiment (Psi on real data)
+├── tests/               # 21 test files (442 tests)
 ├── results/             # experiment outputs (PNG + run .txt)
 ├── docs/                # reports, papers, plans, theory
 ├── models/              # trained weights (.pt)
@@ -136,22 +133,25 @@ This session's experiments (and the project's own prior results) settled it:
 **Recommendation in code:** fixed basis → `fourier`/`log_spaced`; adaptive →
 `learned`. Zeta is an optional, documented-and-falsified design choice.
 
-## Core vs Legacy
+## Core vs Archived
 
-**Core / keep:** `kernel/`, `integration/formal_equations.py`, `datasets/`,
+**Core (this is the whole project now):** `kernel/`,
+`integration/formal_equations.py`, `datasets/`,
 `core/{zeta_constants,vertex,tetrahedral_space}.py`, `utils/`.
 
-**Legacy (frozen, no current experiments — slated for archival to a `legacy/` branch):**
-- `psyche/` — Jungian/archetype consciousness (the original formalism; superseded by the kernel)
-- `integration/` hierarchical + IPUESA resilience stack (a parallel consciousness formalism the live kernel does not use)
+**Archived 2026-06-08** — removed from the working tree, preserved on the
+`legacy/pre-refocus-snapshot` branch (retrieve with
+`git show legacy/pre-refocus-snapshot:<path>`):
+- `psyche/` — Jungian/archetype consciousness (original formalism; superseded by the kernel)
+- `integration/` hierarchical + IPUESA resilience stack (a parallel consciousness formalism the kernel never used)
 - `evolution/` — GA optimizer that only tuned IPUESA hyperparameters
 - `organism/` — Fi-Mi swarm artificial life (tangent to consciousness)
-- `core/{zeta_memory,zeta_rnn,zeta_resonance}.py` — effectively unused (~0 imports)
+- `core/{zeta_memory,zeta_rnn,zeta_resonance}.py` — effectively unused
 
-There are **four competing "consciousness" formalisms** in the tree; the
-canonical one is **Ψ** (`formal_equations.py`, used by the live kernel). The
-psyche `ConsciousnessIndex`, the hierarchical `phi_global`, and
-`OrganismState.integration_index` are redundant/superseded.
+The competing consciousness formalisms (psyche `ConsciousnessIndex`, hierarchical
+`phi_global`) were archived with their packages. The canonical index is **Ψ**
+(`formal_equations.py`, used by the live kernel); `OrganismState.integration_index`
+(`kernel/organism_state.py`) remains as the organism-level aggregate.
 
 ## Key parameters
 
