@@ -126,6 +126,8 @@ class ConsciousKernel:
         efe_obs_norm: str = "softmax",
         efe_cem_iters: int = 0,
         efe_cem_elite_frac: float = 0.3,
+        efe_epistemic_mode: str = "entropy",
+        wm_disagreement_heads: int = 0,
         temporal_features: OscillatorBank | None = None,
     ) -> None:
         self.obs_dim = obs_dim
@@ -227,6 +229,10 @@ class ConsciousKernel:
         # efe_cem_iters=0 (default) keeps the flat candidate set (random shooting).
         self.efe_cem_iters = efe_cem_iters
         self.efe_cem_elite_frac = efe_cem_elite_frac
+        # Epistemic term of the EFE: "entropy" (default, coarse outcome-entropy
+        # proxy) or "disagreement" (the world model's ensemble disagreement, a
+        # real info-gain signal -- requires wm_disagreement_heads > 0).
+        self.efe_epistemic_mode = efe_epistemic_mode
         if action_candidates is not None:
             self._action_candidates = [a.detach() for a in action_candidates]
         else:
@@ -247,7 +253,10 @@ class ConsciousKernel:
         temporal_dim = temporal_features.dim if temporal_features is not None else 0
 
         # --- Core components ---
-        self.world_model = WorldModel(obs_dim, latent_dim, obs_dim, temporal_dim=temporal_dim)
+        self.world_model = WorldModel(
+            obs_dim, latent_dim, obs_dim, temporal_dim=temporal_dim,
+            disagreement_heads=wm_disagreement_heads,
+        )
         # If the feature bank has trainable frequencies (the "learned" arm), fold
         # its parameters into the world model's optimizer so they are trained by
         # the prior prediction loss alongside the transition.
@@ -568,9 +577,16 @@ class ConsciousKernel:
                 proj = F.softmax(pred_obs, dim=-1)
             log_proj = proj.clamp(min=1e-6).log()
             pragmatic = float((pref * (log_pref - log_proj)).sum())  # KL(pref||proj)
-            entropy = float(-(proj * log_proj).sum())
-            g += disc * (pragmatic - self.efe_epistemic_weight * entropy)
+            g += disc * pragmatic
+            if self.efe_epistemic_mode == "entropy":
+                # Coarse epistemic proxy: outcome entropy (per imagined step).
+                entropy = float(-(proj * log_proj).sum())
+                g -= disc * self.efe_epistemic_weight * entropy
             disc *= self.efe_discount
+        if self.efe_epistemic_mode == "disagreement":
+            # Real info-gain signal: the world model's ensemble disagreement on
+            # this action (favour actions toward regions the model has not learned).
+            g -= self.efe_epistemic_weight * self.world_model.disagreement(a, feat)
         return g
 
     def _select_action_cem(self, reactive_action: Tensor, feat: Tensor | None) -> Tensor:

@@ -44,6 +44,7 @@ class WorldModel(nn.Module):
         learning_rate: float = 0.005,
         posterior_blend: float = 0.5,
         temporal_dim: int = 0,
+        disagreement_heads: int = 0,
     ) -> None:
         super().__init__()
 
@@ -83,8 +84,23 @@ class WorldModel(nn.Module):
         # but not a parameter)
         self.register_buffer("latent_state", torch.zeros(latent_dim))
 
-        # Optimizer for online learning
+        # Optimizer for online learning (encoder + transition + predictor).
         self.optimizer = torch.optim.Adam(self.parameters(), lr=learning_rate)
+
+        # Optional ensemble of predictor heads for an epistemic (disagreement)
+        # signal: where the heads disagree, the model is uncertain / has not
+        # learned that region. Trained on a SEPARATE optimizer with per-head
+        # bootstrap masking so they diverge where data is sparse. The main
+        # prediction path is unchanged. disagreement_heads=0 (default) -> no
+        # ensemble, byte-identical to the point world model.
+        self.disagreement_heads = disagreement_heads
+        if disagreement_heads > 0:
+            self.heads = nn.ModuleList(
+                [nn.Linear(latent_dim, obs_dim) for _ in range(disagreement_heads)]
+            )
+            self.head_optimizer = torch.optim.Adam(
+                self.heads.parameters(), lr=learning_rate
+            )
 
     def encode(self, observation: Tensor) -> Tensor:
         """Encode an observation into latent space (bottom-up).
@@ -204,9 +220,12 @@ class WorldModel(nn.Module):
         # above was freed by backward).
         with torch.no_grad():
             encoded_d = self.encode(observation)
-            self.latent_state = (
+            posterior_d = (
                 self.posterior_blend * prior + (1.0 - self.posterior_blend) * encoded_d
             )
+            self.latent_state = posterior_d
+        # Train the disagreement ensemble on the detached posterior -> observation.
+        self._train_heads(posterior_d, observation.detach())
         return loss.item()
 
     def imagine(
@@ -286,3 +305,43 @@ class WorldModel(nn.Module):
             self.optimizer.step()
 
         return loss.item()
+
+    # ------------------------------------------------------------------
+    # Epistemic (disagreement) ensemble
+    # ------------------------------------------------------------------
+
+    def _train_heads(self, latent: Tensor, target: Tensor) -> None:
+        """Train the disagreement heads on (detached latent -> observation).
+
+        Per-head bootstrap masking (each head included with prob 0.5 per step)
+        makes the heads see different data subsets, so they diverge where data is
+        sparse. No-op when no ensemble is configured.
+        """
+        if self.disagreement_heads == 0:
+            return
+        loss = torch.zeros((), dtype=latent.dtype)
+        used = False
+        for head in self.heads:
+            if float(torch.rand(1).item()) < 0.5:
+                loss = loss + torch.sum((head(latent) - target) ** 2)
+                used = True
+        if used:
+            self.head_optimizer.zero_grad()
+            loss.backward()
+            self.head_optimizer.step()
+
+    def disagreement(self, action: Tensor, temporal_feat: Tensor | None = None) -> float:
+        """Variance across ensemble heads of the imagined next observation.
+
+        A read-only epistemic signal: high where the heads disagree (a region the
+        model has not learned). Returns 0.0 if no ensemble is configured. Does not
+        mutate internal state.
+        """
+        if self.disagreement_heads == 0:
+            return 0.0
+        with torch.no_grad():
+            gru_in = self._transition_input(action, temporal_feat).unsqueeze(0)
+            latent = self.latent_state.unsqueeze(0)
+            next_latent = self.transition(gru_in, latent).squeeze(0)
+            preds = torch.stack([head(next_latent) for head in self.heads])
+            return float(preds.var(dim=0).mean().item())

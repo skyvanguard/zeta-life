@@ -40,9 +40,9 @@ zeta-life/
 │   ├── core/            # zeta_constants, vertex, tetrahedral geometry
 │   └── utils/           # statistics helpers
 ├── experiments/
-│   ├── kernel/          # 15 experiments (the live research)
+│   ├── kernel/          # 16 experiments (the live research)
 │   └── datasets/        # 1 experiment (Psi on real data)
-├── tests/               # 24 test files (468 tests)
+├── tests/               # 25 test files (475 tests)
 ├── results/             # experiment outputs (PNG + run .txt)
 ├── docs/                # reports, papers, plans, theory
 ├── models/              # trained weights (.pt)
@@ -168,6 +168,8 @@ The competing consciousness formalisms (psyche `ConsciousnessIndex`, hierarchica
 | `efe_n_samples` | 0 / 48 | EFE: add N sampled CONTINUOUS candidate actions (0 = one-hots only). Continuous + `efe_obs_norm="l1"` lets the planner reach non-vertex targets (see `exp_control.py`) |
 | `efe_horizon` | 1 | EFE planning horizon (sustained-action rollout). >1 found YAGNI in the 4-D env |
 | `efe_cem_iters` | 0 | EFE: Cross-Entropy Method refinement (0 = random shooting). Capability for hard action landscapes; no reliable gain in the unimodal control task (`exp_cem.py`) |
+| `wm_disagreement_heads` | 0 | World-model ensemble heads for an epistemic (disagreement) signal (0 = off). With `efe_epistemic_mode="disagreement"` drives curiosity/exploration — works where the entropy proxy did not (`exp_curiosity.py`) |
+| `efe_epistemic_mode` | entropy / disagreement | EFE epistemic term: coarse outcome-entropy proxy vs real world-model disagreement |
 
 ## Documentation
 

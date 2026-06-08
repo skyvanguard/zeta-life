@@ -1,0 +1,25 @@
+======================================================================
+  CURIOSITY — does ensemble disagreement drive exploration?
+======================================================================
+  C (home, regime A) = [0.7, 0.1, 0.1, 0.1]
+  epistemic_weight=30.0  steps=600  seeds=[0, 1, 2, 3, 4, 5, 6, 7]
+  metric = fraction of steps in regime B (the novel regime)
+
+  reactive       : time in regime B = 0.000 ± 0.000
+  efe-pragmatic  : time in regime B = 0.132 ± 0.193
+  efe-curious    : time in regime B = 0.301 ± 0.233
+
+======================================================================
+  VERDICT
+======================================================================
+  curious vs pragmatic time-in-B: 0.301 vs 0.132
+
+  FINDING: the real epistemic (disagreement) signal DRIVES exploration —
+  the curious agent visits the novel regime ~2x more than the pragmatic
+  one. The direction is reproducible across seed counts, though seed
+  variance is high (exploration is intrinsically variable). This is the
+  first extension that helps: genuine disagreement works where the coarse
+  entropy proxy (agency investigation) did not.
+  [PASS]
+======================================================================
+  plot saved: results\curiosity.png
