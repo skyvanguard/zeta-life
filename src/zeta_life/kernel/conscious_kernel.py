@@ -140,6 +140,10 @@ class ConsciousKernel:
         actor_explore: float = 0.0,
         dreamer_epistemic_weight: float = 0.0,
         dreamer_reward: str = "kl",
+        actor_grad_clip: float = 100.0,
+        critic_tau: float = 0.98,
+        return_norm: bool = True,
+        actor_entropy: float = 0.0,
         temporal_features: OscillatorBank | None = None,
     ) -> None:
         self.obs_dim = obs_dim
@@ -271,6 +275,15 @@ class ConsciousKernel:
         self.imag_gamma = imag_gamma
         self.actor_explore = actor_explore
         self.dreamer_epistemic_weight = dreamer_epistemic_weight
+        # Stabilizers (DreamerV3-style): EMA target critic for the bootstrap,
+        # running return-scale normalisation, gradient clipping, optional actor
+        # entropy bonus. These tame the online actor-critic (the CartPole curve
+        # oscillated without them).
+        self.actor_grad_clip = actor_grad_clip
+        self.critic_tau = critic_tau
+        self.return_norm = return_norm
+        self.actor_entropy = actor_entropy
+        self._ret_scale = None
         if action_candidates is not None:
             self._action_candidates = [a.detach() for a in action_candidates]
         else:
@@ -307,12 +320,15 @@ class ConsciousKernel:
         self.actor = None
         self.critic = None
         self._latent_buffer = None
+        self.critic_target = None
         if action_mode == "dreamer":
             self.actor = Actor(latent_dim, self.action_dim)
             self.critic = Critic(latent_dim)
+            self.critic_target = Critic(latent_dim)  # slow EMA copy for bootstrap
+            self.critic_target.load_state_dict(self.critic.state_dict())
             self.actor_optimizer = torch.optim.Adam(self.actor.parameters(), lr=actor_lr)
             self.critic_optimizer = torch.optim.Adam(self.critic.parameters(), lr=critic_lr)
-            self._latent_buffer = deque(maxlen=200)
+            self._latent_buffer = deque(maxlen=1000)
 
         self.self_model = SelfModel(obs_dim, embed_dim)
         self.error_engine = PredictionErrorEngine(4)
@@ -774,32 +790,48 @@ class ConsciousKernel:
         B, H = self.imag_rollouts, self.imag_horizon
         idxs = torch.randint(0, len(self._latent_buffer), (B,))
         z = torch.stack([self._latent_buffer[int(i)] for i in idxs]).detach()
-        zs, rewards = [z], []
+        zs, rewards, entropies = [z], [], []
         for _ in range(H):
             a = self.actor(z)
+            entropies.append(-(a * a.clamp(min=1e-6).log()).sum(dim=-1))  # (B,)
             z, pred = self.world_model.imagine_grad(z, a)
             zs.append(z)
             rewards.append(self._reward_from_pred(pred))
-        values = [self.critic(zt) for zt in zs]  # len H+1
+        values = [self.critic(zt) for zt in zs]              # live critic
+        with torch.no_grad():                                 # slow target bootstrap
+            values_t = [self.critic_target(zt) for zt in zs]
 
-        # Critic: regress V(z_t) onto detached lambda-returns.
+        # Critic: regress the live V(z_t) onto lambda-returns bootstrapped with the
+        # TARGET critic (a slow EMA copy) — reduces the moving-target instability.
         crit_targets = self._lambda_returns(
-            [r.detach() for r in rewards], [v.detach() for v in values],
-            self.imag_gamma, self.imag_lambda)
+            [r.detach() for r in rewards], values_t, self.imag_gamma, self.imag_lambda)
         critic_loss = torch.stack(
             [(values[t] - crit_targets[t]) ** 2 for t in range(H)]).mean()
         self.critic_optimizer.zero_grad()
         critic_loss.backward(retain_graph=True)
+        torch.nn.utils.clip_grad_norm_(self.critic.parameters(), self.actor_grad_clip)
         self.critic_optimizer.step()
 
-        # Actor: maximize lambda-returns (value gradients through the dynamics;
-        # bootstrap value detached so the actor does not backprop into the critic).
-        actor_returns = self._lambda_returns(
-            rewards, [v.detach() for v in values], self.imag_gamma, self.imag_lambda)
-        actor_loss = -torch.stack(actor_returns).mean()
+        # Actor: maximize lambda-returns (value gradients; target bootstrap detached).
+        actor_returns = torch.stack(self._lambda_returns(
+            rewards, values_t, self.imag_gamma, self.imag_lambda))  # (H, B), grad
+        if self.return_norm:
+            scale = float(actor_returns.detach().abs().mean())
+            self._ret_scale = (scale if self._ret_scale is None
+                               else 0.99 * self._ret_scale + 0.01 * scale)
+            actor_returns = actor_returns / max(self._ret_scale, 1e-3)
+        actor_loss = -actor_returns.mean()
+        if self.actor_entropy > 0.0:
+            actor_loss = actor_loss - self.actor_entropy * torch.stack(entropies).mean()
         self.actor_optimizer.zero_grad()
         actor_loss.backward()
+        torch.nn.utils.clip_grad_norm_(self.actor.parameters(), self.actor_grad_clip)
         self.actor_optimizer.step()
+
+        # Slow EMA update of the target critic.
+        with torch.no_grad():
+            for tp, p in zip(self.critic_target.parameters(), self.critic.parameters()):
+                tp.mul_(self.critic_tau).add_((1.0 - self.critic_tau) * p)
 
         # Hygiene: clear imagination grads that leaked into the world model
         # (the world model is trained only by real data, never by imagination).
