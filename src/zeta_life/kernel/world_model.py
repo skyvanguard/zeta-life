@@ -43,12 +43,19 @@ class WorldModel(nn.Module):
         action_dim: int = 4,
         learning_rate: float = 0.005,
         posterior_blend: float = 0.5,
+        temporal_dim: int = 0,
     ) -> None:
         super().__init__()
 
         self.obs_dim = obs_dim
         self.latent_dim = latent_dim
         self.action_dim = action_dim
+        # Dimensionality of the optional temporal feature vector concatenated to
+        # the action before the GRU transition. 0 (the default) reproduces the
+        # original action-only world model byte-for-byte; >0 lets the model see a
+        # time code (e.g. zeta oscillators) and anticipate time-structured
+        # dynamics instead of only reacting to them.
+        self.temporal_dim = temporal_dim
         # Weight of the prior (transition) vs the encoded observation when
         # forming the posterior latent in observe(). 1.0 = pure recurrence,
         # 0.0 = pure observation. 0.5 balances memory and perception.
@@ -64,8 +71,10 @@ class WorldModel(nn.Module):
             nn.Linear(64, latent_dim),
         )
 
-        # Transition model: latent + action -> next latent
-        self.transition = nn.GRUCell(input_size=action_dim, hidden_size=latent_dim)
+        # Transition model: (action [+ temporal feature]) -> next latent
+        self.transition = nn.GRUCell(
+            input_size=action_dim + temporal_dim, hidden_size=latent_dim
+        )
 
         # Top-down predictor: latent -> predicted observation
         self.predictor = nn.Linear(latent_dim, obs_dim)
@@ -92,7 +101,25 @@ class WorldModel(nn.Module):
         """
         return self.encoder(observation)
 
-    def predict(self, action: Tensor) -> tuple[Tensor, Tensor]:
+    def _transition_input(self, action: Tensor, temporal_feat: Tensor | None) -> Tensor:
+        """Build the GRU input from the action and the optional temporal feature.
+
+        When ``temporal_dim == 0`` the input is the action unchanged (original
+        behaviour). Otherwise the temporal feature is concatenated; its gradient
+        is preserved so a trainable feature bank can learn from the prior loss.
+        """
+        if self.temporal_dim == 0:
+            return action
+        if temporal_feat is None:
+            raise ValueError(
+                "temporal_feat is required when temporal_dim > 0 "
+                f"(got temporal_dim={self.temporal_dim})"
+            )
+        return torch.cat([action, temporal_feat])
+
+    def predict(
+        self, action: Tensor, temporal_feat: Tensor | None = None
+    ) -> tuple[Tensor, Tensor]:
         """Predict the next observation given an action (top-down).
 
         Uses the current ``latent_state`` and the provided action to compute
@@ -104,6 +131,9 @@ class WorldModel(nn.Module):
         ----------
         action : Tensor
             Action vector of shape ``(action_dim,)``.
+        temporal_feat : Tensor | None
+            Temporal feature of shape ``(temporal_dim,)``. Required when the
+            model was built with ``temporal_dim > 0``; ignored otherwise.
 
         Returns
         -------
@@ -112,7 +142,7 @@ class WorldModel(nn.Module):
             ``(obs_dim,)`` and ``next_latent`` has shape ``(latent_dim,)``.
         """
         # GRUCell expects (batch, features) — add and remove batch dim
-        action_batched = action.unsqueeze(0)
+        action_batched = self._transition_input(action, temporal_feat).unsqueeze(0)
         latent_batched = self.latent_state.unsqueeze(0)
 
         next_latent_batched = self.transition(action_batched, latent_batched)
@@ -179,7 +209,11 @@ class WorldModel(nn.Module):
             )
         return loss.item()
 
-    def imagine(self, action_sequence: list[Tensor]) -> list[Tensor]:
+    def imagine(
+        self,
+        action_sequence: list[Tensor],
+        temporal_feats: list[Tensor] | Tensor | None = None,
+    ) -> list[Tensor]:
         """Run a counterfactual simulation without modifying internal state.
 
         Rolls out the transition model over the given action sequence starting
@@ -190,6 +224,10 @@ class WorldModel(nn.Module):
         ----------
         action_sequence : list[Tensor]
             Sequence of action vectors, each of shape ``(action_dim,)``.
+        temporal_feats : list[Tensor] | Tensor | None
+            Temporal feature(s) for each imagined step. A single tensor is
+            broadcast to every step (the common case: planning one step ahead at
+            the current time). Required when ``temporal_dim > 0``.
 
         Returns
         -------
@@ -199,13 +237,17 @@ class WorldModel(nn.Module):
         if not action_sequence:
             return []
 
+        if self.temporal_dim > 0 and isinstance(temporal_feats, Tensor):
+            temporal_feats = [temporal_feats] * len(action_sequence)
+
         predictions: list[Tensor] = []
         # Clone the latent state so we don't modify the real one
         imagined_latent = self.latent_state.clone()
 
         with torch.no_grad():
-            for action in action_sequence:
-                action_batched = action.unsqueeze(0)
+            for i, action in enumerate(action_sequence):
+                feat = temporal_feats[i] if temporal_feats is not None else None
+                action_batched = self._transition_input(action, feat).unsqueeze(0)
                 latent_batched = imagined_latent.unsqueeze(0)
 
                 next_latent_batched = self.transition(action_batched, latent_batched)

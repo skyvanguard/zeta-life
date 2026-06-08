@@ -1,0 +1,37 @@
+======================================================================
+  ZETA vs BASELINES — zeta frequencies IN the model (prediction)
+======================================================================
+  task = online next-step prediction of a time-structured signal
+  steps=900  seeds=[0, 1, 2]  M=15  sigma=0.1
+  metric = mean perceptual error over last 30% (LOWER is better)
+
+  --- zeta-world (signal freqs: [14.13, 21.02, 25.01, 30.42]...) ---
+    zeta    : pred error = 0.03740 ± 0.00363  (params=9060)
+    fourier : pred error = 0.03703 ± 0.00233  (params=9060)
+    log_spaced: pred error = 0.03764 ± 0.00172  (params=9060)
+    random  : pred error = 0.05803 ± 0.00760  (params=9060)
+    learned : pred error = 0.05322 ± 0.00481  (params=9075)
+    rnn     : pred error = 0.04260 ± 0.00507  (params=6180)
+
+  --- neutral-world (signal freqs: [0.7, 1.3, 2.1, 3.4]...) ---
+    zeta    : pred error = 0.37275 ± 0.02130  (params=9060)
+    fourier : pred error = 0.36988 ± 0.02126  (params=9060)
+    log_spaced: pred error = 0.36050 ± 0.02628  (params=9060)
+    random  : pred error = 0.37325 ± 0.02012  (params=9060)
+    learned : pred error = 0.37242 ± 0.01782  (params=9075)
+    rnn     : pred error = 0.36987 ± 0.01927  (params=6180)
+
+======================================================================
+  VERDICT  (lower error is better)
+======================================================================
+  [zeta-world]  zeta < random  : True (0.03740 vs 0.05803, +35.6%)
+  [zeta-world]  zeta < rnn     : True (0.03740 vs 0.04260, +12.2%)
+  [zeta-world]  zeta < learned : True (0.03740 vs 0.05322, +29.7%)
+  [neutral]     zeta NOT special vs random : True (0.37275 vs 0.37325)
+  [neutral]     fourier >= zeta (good default) : True (0.36988 vs 0.37275)
+
+  HYPOTHESIS SUPPORTED: True
+    (zeta predicts better than random+rnn when the world has zeta
+     structure, AND loses its edge when it does not — a specific,
+     not generic, effect)
+======================================================================

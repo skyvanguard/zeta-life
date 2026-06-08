@@ -33,6 +33,7 @@ from .self_model import SelfModel
 from .complementary_memory import Episode, FastMemory, SlowMemory
 from .dream_engine import DreamEngine
 from .persistence import PersistenceLayer
+from .temporal_features import OscillatorBank
 from ..integration.formal_equations import compute_phi_c, compute_psi, compute_psi_hill
 
 
@@ -116,6 +117,7 @@ class ConsciousKernel:
         action_candidates: list[Tensor] | None = None,
         explore_eps: float = 0.0,
         efe_epistemic_weight: float = 0.0,
+        temporal_features: OscillatorBank | None = None,
     ) -> None:
         self.obs_dim = obs_dim
         self.latent_dim = latent_dim
@@ -186,8 +188,25 @@ class ConsciousKernel:
             cands.append(torch.full((obs_dim,), 1.0 / obs_dim))
             self._action_candidates = cands
 
+        # --- Temporal features (zeta in the control path) ---
+        # When supplied, an OscillatorBank turns the step index t into a feature
+        # vector fed to the world model's transition, so the model can ANTICIPATE
+        # time-structured dynamics. This is the path through which the zeta
+        # frequencies actually influence learning/control (vs the dream rhythm,
+        # which only schedules consolidation). Default None -> temporal_dim=0 ->
+        # byte-identical to the pre-temporal kernel.
+        self.temporal_features = temporal_features
+        temporal_dim = temporal_features.dim if temporal_features is not None else 0
+
         # --- Core components ---
-        self.world_model = WorldModel(obs_dim, latent_dim, obs_dim)
+        self.world_model = WorldModel(obs_dim, latent_dim, obs_dim, temporal_dim=temporal_dim)
+        # If the feature bank has trainable frequencies (the "learned" arm), fold
+        # its parameters into the world model's optimizer so they are trained by
+        # the prior prediction loss alongside the transition.
+        if temporal_features is not None:
+            trainable = [p for p in temporal_features.parameters() if p.requires_grad]
+            if trainable:
+                self.world_model.optimizer.add_param_group({"params": trainable})
         self.self_model = SelfModel(obs_dim, embed_dim)
         self.error_engine = PredictionErrorEngine(4)
         self.fast_memory = FastMemory(500, 0.3)
@@ -243,15 +262,22 @@ class ConsciousKernel:
         """
         self.t += 1
 
+        # Temporal feature for this step (None when no bank is configured). For a
+        # trainable bank this carries grad so the prior loss can train it.
+        tf_vec = (
+            self.temporal_features(self.t)
+            if self.temporal_features is not None else None
+        )
+
         # ---- 1. PREDICT (prior) ----
         # predict() returns tensors with grad_fn for learning
-        predicted_obs, _ = self.world_model.predict(self.last_action)
+        predicted_obs, _ = self.world_model.predict(self.last_action, tf_vec)
         predicted_self = self.self_model.predict_self(self.last_action)
         raw_self = F.softmax(stimulus, dim=-1)
         if self.action_mode == "efe" and self.preference is not None:
             # Active-inference action selection. predict() above already advanced
             # the latent, so imagine() inside the planner uses the current latent.
-            actual_self = self._select_action_efe(raw_self)
+            actual_self = self._select_action_efe(raw_self, tf_vec)
         elif self.latent_weight > 0.0:
             latent_bias = self._latent_to_action(self.world_model.latent_state.detach())
             actual_self = F.softmax(raw_self + self.latent_weight * latent_bias, dim=-1)
@@ -413,7 +439,9 @@ class ConsciousKernel:
     # Action selection (active inference)
     # ------------------------------------------------------------------
 
-    def _select_action_efe(self, reactive_action: Tensor) -> Tensor:
+    def _select_action_efe(
+        self, reactive_action: Tensor, temporal_feat: Tensor | None = None
+    ) -> Tensor:
         """Select an action by minimising expected free energy toward `preference`.
 
         For each candidate action ``a`` (the configured candidate set plus the
@@ -438,9 +466,10 @@ class ConsciousKernel:
 
         pref = self.preference
         log_pref = pref.clamp(min=1e-6).log()
+        feat = temporal_feat.detach() if temporal_feat is not None else None
         best, best_g = reactive_action.detach(), float("inf")
         for a in self._action_candidates + [reactive_action]:
-            pred_obs = self.world_model.imagine([a])[0]
+            pred_obs = self.world_model.imagine([a], feat)[0]
             proj = F.softmax(pred_obs, dim=-1)
             log_proj = proj.clamp(min=1e-6).log()
             pragmatic = float((pref * (log_pref - log_proj)).sum())  # KL(pref || proj)
