@@ -1,0 +1,23 @@
+======================================================================
+  YVYRA BRIDGE DEMO — kernel on a (mock) live agent's experience
+======================================================================
+  C (preferred character) = {'novedad': 0.3, 'introspeccion': 0.4, 'conexion': 0.1, 'resolucion': 0.2}
+  ticks=200
+
+  tick  25 | mode=introspection | Psi=0.000 | suggest=introspeccion [DREAM]
+  tick  50 | mode=introspection | Psi=0.000 | suggest=introspeccion [DREAM]
+  tick  75 | mode=synthesis     | Psi=0.000 | suggest=resolucion    [DREAM]
+  tick 100 | mode=introspection | Psi=1.000 | suggest=introspeccion [DREAM]
+  tick 125 | mode=introspection | Psi=0.000 | suggest=introspeccion [DREAM]
+  tick 150 | mode=introspection | Psi=0.000 | suggest=introspeccion [DREAM]
+  tick 175 | mode=synthesis     | Psi=0.000 | suggest=introspeccion [DREAM]
+  tick 200 | mode=introspection | Psi=0.000 | suggest=novedad       [DREAM]
+
+  Psi during SUSTAINED focus (stable ticks):  0.365
+  Psi right after a mode switch (boundary):    0.089
+    -> Psi drops when the experience fragments (the contract's intended
+       introspective signal), and is higher during sustained focus.
+  suggestion distribution: {'novedad': 2, 'introspeccion': 167, 'conexion': 0, 'resolucion': 31}
+    (introspeccion-dominant, matching C={'novedad': 0.3, 'introspeccion': 0.4, 'conexion': 0.1, 'resolucion': 0.2})
+======================================================================
+  plot saved: results\yvyra_bridge.png

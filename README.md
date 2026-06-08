@@ -5,7 +5,7 @@
 [![Python 3.9+](https://img.shields.io/badge/python-3.9+-blue.svg)](https://www.python.org/downloads/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Code style: ruff](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/astral-sh/ruff/main/assets/badge/v2.json)](https://github.com/astral-sh/ruff)
-[![Tests](https://img.shields.io/badge/tests-442%20passed-brightgreen.svg)](tests/)
+[![Tests](https://img.shields.io/badge/tests-462%20passed-brightgreen.svg)](tests/)
 
 ---
 
@@ -144,7 +144,7 @@ python experiments/kernel/exp_organism_emergence.py
 ### Run Tests
 
 ```bash
-PYTHONPATH=src pytest tests/ -q   # 442 tests (or `pip install -e .` first)
+PYTHONPATH=src pytest tests/ -q   # 462 tests (or `pip install -e .` first)
 ```
 
 ---
@@ -155,16 +155,17 @@ PYTHONPATH=src pytest tests/ -q   # 442 tests (or `pip install -e .` first)
 zeta-life/
 |-- src/zeta_life/
 |   |-- kernel/          # CORE - Active Inference kernel + Darwinian organism
+|   |-- bridge/          # Yvyra coupling - feed a live agent's experience to the kernel
 |   |-- integration/     # formal_equations.py - the integration index Psi
 |   |-- datasets/        # Real-world dataset adapters (for Psi validation)
 |   |-- core/            # zeta_constants, vertex, tetrahedral geometry
 |   +-- utils/           # Shared utilities
 |
 |-- experiments/
-|   |-- kernel/          # 11 kernel experiments (the live research)
+|   |-- kernel/          # 13 kernel experiments (the live research)
 |   +-- datasets/        # 1 experiment (Psi on real data)
 |
-|-- tests/               # 21 test files (442 tests)
+|-- tests/               # 22 test files (462 tests)
 +-- docs/                # Documentation, papers, plans
 
 (Legacy subsystems -- psyche, hierarchical/IPUESA integration, organism,

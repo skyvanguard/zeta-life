@@ -34,14 +34,15 @@ consolidation rhythm and in the cellular automata; optional in the kernel.
 zeta-life/
 ├── src/zeta_life/
 │   ├── kernel/          # CORE — active-inference Conscious Kernel (14 files)
+│   ├── bridge/          # Yvyra coupling — feed a live agent's experience to the kernel
 │   ├── integration/     # formal_equations.py — the integration index Psi
 │   ├── datasets/        # real/synthetic signal loaders for Psi validation
 │   ├── core/            # zeta_constants, vertex, tetrahedral geometry
 │   └── utils/           # statistics helpers
 ├── experiments/
-│   ├── kernel/          # 11 experiments (the live research)
+│   ├── kernel/          # 13 experiments (the live research)
 │   └── datasets/        # 1 experiment (Psi on real data)
-├── tests/               # 21 test files (442 tests)
+├── tests/               # 22 test files (462 tests)
 ├── results/             # experiment outputs (PNG + run .txt)
 ├── docs/                # reports, papers, plans, theory
 ├── models/              # trained weights (.pt)
@@ -169,7 +170,7 @@ The competing consciousness formalisms (psyche `ConsciousnessIndex`, hierarchica
 
 - `docs/AUDIT_FIXES_2026.md` — 11 audited kernel implementation fixes (with before/after metrics)
 - `docs/AGENCY_2026.md` — active-inference agency investigation (honest negative results)
-- `docs/YVYRA_BRIDGE.md` — contract for feeding a live LLM agent's experience into the kernel (the intended application)
+- `docs/YVYRA_BRIDGE.md` — contract for feeding a live agent's experience into the kernel; the zeta-life side is implemented in `src/zeta_life/bridge/` (demo: `experiments/kernel/exp_yvyra_bridge.py`)
 - `docs/theory/EXPERIMENTO_ZETA_VS_BASELINE.md` — zeta vs uniform/none/random (zeta == uniform)
 - `docs/papers/` — the original "zeta unification" paper (predates the kernel; its zeta thesis is now partly falsified by the project's own evidence)
 - `docs/REPORTE_ZETA_ORGANISM.md`, `docs/ZETA_PSYCHE.md` — legacy subsystem reports
