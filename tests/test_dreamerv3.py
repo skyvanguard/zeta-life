@@ -8,6 +8,7 @@ import torch
 
 from zeta_life.kernel.rssm import RSSM, symlog, symexp
 from zeta_life.kernel.dreamerv3_agent import SequenceReplay, DreamerV3Agent
+from zeta_life.kernel.rssm_kernel import RSSMConsciousKernel, RSSMStepResult
 
 
 class TestSymlog:
@@ -25,7 +26,7 @@ class TestRSSM:
             torch.randn(B, T, 4), torch.rand(B, T, 2),
             torch.rand(B, T), torch.ones(B, T))
         assert hs.shape == (B, T, 16) and zs.shape == (B, T, 8)
-        assert math.isfinite(float(loss)) and loss.requires_grad
+        assert math.isfinite(loss.detach().item()) and loss.requires_grad
         assert all(math.isfinite(v) for v in metrics.values())
 
     def test_is_first_resets_state(self):
@@ -94,3 +95,40 @@ class TestDreamerV3Agent:
     def test_train_returns_none_before_warmup(self):
         agent = DreamerV3Agent(obs_dim=4, action_dim=2, warmup=500)
         assert agent.train() is None
+
+
+class TestRSSMConsciousKernel:
+    """Kernel faculties (identity, CLS memory, dream, Psi) on the RSSM agent."""
+
+    def _kernel(self):
+        return RSSMConsciousKernel(
+            obs_dim=4, action_dim=2,
+            agent_kwargs=dict(warmup=100, seq_len=12, batch_size=8, horizon=8))
+
+    def test_act_returns_result_with_finite_psi(self):
+        k = self._kernel(); k.reset_state()
+        r = k.act(torch.randn(4))
+        assert isinstance(r, RSSMStepResult)
+        assert r.action in (0, 1) and r.action_onehot.shape == (2,)
+        assert 0.0 <= r.psi <= 1.0 and math.isfinite(r.free_energy)
+
+    def test_faculties_live_after_steps(self):
+        torch.manual_seed(0)
+        k = self._kernel(); k.reset_state()
+        obs, first = torch.randn(4), True
+        for t in range(150):
+            r = k.act(obs)
+            term = (t % 30 == 29)
+            k.observe(obs, r.action_onehot, 1.0, term, first)
+            first = False
+            obs = torch.randn(4) if term else obs + 0.1 * torch.randn(4)
+            if term:
+                k.reset_state(); first = True
+        assert len(k.fast_memory) > 0          # CLS memory active
+        assert k.feat_dim == k.agent.rssm.feat_dim
+        assert 0.0 <= k.last_psi <= 1.0         # integration index live
+
+    def test_faculties_do_not_break_control_action(self):
+        k = self._kernel(); k.reset_state()
+        r = k.act(torch.randn(4), greedy=True)
+        assert r.action in (0, 1)

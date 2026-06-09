@@ -33,16 +33,16 @@ consolidation rhythm and in the cellular automata; optional in the kernel.
 ```
 zeta-life/
 ├── src/zeta_life/
-│   ├── kernel/          # CORE — active-inference Conscious Kernel (18 files)
+│   ├── kernel/          # CORE — active-inference Conscious Kernel (19 files)
 │   ├── bridge/          # Yvyra coupling — feed a live agent's experience to the kernel
 │   ├── integration/     # formal_equations.py — the integration index Psi
 │   ├── datasets/        # real/synthetic signal loaders for Psi validation
 │   ├── core/            # zeta_constants, vertex, tetrahedral geometry
 │   └── utils/           # statistics helpers
 ├── experiments/
-│   ├── kernel/          # 21 experiments (the live research)
+│   ├── kernel/          # 22 experiments (the live research)
 │   └── datasets/        # 1 experiment (Psi on real data)
-├── tests/               # 28 test files (512 tests)
+├── tests/               # 28 test files (515 tests)
 ├── results/             # experiment outputs (PNG + run .txt)
 ├── docs/                # reports, papers, plans, theory
 ├── models/              # trained weights (.pt)
@@ -98,6 +98,7 @@ PERCEIVE → PREDICT → COMPARE → UPDATE → MEMORIZE → ACT → REFLECT →
 | `persistence.py` | Save/load identity across sessions |
 | `policy.py`, `replay.py`, `dynamics_ensemble.py` | Dreamer amortized actor/critic, transition replay, independent dynamics ensemble (curiosity) used by `action_mode="dreamer"` |
 | `rssm.py`, `dreamerv3_agent.py` | **Reference** DreamerV2/V3-style RSSM agent (NOT the kernel) — bounds the kernel's CartPole limit: a recurrent state-space model trained on sequences + learned reward **solves CartPole** where the kernel's 1-step model plateaus (`exp_dreamerv3.py`, §3.10) |
+| `rssm_kernel.py` | **Integration** — `RSSMConsciousKernel`: the kernel's faculties (identity, CLS memory, dream, **Ψ**) layered on the RSSM world model + controller; reaches CartPole's ceiling with Ψ live over the recurrent state (`exp_rssm_kernel.py`, §3.11) |
 
 **Consciousness index Ψ** (in `integration/formal_equations.py`, imported by the
 kernel): `Ψ = B³ + Φ` (cubic) or a bounded **Hill** variant (default), with a

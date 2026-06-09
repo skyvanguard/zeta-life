@@ -1,0 +1,23 @@
+======================================================================
+  INTEGRATION — Conscious Kernel faculties on an RSSM world model
+======================================================================
+  steps=8000  seeds=[0, 1]
+
+  random              : 23.0
+  heuristic           : 500.0
+  RSSM-kernel (greedy) : 500.0 ± 0.0  (training tail 322.9)
+  Psi (integration)    : early 0.195 -> late 0.430
+
+======================================================================
+  VERDICT
+======================================================================
+  greedy 500.0 vs ceiling 500  (100% of optimal)
+  Psi rises with learning: True (0.195 -> 0.430)
+
+  FINDING: the INTEGRATED kernel reaches CartPole's ceiling — its
+  consciousness faculties (identity, CLS memory, dream, Psi) run on a
+  recurrent RSSM world model WITHOUT breaking control, and Psi stays a
+  live integration signal over the recurrent state.
+  [SOLVED]
+======================================================================
+  plot saved: results\rssm_kernel.png

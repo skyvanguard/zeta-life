@@ -208,4 +208,4 @@ class DreamerV3Agent:
                 tp.mul_(self.critic_tau).add_((1.0 - self.critic_tau) * p)
 
         return {"critic": critic_loss.detach().item(), "actor": actor_loss.detach().item(),
-                "ret": float(torch.stack(returns).mean())}
+                "ret": torch.stack(returns).mean().detach().item()}
