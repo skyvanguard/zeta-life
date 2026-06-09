@@ -12,7 +12,7 @@ Presentamos el **Conscious Kernel**: una unidad adaptativa de **inferencia activ
 `PERCIBIR → PREDECIR → COMPARAR → ACTUALIZAR → MEMORIZAR → ACTUAR → REFLEXIONAR → SOÑAR`
 sobre un modelo del mundo aprendido, un modelo de sí mismo recursivo, errores de predicción ponderados por precisión, memoria complementaria (rápida/lenta), selección de acción por energía libre esperada (EFE), e identidad persistente entre sesiones. Sobre el kernel se construye un **organismo darwiniano** multi-kernel.
 
-El proyecto nació integrando los ceros de la función zeta de Riemann con sistemas de vida artificial. Esta reescritura documenta un cambio honesto de tesis: **los valores específicos de zeta no son load-bearing** fuera de un dominio (autómatas celulares espaciales); el motor real es la inferencia activa. Reportamos, con el mismo rigor, lo que **funciona** y lo que **no**: (i) un índice de integración Ψ **auto-calibrante** y robusto; (ii) que una red equiespaciada (Fourier) **iguala o supera** a zeta en el camino temporal; (iii) **control continuo** que alcanza objetivos arbitrarios (cierra el verbo "controlar"); (iv) que el refinamiento CEM **no aporta** en control unimodal; y (v) que una señal epistémica de **disagreement** (de un ensemble de dinámica independiente) **sí impulsa exploración** bajo comparación controlada **cuando el término epistémico está ponderado de forma conmensurable** (pareado +0.30, t=3.7, 9/10) — corrigiendo un null previo que estaba *subponderado*, y un sobre-claim aún anterior que era un artefacto de RNG; un caso de estudio de seguir la evidencia hasta revisar la propia conclusión en ambas direcciones. Un primer **benchmark externo** (Mackey-Glass) es **acotante**: como agente condicionado por acción, el kernel queda por debajo de baselines simples en predicción pura — pero en **control model-based bajo dinámica desconocida** ese mismo diseño es una **ventaja** (alcanza el objetivo donde un controlador model-free fracasa), y un **actor amortizado estilo Dreamer** entrenado en imaginación iguala/supera a la búsqueda a ~60–130× menos costo por acción. En un benchmark RL **externo** (CartPole-v1) el kernel **transfiere parcialmente** (~164 vs 22 de random; ~33% del óptimo) como regulación de inferencia activa pura, sin reward externo; un loop con **replay de transiciones** estilo DreamerV3 mejora la curva (pico ~50% del techo) pero no cierra la brecha (colapso tardío) — eso requeriría paridad DreamerV3 completa. El código, 20 experimentos y 496 tests son reproducibles.
+El proyecto nació integrando los ceros de la función zeta de Riemann con sistemas de vida artificial. Esta reescritura documenta un cambio honesto de tesis: **los valores específicos de zeta no son load-bearing** fuera de un dominio (autómatas celulares espaciales); el motor real es la inferencia activa. Reportamos, con el mismo rigor, lo que **funciona** y lo que **no**: (i) un índice de integración Ψ **auto-calibrante** y robusto; (ii) que una red equiespaciada (Fourier) **iguala o supera** a zeta en el camino temporal; (iii) **control continuo** que alcanza objetivos arbitrarios (cierra el verbo "controlar"); (iv) que el refinamiento CEM **no aporta** en control unimodal; y (v) que una señal epistémica de **disagreement** (de un ensemble de dinámica independiente) **sí impulsa exploración** bajo comparación controlada **cuando el término epistémico está ponderado de forma conmensurable** (pareado +0.30, t=3.7, 9/10) — corrigiendo un null previo que estaba *subponderado*, y un sobre-claim aún anterior que era un artefacto de RNG; un caso de estudio de seguir la evidencia hasta revisar la propia conclusión en ambas direcciones. Un primer **benchmark externo** (Mackey-Glass) es **acotante**: como agente condicionado por acción, el kernel queda por debajo de baselines simples en predicción pura — pero en **control model-based bajo dinámica desconocida** ese mismo diseño es una **ventaja** (alcanza el objetivo donde un controlador model-free fracasa), y un **actor amortizado estilo Dreamer** entrenado en imaginación iguala/supera a la búsqueda a ~60–130× menos costo por acción. En un benchmark RL **externo** (CartPole-v1) el kernel **transfiere parcialmente** (~164 vs 22 de random; ~33% del óptimo) como regulación de inferencia activa pura, sin reward externo; un loop con **replay de transiciones** estilo DreamerV3 mejora la curva pero no cierra la brecha (colapso tardío). Construir un **RSSM de referencia** con paridad DreamerV3 (estado recurrente entrenado sobre secuencias + reward aprendido) **resuelve CartPole al techo (500/500)** — acotando el límite del kernel a su **world-model de un paso**, no a la inferencia activa. El código, 20 experimentos y 496 tests son reproducibles.
 
 **Palabras clave:** inferencia activa, principio de energía libre, consciencia computacional, integración emergente, curiosidad por disagreement, sistemas darwinianos multi-agente.
 
@@ -156,6 +156,18 @@ El kernel **transfiere**: aprende a balancear ~164 pasos (**~7× sobre random, ~
 
 **Estabilización (el arco honesto):** (1) estabilizadores estilo DreamerV3 (target critic EMA, normalización de returns, grad clip) elevaron el training tail 105→132 pero la curva seguía oscilando con caídas catastróficas. (2) Implementamos el **loop con replay de transiciones** completo (buffer de observaciones re-encodeadas con el modelo actual + grounding del world model en transiciones diversas + imaginación desde estados de replay). Esto **mejoró la forma de la curva** —sube de forma clara hasta un **pico ~250 (50% del techo)** en vez de oscilar alrededor de ~100— **pero NO resolvió el problema**: sobre entrenamiento largo aparece un **colapso tardío** (pico → declive) y el eval greedy se mantiene en ~33% del techo, sin superar a los estabilizadores simples. El replay también mejoró la sanidad del control model-based (`exp_dreamer.py`, D=8: 0.047 vs 0.081). Honesto: el replay de transiciones es la arquitectura más principista y eleva el pico, pero **cerrar la brecha al techo requiere paridad DreamerV3 completa** (world model recurrente entrenado sobre **secuencias**/RSSM + **reward model** aprendido), más allá del replay. Es el primer dato en un benchmark RL externo — **transferencia parcial real, no SOTA**.
 
+### 3.10 Paridad DreamerV3: un RSSM crackea CartPole (`exp_dreamerv3.py`)
+Para **acotar** de dónde viene la brecha del kernel, construimos un agente **DreamerV2/V3-style** autocontenido (`kernel/rssm.py`, `kernel/dreamerv3_agent.py`): un **RSSM** (estado recurrente determinista `h` + estocástico `z`, prior/posterior Gaussianos, KL balanceada + free nats) **entrenado sobre secuencias** de un replay flat, con **reward y continue heads aprendidos**, y actor-crítico en imaginación (λ-returns, REINFORCE + entropía, target critic EMA).
+
+| política | largo de episodio (cap 500) |
+|---|---|
+| random | 22 |
+| heurística | 500 |
+| kernel (world-model de 1 paso) | ~164 (33%) |
+| **RSSM DreamerV3-style (eval greedy)** | **500 (100%)** |
+
+El RSSM **resuelve CartPole al techo** (greedy 500/500) en ~8k pasos. Esto **acota el límite del kernel a su world-model**: no es el diseño de inferencia activa lo que falla en CartPole, sino el modelo de **un paso** sin estado recurrente entrenado sobre secuencias ni reward aprendido. El RSSM es una **implementación de referencia** (no el kernel); el siguiente paso natural —darle al kernel un world-model opcional tipo RSSM— queda como trabajo futuro de ingeniería, ahora con la dirección probada.
+
 ---
 
 ## 4. Discusión
@@ -184,6 +196,7 @@ Recurrentemente, las extensiones (horizonte, epistémico-proxy, CEM, espectro ze
 | Control model-based (dinámica desconocida) | **Sí** | kernel 0.046 vs naive model-free 0.85 (aprende e invierte la permutación) |
 | Planificación amortizada (Dreamer) | **Sí** | iguala/supera a la búsqueda (D=16: 0.100 vs 0.159) a ~60–130× menos costo/acción |
 | Benchmark RL externo (CartPole-v1) | **Parcial** | greedy ~164 vs random 22 vs óptimo 500: transfiere (~7×), no SOTA; replay de transiciones mejora la curva (pico ~50% del techo) pero hay colapso tardío |
+| Paridad DreamerV3 (RSSM de referencia) | **Sí** | un RSSM entrenado sobre secuencias + reward aprendido **resuelve CartPole (greedy 500/500)** → la brecha del kernel es su world-model de 1 paso, no la inferencia activa |
 
 ### 4.5 Limitaciones
 - Energía libre = solo término de accuracy (sin KL/complejidad).
@@ -192,11 +205,11 @@ Recurrentemente, las extensiones (horizonte, epistémico-proxy, CEM, espectro ze
   *control* externo (CartPole-v1, §3.9) muestra **transferencia parcial real**
   (~164 vs random 22, ~33% del óptimo) pero **no SOTA**; falta validación en
   experiencia real (Yvyra).
-- **CartPole no alcanza el techo aun con replay de transiciones.** El loop con
-  replay mejora la curva (pico ~50% del techo) pero hay **colapso tardío** y el
-  eval se queda en ~33%. Cerrar la brecha requiere paridad DreamerV3 completa: un
-  world model **recurrente entrenado sobre secuencias** (RSSM) y un **reward model
-  aprendido**, no solo replay de transiciones de un paso.
+- **El kernel mismo no alcanza el techo de CartPole** (~33%) por su world-model de
+  un paso. Un RSSM de referencia entrenado sobre secuencias + reward aprendido **sí
+  lo resuelve** (§3.10, greedy 500/500), lo que acota la limitación al world-model:
+  **falta darle al kernel un world-model opcional tipo RSSM** e integrarlo con su
+  ciclo (self-model, memoria, Ψ) — trabajo de ingeniería, dirección ya probada.
 - Ψ sigue dependiendo de una constante de escala FE→Φ (`psi_fe_scale`), documentada como calibración, no derivada.
 
 ---

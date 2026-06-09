@@ -33,16 +33,16 @@ consolidation rhythm and in the cellular automata; optional in the kernel.
 ```
 zeta-life/
 ├── src/zeta_life/
-│   ├── kernel/          # CORE — active-inference Conscious Kernel (14 files)
+│   ├── kernel/          # CORE — active-inference Conscious Kernel (18 files)
 │   ├── bridge/          # Yvyra coupling — feed a live agent's experience to the kernel
 │   ├── integration/     # formal_equations.py — the integration index Psi
 │   ├── datasets/        # real/synthetic signal loaders for Psi validation
 │   ├── core/            # zeta_constants, vertex, tetrahedral geometry
 │   └── utils/           # statistics helpers
 ├── experiments/
-│   ├── kernel/          # 20 experiments (the live research)
+│   ├── kernel/          # 21 experiments (the live research)
 │   └── datasets/        # 1 experiment (Psi on real data)
-├── tests/               # 27 test files (504 tests)
+├── tests/               # 28 test files (512 tests)
 ├── results/             # experiment outputs (PNG + run .txt)
 ├── docs/                # reports, papers, plans, theory
 ├── models/              # trained weights (.pt)
@@ -96,6 +96,8 @@ PERCEIVE → PREDICT → COMPARE → UPDATE → MEMORIZE → ACT → REFLECT →
 | `temporal_features.py` | `OscillatorBank` — optional time code fed to the world model (see below) |
 | `global_workspace.py`, `energy_pool.py`, `spawn_controller.py`, `organism_state.py`, `conscious_organism.py` | Darwinian multi-kernel organism (winner-take-all GW, energy, spawn/merge/death) |
 | `persistence.py` | Save/load identity across sessions |
+| `policy.py`, `replay.py`, `dynamics_ensemble.py` | Dreamer amortized actor/critic, transition replay, independent dynamics ensemble (curiosity) used by `action_mode="dreamer"` |
+| `rssm.py`, `dreamerv3_agent.py` | **Reference** DreamerV2/V3-style RSSM agent (NOT the kernel) — bounds the kernel's CartPole limit: a recurrent state-space model trained on sequences + learned reward **solves CartPole** where the kernel's 1-step model plateaus (`exp_dreamerv3.py`, §3.10) |
 
 **Consciousness index Ψ** (in `integration/formal_equations.py`, imported by the
 kernel): `Ψ = B³ + Φ` (cubic) or a bounded **Hill** variant (default), with a

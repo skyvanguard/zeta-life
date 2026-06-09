@@ -1,0 +1,20 @@
+======================================================================
+  DREAMERV3 PARITY (RSSM) on CartPole-v1
+======================================================================
+  steps=8000  train_every=1  seeds=[0, 1]
+
+  random        : 23.0
+  heuristic     : 500.0
+  DreamerV3 RSSM : greedy 500.0 ± 0.0  (training tail 356.4)
+    (episodes/seed: [51, 45])
+
+======================================================================
+  VERDICT
+======================================================================
+  greedy 500.0 vs ceiling 500  (100% of optimal)
+  FINDING: the RSSM agent SOLVES CartPole (greedy >= 450). The kernel's
+  ~33% plateau was its one-step world model — a recurrent state-space
+  model trained on sequences + a learned reward closes the gap.
+  [SOLVED]
+======================================================================
+  plot saved: results\dreamerv3.png
