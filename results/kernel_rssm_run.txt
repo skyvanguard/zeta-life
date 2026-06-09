@@ -1,0 +1,23 @@
+======================================================================
+  IN-SITU FUSION — ConsciousKernel(world_model_type='rssm') on CartPole
+======================================================================
+  steps=8000  seeds=[0, 1]
+
+  random                    : 23.0
+  heuristic                 : 500.0
+  fused kernel (greedy)     : 500.0 ± 0.0  (training tail 322.9)
+  Psi (integration)         : early 0.401 -> late 0.948
+
+======================================================================
+  VERDICT
+======================================================================
+  greedy 500.0 vs ceiling 500  (100% of optimal)
+  Psi rises with learning: True (0.401 -> 0.948)
+
+  FINDING: the CANONICAL ConsciousKernel, with world_model_type='rssm',
+  reaches CartPole's ceiling running its full cycle (self-model, memory,
+  dream, Psi) on a recurrent sequence-trained world model — the in-situ
+  fusion. One class, one step(), Psi live.
+  [SOLVED]
+======================================================================
+  plot saved: results\kernel_rssm.png

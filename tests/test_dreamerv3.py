@@ -37,7 +37,7 @@ class TestRSSM:
         hs, zs, loss, _ = rssm.observe(
             torch.randn(B, T, 4), torch.rand(B, T, 2),
             torch.rand(B, T), torch.ones(B, T), is_first=first)
-        assert hs.shape == (B, T, 16) and math.isfinite(float(loss))
+        assert hs.shape == (B, T, 16) and math.isfinite(loss.detach().item())
 
     def test_img_step_shapes(self):
         rssm = RSSM(obs_dim=4, action_dim=2, deter_dim=16, stoch_dim=8, hidden=16)
@@ -132,3 +132,43 @@ class TestRSSMConsciousKernel:
         k = self._kernel(); k.reset_state()
         r = k.act(torch.randn(4), greedy=True)
         assert r.action in (0, 1)
+
+
+class TestInSituRSSMKernel:
+    """Canonical ConsciousKernel(world_model_type='rssm') — the in-situ fusion."""
+
+    def test_default_kernel_is_gru(self):
+        from zeta_life.kernel import ConsciousKernel
+        k = ConsciousKernel()
+        assert k.world_model_type == "gru" and k._rssm_agent is None
+
+    def test_rssm_kernel_resizes_faculties_to_feature_space(self):
+        from zeta_life.kernel import ConsciousKernel
+        k = ConsciousKernel(obs_dim=4, action_dim=2, world_model_type="rssm",
+                            rssm_kwargs=dict(warmup=100, seq_len=10, batch_size=6, horizon=6))
+        feat = k._rssm_agent.rssm.feat_dim
+        assert k.self_model.state_dim == feat
+        assert k._last_self_state.shape == (feat,)
+
+    def test_rssm_kernel_step_and_learn(self):
+        from zeta_life.kernel import ConsciousKernel
+        torch.manual_seed(0)
+        k = ConsciousKernel(obs_dim=4, action_dim=2, world_model_type="rssm",
+                            rssm_kwargs=dict(warmup=80, seq_len=10, batch_size=6, horizon=6))
+        k.reset_rssm_state()
+        obs, result = torch.randn(4), None
+        for t in range(150):
+            result = k.step(obs)
+            k.learn_rssm(reward=1.0, done=(t % 30 == 29))
+            obs = torch.randn(4) if (t % 30 == 29) else obs + 0.1 * torch.randn(4)
+        assert result.action.shape == (2,)
+        assert 0.0 <= result.psi <= 1.0 and math.isfinite(result.free_energy)
+        assert len(k.fast_memory) > 0       # faculties live in the fused class
+
+    def test_greedy_eval_runs(self):
+        from zeta_life.kernel import ConsciousKernel
+        k = ConsciousKernel(obs_dim=4, action_dim=2, world_model_type="rssm",
+                            rssm_kwargs=dict(warmup=100))
+        k.reset_rssm_state()
+        r = k.step(torch.randn(4), greedy=True)
+        assert r.action.shape == (2,)

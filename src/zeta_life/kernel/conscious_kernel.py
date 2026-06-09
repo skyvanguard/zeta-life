@@ -36,6 +36,7 @@ from .persistence import PersistenceLayer
 from .temporal_features import OscillatorBank
 from .policy import Actor, Critic
 from .replay import ReplayBuffer
+from .dreamerv3_agent import DreamerV3Agent
 from ..integration.formal_equations import compute_phi_c, compute_psi, compute_psi_hill
 
 
@@ -147,6 +148,8 @@ class ConsciousKernel:
         actor_entropy: float = 0.0,
         replay_capacity: int = 10000,
         replay_wm: bool = True,
+        world_model_type: str = "gru",
+        rssm_kwargs: dict | None = None,
         temporal_features: OscillatorBank | None = None,
     ) -> None:
         self.obs_dim = obs_dim
@@ -370,11 +373,30 @@ class ConsciousKernel:
         self._prec_ref: float | None = None
         self._last_result: StepResult | None = None
 
+        # --- Optional RSSM world model (in-situ fusion) ---
+        # world_model_type="rssm" runs the kernel's FULL cycle on a DreamerV2/V3-
+        # style RSSM (recurrent, sequence-trained, learned reward) via _step_rssm(),
+        # reusing the faculties (self-model, memory, dream, Psi) resized to the RSSM
+        # feature space. The "gru" path (default) is untouched / byte-identical.
+        self.world_model_type = world_model_type
+        self._rssm_agent = None
+        if world_model_type == "rssm":
+            self._rssm_agent = DreamerV3Agent(obs_dim, self.action_dim, **(rssm_kwargs or {}))
+            feat = self._rssm_agent.rssm.feat_dim
+            self.self_model = SelfModel(state_dim=feat, embed_dim=embed_dim)
+            self.error_engine = PredictionErrorEngine(2)   # perceptual, interoceptive
+            self.slow_memory = SlowMemory(feat, outcome_dim=feat)
+            self.dream_engine = DreamEngine(self.fast_memory, self.slow_memory, self.self_model)
+            self._last_self_state = torch.zeros(feat)
+            self._prec_ref = None
+            self._rssm_pending: tuple | None = None
+            self._rssm_is_first = True
+
     # ------------------------------------------------------------------
     # Main loop
     # ------------------------------------------------------------------
 
-    def step(self, stimulus: Tensor) -> StepResult:
+    def step(self, stimulus: Tensor, greedy: bool = False) -> StepResult:
         """Advance the kernel by one time step.
 
         Implements the full Active Inference cycle:
@@ -392,12 +414,19 @@ class ConsciousKernel:
         ----------
         stimulus : Tensor
             Observation vector of shape ``(obs_dim,)``.
+        greedy : bool
+            Used only in ``world_model_type="rssm"`` mode (greedy/exploit action
+            for evaluation); ignored by the default GRU path. In rssm mode call
+            :meth:`learn_rssm` after observing the env reward/done to learn.
 
         Returns
         -------
         StepResult
             Summary of this step's computations.
         """
+        if self.world_model_type == "rssm":
+            return self._step_rssm(stimulus, greedy)
+
         self.t += 1
 
         # Temporal feature for this step (None when no bank is configured). For a
@@ -603,6 +632,92 @@ class ConsciousKernel:
             return compute_psi_hill(phi, phi_c, self.psi_hill_n, self.psi_hill_K)
         psi = compute_psi(phi, phi_c)
         return min(1.0, max(0.0, psi))
+
+    # ------------------------------------------------------------------
+    # In-situ RSSM cycle (world_model_type="rssm")
+    # ------------------------------------------------------------------
+
+    def _step_rssm(self, stimulus: Tensor, greedy: bool) -> StepResult:
+        """The kernel's full cycle driven by the RSSM world model + controller.
+
+        PERCEIVE/PREDICT via the RSSM posterior; COMPARE/MEMORIZE/REFLECT/DREAM via
+        the kernel's own faculties on the recurrent feature s=[h,z]; ACT via the
+        RSSM actor. Psi is computed by the SAME ``_compute_psi`` as the GRU path.
+        Learning (sequence replay + actor-critic in imagination) happens in
+        :meth:`learn_rssm`, called after the env returns reward/done.
+        """
+        self.t += 1
+        agent = self._rssm_agent
+        a, a_oh = agent.act(stimulus, greedy=greedy)           # advance h,z; pick action
+        s = agent.rssm.feat(agent._h, agent._z).squeeze(0).detach()
+        self_state = F.softmax(s, dim=-1)
+        recon = agent.rssm.decoder(s.unsqueeze(0)).squeeze(0).detach()
+        self_pred = self.self_model.predict_self(self._last_self_state)
+
+        predictions = {"perceptual": recon, "interoceptive": self_pred}
+        observations = {"perceptual": stimulus, "interoceptive": self_state}
+        errors = self.error_engine.compute_errors(predictions, observations)
+        free_energy = self.error_engine.free_energy(errors)
+        self.self_model.update_from_error(errors["interoceptive"]["raw"])
+        self.error_engine.update_precisions(errors)
+
+        # MEMORIZE
+        surprise = max(errors[ch]["magnitude"].item() for ch in self.error_engine.channels)
+        self.fast_memory.store(Episode(
+            stimulus=stimulus.detach(), observation=stimulus.detach(),
+            archetype_state=self_state.detach(), surprise=surprise,
+            dominant=f"f{int(self_state.argmax())}", timestamp=self.t,
+            prediction_errors={ch: errors[ch]["magnitude"].item()
+                               for ch in self.error_engine.channels}))
+        self.slow_memory.integrate(self_state.detach(), self_state.detach())
+
+        # REFLECT / DREAM
+        reflected = dreamed = False
+        if self.t % self.reflect_interval == 0:
+            self.self_model.reflect(self_state.detach(), depth=3)
+            reflected = True
+        if self.t % self.dream_interval == 0 and len(self.fast_memory) > 0:
+            self.dream_engine.dream_cycle(30)
+            dreamed = True
+
+        psi = self._compute_psi(free_energy.item())
+        self._last_self_state = self_state.detach()
+        self.last_action = a_oh.detach()
+        # Stash the (obs, action, is_first) pending transition for learn_rssm().
+        self._rssm_pending = (stimulus.detach(), a_oh.detach(), self._rssm_is_first)
+        self._rssm_is_first = False
+
+        result = StepResult(
+            free_energy=free_energy.item(),
+            errors={ch: errors[ch]["magnitude"].item() for ch in self.error_engine.channels},
+            action=a_oh.detach(), psi=psi, reflected=reflected, dreamed=dreamed)
+        self._last_result = result
+        return result
+
+    def learn_rssm(self, reward: float, done: bool) -> None:
+        """Complete the pending transition with the env outcome and train.
+
+        Call once per :meth:`step` (rssm mode) after the environment returns the
+        reward and done flag for the action just taken. Stores (obs, action,
+        reward, continue) in the sequence replay and trains the RSSM + actor-critic.
+        Resets the recurrent state at episode boundaries.
+        """
+        if self._rssm_pending is None:
+            return
+        obs, a_oh, first = self._rssm_pending
+        self._rssm_agent.replay.add(obs, a_oh, reward, 0.0 if done else 1.0, first)
+        self._rssm_agent.train()
+        self._rssm_pending = None
+        if done:
+            self.reset_rssm_state()
+
+    def reset_rssm_state(self) -> None:
+        """Reset the RSSM recurrent state at an episode boundary."""
+        if self._rssm_agent is not None:
+            self._rssm_agent.reset_state()
+            self._last_self_state = torch.zeros(self._rssm_agent.rssm.feat_dim)
+        self._rssm_pending = None
+        self._rssm_is_first = True
 
     # ------------------------------------------------------------------
     # Action selection (active inference)
