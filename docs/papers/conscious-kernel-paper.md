@@ -12,7 +12,7 @@ Presentamos el **Conscious Kernel**: una unidad adaptativa de **inferencia activ
 `PERCIBIR → PREDECIR → COMPARAR → ACTUALIZAR → MEMORIZAR → ACTUAR → REFLEXIONAR → SOÑAR`
 sobre un modelo del mundo aprendido, un modelo de sí mismo recursivo, errores de predicción ponderados por precisión, memoria complementaria (rápida/lenta), selección de acción por energía libre esperada (EFE), e identidad persistente entre sesiones. Sobre el kernel se construye un **organismo darwiniano** multi-kernel.
 
-El proyecto nació integrando los ceros de la función zeta de Riemann con sistemas de vida artificial. Esta reescritura documenta un cambio honesto de tesis: **los valores específicos de zeta no son load-bearing** fuera de un dominio (autómatas celulares espaciales); el motor real es la inferencia activa. Reportamos, con el mismo rigor, lo que **funciona** y lo que **no**: (i) un índice de integración Ψ **auto-calibrante** y robusto; (ii) que una red equiespaciada (Fourier) **iguala o supera** a zeta en el camino temporal; (iii) **control continuo** que alcanza objetivos arbitrarios (cierra el verbo "controlar"); (iv) que el refinamiento CEM **no aporta** en control unimodal; y (v) que una señal epistémica de **disagreement** (de un ensemble de dinámica independiente) **sí impulsa exploración** bajo comparación controlada **cuando el término epistémico está ponderado de forma conmensurable** (pareado +0.30, t=3.7, 9/10) — corrigiendo un null previo que estaba *subponderado*, y un sobre-claim aún anterior que era un artefacto de RNG; un caso de estudio de seguir la evidencia hasta revisar la propia conclusión en ambas direcciones. Un primer **benchmark externo** (Mackey-Glass) es **acotante**: como agente condicionado por acción, el kernel queda por debajo de baselines simples en predicción pura — pero en **control model-based bajo dinámica desconocida** ese mismo diseño es una **ventaja** (alcanza el objetivo donde un controlador model-free fracasa), y un **actor amortizado estilo Dreamer** entrenado en imaginación iguala/supera a la búsqueda a ~60–130× menos costo por acción. En un benchmark RL **externo** (CartPole-v1) el kernel **transfiere parcialmente** (~164 vs 22 de random; ~33% del óptimo) como regulación de inferencia activa pura, sin reward externo; un loop con **replay de transiciones** estilo DreamerV3 mejora la curva pero no cierra la brecha (colapso tardío). Construir un **RSSM de referencia** con paridad DreamerV3 (estado recurrente entrenado sobre secuencias + reward aprendido) **resuelve CartPole al techo (500/500)** — acotando el límite del kernel a su **world-model de un paso**, no a la inferencia activa. La **integración** corre las facultades del kernel —identidad, memoria, sueño, **Ψ**— sobre ese RSSM y **alcanza el techo manteniendo Ψ vivo**, primero como composición (`RSSMConsciousKernel`) y luego **fusionado in-situ** en la clase canónica (`ConsciousKernel(world_model_type="rssm")`, mismo `step()`). El código, 20 experimentos y 496 tests son reproducibles.
+El proyecto nació integrando los ceros de la función zeta de Riemann con sistemas de vida artificial. Esta reescritura documenta un cambio honesto de tesis: **los valores específicos de zeta no son load-bearing** fuera de un dominio (autómatas celulares espaciales); el motor real es la inferencia activa. Reportamos, con el mismo rigor, lo que **funciona** y lo que **no**: (i) un índice de integración Ψ **auto-calibrante** y robusto; (ii) que una red equiespaciada (Fourier) **iguala o supera** a zeta en el camino temporal; (iii) **control continuo** que alcanza objetivos arbitrarios (cierra el verbo "controlar"); (iv) que el refinamiento CEM **no aporta** en control unimodal; y (v) que una señal epistémica de **disagreement** (de un ensemble de dinámica independiente) **sí impulsa exploración** bajo comparación controlada **cuando el término epistémico está ponderado de forma conmensurable** (pareado +0.30, t=3.7, 9/10) — corrigiendo un null previo que estaba *subponderado*, y un sobre-claim aún anterior que era un artefacto de RNG; un caso de estudio de seguir la evidencia hasta revisar la propia conclusión en ambas direcciones. Un primer **benchmark externo** (Mackey-Glass) es **acotante**: como agente condicionado por acción, el kernel queda por debajo de baselines simples en predicción pura — pero en **control model-based bajo dinámica desconocida** ese mismo diseño es una **ventaja** (alcanza el objetivo donde un controlador model-free fracasa), y un **actor amortizado estilo Dreamer** entrenado en imaginación iguala/supera a la búsqueda a ~60–130× menos costo por acción. En un benchmark RL **externo** (CartPole-v1) el kernel **transfiere parcialmente** (~164 vs 22 de random; ~33% del óptimo) como regulación de inferencia activa pura, sin reward externo; un loop con **replay de transiciones** estilo DreamerV3 mejora la curva pero no cierra la brecha (colapso tardío). Construir un **RSSM de referencia** con paridad DreamerV3 (estado recurrente entrenado sobre secuencias + reward aprendido) **resuelve CartPole al techo (500/500)** — acotando el límite del kernel a su **world-model de un paso**, no a la inferencia activa. La **integración** corre las facultades del kernel —identidad, memoria, sueño, **Ψ**— sobre ese RSSM y **alcanza el techo manteniendo Ψ vivo**, primero como composición (`RSSMConsciousKernel`) y luego **fusionado in-situ** en la clase canónica (`ConsciousKernel(world_model_type="rssm")`, mismo `step()`). En **control continuo** (Pendulum, actor tanh-Gaussian por gradientes de valor) el kernel fusionado **aprende** (−545 vs −1234 de random) sin resolver del todo el swing-up — extensión honesta y parcial. El código, 20 experimentos y 496 tests son reproducibles.
 
 **Palabras clave:** inferencia activa, principio de energía libre, consciencia computacional, integración emergente, curiosidad por disagreement, sistemas darwinianos multi-agente.
 
@@ -178,6 +178,17 @@ La culminación: la **misma clase** `ConsciousKernel`, con `world_model_type="rs
 
 Resultado en CartPole: el **kernel canónico fusionado alcanza el techo** (greedy ~500/500) con **Ψ vivo** sobre el estado recurrente — no un wrapper, sino una sola clase con un solo `step()`. Es la fusión que cierra el arco §3.9→§3.12: el `ConsciousKernel`, dándole un world-model recurrente in situ, resuelve la tarea externa manteniendo identidad, memoria, sueño y el índice de integración.
 
+### 3.13 Control continuo: el kernel fusionado en Pendulum-v1 (`exp_pendulum.py`)
+Extiende la fusión de **discreto** (CartPole) a **continuo**. El agente RSSM gana un **actor continuo tanh-Gaussiano** entrenado por **gradientes de valor** (acciones reparametrizadas retropropagadas por el rollout diferenciable, no REINFORCE); el kernel canónico `ConsciousKernel(world_model_type="rssm")` con `action_type="continuous"` controla Pendulum-v1 (torque 1-D en [−2,2], reward denso, swing-up).
+
+| política | retorno de episodio (200 pasos) |
+|---|---|
+| random | −1234 |
+| **kernel fusionado (greedy)** | **−545** |
+| (referencia: swing-up resuelto) | > −250 |
+
+El kernel **aprende control continuo** (greedy −545, ~2.3× mejor que random; la curva sube de ~−1300 a ~−400/−700) **pero no resuelve del todo** el swing-up en este presupuesto (20k pasos, 1 semilla). Honesto: el swing-up exige aprender a bombear energía (exploración no trivial); el actor continuo **funciona y transfiere el ciclo del kernel a acción continua**, pero alcanzar el óptimo pide más pasos/tuning. A diferencia de CartPole, Ψ **no consolida** (0.64→0.33): el error de predicción del entorno continuo se mantiene más alto, así que precisión/coherencia no se asientan igual — una observación honesta, no un éxito. DMC propio (MuJoCo) queda como extensión más pesada.
+
 ---
 
 ## 4. Discusión
@@ -209,6 +220,7 @@ Recurrentemente, las extensiones (horizonte, epistémico-proxy, CEM, espectro ze
 | Paridad DreamerV3 (RSSM de referencia) | **Sí** | un RSSM entrenado sobre secuencias + reward aprendido **resuelve CartPole (greedy 500/500)** → la brecha del kernel es su world-model de 1 paso, no la inferencia activa |
 | Integración: facultades del kernel + RSSM | **Sí** | `RSSMConsciousKernel` alcanza el techo de CartPole (~500/500) con identidad/memoria/sueño/**Ψ vivo** sobre el estado recurrente |
 | Fusión in-situ: `ConsciousKernel(world_model_type="rssm")` | **Sí** | la misma clase, un solo `step()`, alcanza el techo de CartPole con Ψ vivo; path GRU byte-idéntico |
+| Control continuo (Pendulum) | **Parcial** | actor tanh-Gaussian por gradientes de valor; greedy −545 vs random −1234 (aprende, ~2.3×; no resuelve el swing-up completo en 20k) |
 
 ### 4.5 Limitaciones
 - Energía libre = solo término de accuracy (sin KL/complejidad).
@@ -220,8 +232,11 @@ Recurrentemente, las extensiones (horizonte, epistémico-proxy, CEM, espectro ze
 - El `ConsciousKernel` canónico con su world-model de **un paso** se estanca en
   ~33% de CartPole; con `world_model_type="rssm"` (fusión in-situ, §3.12) alcanza
   el techo con Ψ vivo. La rama RSSM es **Gaussiana (V2-flavored)**, no el
-  categórico/two-hot/symlog de DreamerV3 verbatim, y se validó en una sola tarea
-  (CartPole) — falta DMC/continuo y entornos más ricos.
+  categórico/two-hot/symlog de DreamerV3 verbatim.
+- **Control continuo solo parcial** (Pendulum, §3.13): el actor tanh-Gaussian
+  aprende (greedy −545 vs random −1234) pero no resuelve el swing-up en 20k, y Ψ
+  no consolida en ese régimen. Falta más presupuesto/tuning, DMC propio (MuJoCo) y
+  entornos más ricos.
 - Ψ sigue dependiendo de una constante de escala FE→Φ (`psi_fe_scale`), documentada como calibración, no derivada.
 
 ---

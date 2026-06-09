@@ -172,3 +172,41 @@ class TestInSituRSSMKernel:
         k.reset_rssm_state()
         r = k.step(torch.randn(4), greedy=True)
         assert r.action.shape == (2,)
+
+
+class TestContinuousControl:
+    """Continuous (tanh-Gaussian, value-gradient) actor for continuous control."""
+
+    def test_agent_continuous_action_bounds(self):
+        ag = DreamerV3Agent(obs_dim=3, action_dim=1, action_type="continuous", action_high=2.0)
+        ag.reset_state()
+        env_a, model_a = ag.act(torch.randn(3))
+        assert env_a.shape == (1,) and model_a.shape == (1,)
+        assert -2.001 <= float(env_a) <= 2.001       # scaled to env range
+        assert -1.001 <= float(model_a) <= 1.001      # tanh model action
+
+    def test_agent_continuous_trains(self):
+        torch.manual_seed(0)
+        ag = DreamerV3Agent(obs_dim=3, action_dim=1, action_type="continuous",
+                            action_high=2.0, warmup=100, seq_len=10, batch_size=6, horizon=6)
+        ag.reset_state()
+        obs = torch.randn(3)
+        for t in range(200):
+            _, model_a = ag.act(obs)
+            ag.replay.add(obs, model_a, -float((obs[0] - 1) ** 2), 1.0, first=(t % 40 == 0))
+            obs = torch.randn(3) if (t % 40 == 39) else obs + 0.05 * torch.randn(3)
+            if t % 40 == 39:
+                ag.reset_state()
+        m = ag.train()
+        assert m is not None and all(math.isfinite(v) for v in m.values())
+
+    def test_fused_kernel_continuous(self):
+        from zeta_life.kernel import ConsciousKernel
+        k = ConsciousKernel(obs_dim=3, action_dim=1, world_model_type="rssm",
+                            rssm_kwargs=dict(action_type="continuous", action_high=2.0,
+                                             warmup=100, seq_len=10, batch_size=6, horizon=6))
+        k.reset_rssm_state()
+        r = k.step(torch.randn(3))
+        k.learn_rssm(reward=-0.5, done=False)
+        assert r.action.shape == (1,) and -1.001 <= float(r.action) <= 1.001
+        assert 0.0 <= r.psi <= 1.0

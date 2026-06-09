@@ -40,9 +40,9 @@ zeta-life/
 │   ├── core/            # zeta_constants, vertex, tetrahedral geometry
 │   └── utils/           # statistics helpers
 ├── experiments/
-│   ├── kernel/          # 23 experiments (the live research)
+│   ├── kernel/          # 24 experiments (the live research)
 │   └── datasets/        # 1 experiment (Psi on real data)
-├── tests/               # 28 test files (519 tests)
+├── tests/               # 28 test files (522 tests)
 ├── results/             # experiment outputs (PNG + run .txt)
 ├── docs/                # reports, papers, plans, theory
 ├── models/              # trained weights (.pt)
@@ -97,7 +97,7 @@ PERCEIVE → PREDICT → COMPARE → UPDATE → MEMORIZE → ACT → REFLECT →
 | `global_workspace.py`, `energy_pool.py`, `spawn_controller.py`, `organism_state.py`, `conscious_organism.py` | Darwinian multi-kernel organism (winner-take-all GW, energy, spawn/merge/death) |
 | `persistence.py` | Save/load identity across sessions |
 | `policy.py`, `replay.py`, `dynamics_ensemble.py` | Dreamer amortized actor/critic, transition replay, independent dynamics ensemble (curiosity) used by `action_mode="dreamer"` |
-| `rssm.py`, `dreamerv3_agent.py` | **Reference** DreamerV2/V3-style RSSM agent (NOT the kernel) — bounds the kernel's CartPole limit: a recurrent state-space model trained on sequences + learned reward **solves CartPole** where the kernel's 1-step model plateaus (`exp_dreamerv3.py`, §3.10) |
+| `rssm.py`, `dreamerv3_agent.py` | **Reference** DreamerV2/V3-style RSSM agent (NOT the kernel) — recurrent state-space model trained on sequences + learned reward; **solves CartPole** where the kernel's 1-step model plateaus (`exp_dreamerv3.py`, §3.10). `action_type="discrete"` (categorical, REINFORCE) or `"continuous"` (tanh-Gaussian, value gradients — Pendulum, §3.13) |
 | `rssm_kernel.py` | **Integration (composition)** — `RSSMConsciousKernel`: the kernel's faculties (identity, CLS memory, dream, **Ψ**) layered on the RSSM world model + controller; reaches CartPole's ceiling with Ψ live (`exp_rssm_kernel.py`, §3.11) |
 | `conscious_kernel.py` (`world_model_type="rssm"`) | **In-situ fusion** — the canonical kernel runs its full `step()`/`_compute_psi` on the RSSM (via `_step_rssm`/`learn_rssm`); reaches CartPole's ceiling, Ψ live; GRU path byte-identical (`exp_kernel_rssm.py`, §3.12) |
 

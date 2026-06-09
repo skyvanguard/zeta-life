@@ -1,0 +1,21 @@
+======================================================================
+  CONTINUOUS CONTROL — fused kernel(rssm) on Pendulum-v1
+======================================================================
+  steps=20000  seeds=[0]
+
+  random (return)        : -1234
+  fused kernel (greedy)  : -545 ± 0
+  training return        : early -835 -> late -709
+  Psi (integration)      : early 0.636 -> late 0.325
+
+======================================================================
+  VERDICT
+======================================================================
+  greedy return -545 vs random -1234  (solved>~-250: False)
+  learns (beats random / improves): True
+
+  FINDING: the fused kernel LEARNS continuous control (well above random)
+  but does not fully solve in this budget — honest partial result.
+  [LEARNS]
+======================================================================
+  plot saved: results\pendulum.png
