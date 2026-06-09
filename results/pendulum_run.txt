@@ -1,21 +1,22 @@
 ======================================================================
   CONTINUOUS CONTROL — fused kernel(rssm) on Pendulum-v1
 ======================================================================
-  steps=20000  seeds=[0]
+  agent_steps=6000  action_repeat=2  seeds=[0, 1]
 
-  random (return)        : -1234
-  fused kernel (greedy)  : -545 ± 0
-  training return        : early -835 -> late -709
-  Psi (integration)      : early 0.636 -> late 0.325
+  random (return)        : -1189
+  fused kernel (greedy)  : -181 ± 37
+  training return        : early -1365 -> late -149
+  Psi (integration)      : early 0.019 -> late 0.941
 
 ======================================================================
   VERDICT
 ======================================================================
-  greedy return -545 vs random -1234  (solved>~-250: False)
+  greedy return -181 vs random -1189  (solved>~-250: True)
   learns (beats random / improves): True
 
-  FINDING: the fused kernel LEARNS continuous control (well above random)
-  but does not fully solve in this budget — honest partial result.
-  [LEARNS]
+  FINDING: the fused kernel SOLVES continuous control — its tanh-Gaussian
+  actor (value gradients) swings up and balances the pendulum, on the
+  same RSSM cycle, extending the in-situ fusion from discrete to continuous.
+  [SOLVED]
 ======================================================================
   plot saved: results\pendulum.png

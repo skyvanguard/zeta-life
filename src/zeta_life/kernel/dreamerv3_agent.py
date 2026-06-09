@@ -233,8 +233,13 @@ class DreamerV3Agent:
         if continuous:
             # Value gradients: lambda-returns differentiable through the rewards
             # (which depend on the reparameterised actions) + detached bootstrap.
+            # Advantage form (subtract the value baseline) + return-scale
+            # normalisation so the actor gradient is decoupled from the reward
+            # magnitude (essential when rewards are large, e.g. Pendulum ~[-16,0]).
             grad_returns = self._lambda_returns(rewards, conts, values_t)
-            obj = torch.stack([weights[i] * grad_returns[i] for i in range(H)]).mean()
+            scale = max(self._adv_std, 1e-3)
+            obj = torch.stack(
+                [weights[i] * (grad_returns[i] - values_t[i]) / scale for i in range(H)]).mean()
             ent = torch.stack([weights[i] * ents[i] for i in range(H)]).mean()
             actor_loss = -(obj + self.entropy * ent)
         else:

@@ -55,24 +55,36 @@ def baseline_random(n_steps: int, seed: int) -> list[float]:
     env.close(); return returns
 
 
-def run_kernel(n_steps: int, seed: int) -> tuple[list[float], float, list[float]]:
+def _act_repeat(env, env_action, repeat):
+    """Repeat an action for `repeat` env frames; return (next_obs, summed_reward, done)."""
+    total, done, nobs = 0.0, False, None
+    for _ in range(repeat):
+        nobs, reward, term, trunc, _ = env.step(env_action)
+        total += reward
+        if term or trunc:
+            done = True
+            break
+    return nobs, total, done
+
+
+def run_kernel(n_steps: int, seed: int, action_repeat: int = 2) -> tuple[list[float], float, list[float]]:
     torch.manual_seed(seed)
     env = gym.make("Pendulum-v1")
     obs, _ = env.reset(seed=seed)
     k = ConsciousKernel(
         obs_dim=3, action_dim=1, world_model_type="rssm",
         rssm_kwargs=dict(action_type="continuous", action_high=2.0, seed=seed,
-                         deter_dim=96, stoch_dim=24, hidden=96, seq_len=20,
-                         batch_size=16, horizon=12, entropy=1e-3))
+                         deter_dim=128, stoch_dim=32, hidden=128, seq_len=24,
+                         batch_size=16, horizon=15, entropy=3e-3))
     k.reset_rssm_state()
     returns, ret, psis = [], 0.0, []
-    for _ in range(n_steps):
+    for _ in range(n_steps):                                  # n_steps = agent decisions
         r = k.step(norm(obs))
         env_action = np.array([float(r.action) * 2.0], dtype=np.float32)  # [-1,1]->[-2,2]
-        nobs, reward, term, trunc, _ = env.step(env_action)
-        k.learn_rssm(reward=float(reward), done=False)   # Pendulum never terminates
+        nobs, reward, done = _act_repeat(env, env_action, action_repeat)
+        k.learn_rssm(reward=float(reward), done=False)        # Pendulum never terminates
         ret += reward; psis.append(r.psi)
-        if term or trunc:
+        if done:
             returns.append(ret); ret = 0.0
             obs, _ = env.reset(); k.reset_rssm_state()
         else:
@@ -82,22 +94,23 @@ def run_kernel(n_steps: int, seed: int) -> tuple[list[float], float, list[float]
     obs, _ = env.reset(); k.reset_rssm_state(); ret = 0.0; eps = 0
     while eps < 5:
         r = k.step(norm(obs), greedy=True)
-        obs, reward, term, trunc, _ = env.step(np.array([float(r.action) * 2.0], dtype=np.float32))
+        env_action = np.array([float(r.action) * 2.0], dtype=np.float32)
+        obs, reward, done = _act_repeat(env, env_action, action_repeat)
         ret += reward
-        if term or trunc:
+        if done:
             greedy.append(ret); ret = 0.0; eps += 1; obs, _ = env.reset(); k.reset_rssm_state()
     env.close()
     return returns, (st.mean(greedy) if greedy else 0.0), psis
 
 
-def main(n_steps: int, seeds: list[int], plot: bool) -> bool:
+def main(n_steps: int, seeds: list[int], action_repeat: int, plot: bool) -> bool:
     print("=" * 70)
     print("  CONTINUOUS CONTROL — fused kernel(rssm) on Pendulum-v1")
     print("=" * 70)
-    print(f"  steps={n_steps}  seeds={seeds}")
+    print(f"  agent_steps={n_steps}  action_repeat={action_repeat}  seeds={seeds}")
     print()
-    rnd = st.mean(st.mean(baseline_random(n_steps, s)) for s in seeds)
-    runs = [run_kernel(n_steps, s) for s in seeds]
+    rnd = st.mean(st.mean(baseline_random(n_steps * action_repeat, s)) for s in seeds)
+    runs = [run_kernel(n_steps, s, action_repeat) for s in seeds]
     greedy = [r[1] for r in runs]
     g = st.mean(greedy); g_sd = st.pstdev(greedy) if len(greedy) > 1 else 0.0
     curve0 = runs[0][0]
@@ -170,9 +183,10 @@ def _plot(rnd, g, g_sd, curve, psis) -> None:
 
 if __name__ == "__main__":
     p = argparse.ArgumentParser(description="Continuous fused kernel on Pendulum-v1")
-    p.add_argument("--steps", type=int, default=20000)
+    p.add_argument("--steps", type=int, default=20000)        # agent decisions
+    p.add_argument("--action-repeat", type=int, default=2)
     p.add_argument("--seeds", type=int, default=1)
     p.add_argument("--no-plot", action="store_true")
     a = p.parse_args()
-    ok = main(a.steps, list(range(a.seeds)), plot=not a.no_plot)
+    ok = main(a.steps, list(range(a.seeds)), a.action_repeat, plot=not a.no_plot)
     sys.exit(0 if ok else 1)
