@@ -1,0 +1,21 @@
+======================================================================
+  RICHER CONTINUOUS CONTROL — fused kernel(rssm) on Reacher-v5 (MuJoCo)
+======================================================================
+  agent_steps=15000  action_repeat=2  seeds=[0]
+  obs dim=10  (standardised)
+
+  random (return)        : -43.1
+  fused kernel (greedy)  : -20.2 ± 0.0
+  training return        : early -44.0 -> late -19.6
+  Psi (integration)      : early 0.029 -> late 0.033
+
+======================================================================
+  VERDICT
+======================================================================
+  greedy -20.2 vs random -43.1  (learns: True)
+  FINDING: the fused kernel LEARNS a higher-dim MuJoCo continuous task
+  (Reacher-v5, 10-D obs / 2-D action) — well above random,
+  extending continuous control beyond Pendulum. CPU budget bounds the depth.
+  [LEARNS]
+======================================================================
+  plot saved: results\mujoco.png

@@ -54,7 +54,9 @@ docs = [
     "myst-parser>=1.0.0",
 ]
 rl = [
-    "gymnasium>=1.0.0",  # external RL benchmarks (e.g. CartPole, exp_cartpole.py)
+    "gymnasium>=1.0.0",  # external RL benchmarks (CartPole, Pendulum)
+    "mujoco>=3.0.0",     # MuJoCo physics for richer continuous control (Reacher, exp_mujoco.py)
+    "imageio>=2.0.0",    # soft dep pulled in by gymnasium MuJoCo envs
 ]
 full = [
     "mpmath>=1.3.0",  # For exact zeta zeros

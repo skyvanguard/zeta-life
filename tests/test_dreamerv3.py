@@ -210,3 +210,21 @@ class TestContinuousControl:
         k.learn_rssm(reward=-0.5, done=False)
         assert r.action.shape == (1,) and -1.001 <= float(r.action) <= 1.001
         assert 0.0 <= r.psi <= 1.0
+
+    def test_multidim_continuous_action(self):
+        """Higher-dim continuous action (e.g. MuJoCo Reacher: 2-D action)."""
+        ag = DreamerV3Agent(obs_dim=10, action_dim=2, action_type="continuous", action_high=1.0)
+        ag.reset_state()
+        env_a, model_a = ag.act(torch.randn(10))
+        assert env_a.shape == (2,) and model_a.shape == (2,)
+        assert bool((model_a.abs() <= 1.001).all())
+
+    def test_fused_kernel_multidim_continuous(self):
+        from zeta_life.kernel import ConsciousKernel
+        k = ConsciousKernel(obs_dim=10, action_dim=2, world_model_type="rssm",
+                            rssm_kwargs=dict(action_type="continuous", action_high=1.0,
+                                             warmup=80, seq_len=8, batch_size=6, horizon=6))
+        k.reset_rssm_state()
+        r = k.step(torch.randn(10))
+        k.learn_rssm(reward=-1.0, done=False)
+        assert r.action.shape == (2,) and 0.0 <= r.psi <= 1.0
