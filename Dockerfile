@@ -1,6 +1,6 @@
 # Zeta-Life Docker Image
 # =======================
-# Provides reproducible environment for IPUESA experiments
+# Provides a reproducible environment for the Conscious Kernel experiments
 
 FROM python:3.11-slim
 
@@ -33,6 +33,6 @@ ENV PATH="/home/zeta/.local/bin:${PATH}"
 CMD ["python", "demos/quickstart.py"]
 
 # Labels
-LABEL maintainer="IPUESA Research" \
+LABEL maintainer="zeta-life" \
       version="0.1.0" \
-      description="Zeta-Life: Artificial Consciousness through Riemann Zeta Function"
+      description="Zeta-Life: an active-inference Conscious Kernel"

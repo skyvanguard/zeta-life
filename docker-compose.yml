@@ -14,7 +14,6 @@ services:
     container_name: zeta-life
     volumes:
       - ./results:/home/zeta/app/results
-      - ./expected_outputs:/home/zeta/app/expected_outputs
     environment:
       - PYTHONPATH=/home/zeta/app/src
     command: python demos/quickstart.py
@@ -28,27 +27,18 @@ services:
     container_name: zeta-life-test
     command: pytest tests/ -v --tb=short
 
-  # Run IPUESA consolidation
-  consolidation:
+  # Re-run the headline kernel experiments
+  reproduce:
     build:
       context: .
       dockerfile: Dockerfile
     image: zeta-life:latest
-    container_name: zeta-life-consolidation
+    container_name: zeta-life-reproduce
     volumes:
       - ./results:/home/zeta/app/results
-    command: python experiments/consciousness/exp_ipuesa_synth_v2_consolidation.py
-
-  # Generate paper figures
-  figures:
-    build:
-      context: .
-      dockerfile: Dockerfile
-    image: zeta-life:latest
-    container_name: zeta-life-figures
-    volumes:
-      - ./docs/papers/figures:/home/zeta/app/docs/papers/figures
-    command: python scripts/generate_paper_figures.py
+    environment:
+      - PYTHONPATH=/home/zeta/app/src
+    command: python experiments/kernel/exp_conscious_kernel_validation.py
 
   # Interactive Jupyter notebook server
   notebook:

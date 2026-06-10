@@ -2,7 +2,7 @@
 # ===================
 # Common tasks for development and deployment
 
-.PHONY: install test lint docs clean docker reproduce help
+.PHONY: install test test-cov lint format clean docker docker-test reproduce quickstart help
 
 # Default target
 help:
@@ -12,25 +12,30 @@ help:
 	@echo ""
 	@echo "Targets:"
 	@echo "  install      Install package in development mode"
+	@echo "  quickstart   Run the 60-line Conscious Kernel demo"
 	@echo "  test         Run all tests"
+	@echo "  test-cov     Run tests with coverage report"
 	@echo "  lint         Run linters (ruff, mypy)"
-	@echo "  docs         Build Sphinx documentation"
-	@echo "  reproduce    Reproduce all paper results"
-	@echo "  validate     Validate reproduction against expected outputs"
+	@echo "  format       Format code (black, ruff --fix)"
+	@echo "  reproduce    Re-run the headline kernel experiments"
 	@echo "  docker       Build Docker image"
 	@echo "  clean        Remove build artifacts"
 	@echo ""
 
 # Installation
 install:
-	pip install -e ".[dev,docs,full]"
+	pip install -e ".[dev,full]"
+
+# Quick demo
+quickstart:
+	PYTHONPATH=src python demos/quickstart.py
 
 # Testing
 test:
-	pytest tests/ -v --tb=short
+	PYTHONPATH=src pytest tests/ -v --tb=short
 
 test-cov:
-	pytest tests/ -v --cov=src/zeta_life --cov-report=html
+	PYTHONPATH=src pytest tests/ -v --cov=src/zeta_life --cov-report=html
 
 # Linting
 lint:
@@ -41,25 +46,18 @@ format:
 	black src/ tests/ experiments/
 	ruff check --fix src/ tests/
 
-# Documentation
-docs:
-	cd docs && sphinx-build -b html . _build/html
-
-docs-serve:
-	cd docs/_build/html && python -m http.server 8000
-
-# Reproduction
+# Reproduction — the live kernel experiments behind the paper's headline results
 reproduce:
-	@echo "Generating paper figures..."
-	python scripts/generate_paper_figures.py
+	@echo "Kernel validation (full active-inference cycle)..."
+	PYTHONPATH=src python experiments/kernel/exp_conscious_kernel_validation.py
 	@echo ""
-	@echo "Running SYNTH-v2 consolidation..."
-	python experiments/consciousness/exp_ipuesa_synth_v2_consolidation.py
+	@echo "Multi-kernel organism emergence..."
+	PYTHONPATH=src python experiments/kernel/exp_organism_emergence.py
+	@echo ""
+	@echo "Psi on real datasets..."
+	PYTHONPATH=src python experiments/datasets/exp_real_data_psi.py
 	@echo ""
 	@echo "Done! Results in results/"
-
-validate:
-	python scripts/validate_reproduction.py
 
 # Docker
 docker:
@@ -68,21 +66,9 @@ docker:
 docker-test:
 	docker-compose run --rm test
 
-docker-notebook:
-	docker-compose up notebook
-
 # Cleaning
 clean:
 	rm -rf build/ dist/ *.egg-info/
-	rm -rf docs/_build/
 	rm -rf .pytest_cache/ .mypy_cache/ .ruff_cache/
 	find . -type d -name __pycache__ -exec rm -rf {} +
 	find . -type f -name "*.pyc" -delete
-
-# Quick demo
-quickstart:
-	python demos/quickstart.py
-
-# Run interactive chat
-chat:
-	python demos/chat_psyche.py --reflection
