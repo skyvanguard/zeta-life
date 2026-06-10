@@ -5,7 +5,7 @@
 [![Python 3.9+](https://img.shields.io/badge/python-3.9+-blue.svg)](https://www.python.org/downloads/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Code style: ruff](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/astral-sh/ruff/main/assets/badge/v2.json)](https://github.com/astral-sh/ruff)
-[![Tests](https://img.shields.io/badge/tests-524%20passed-brightgreen.svg)](tests/)
+[![Tests](https://img.shields.io/badge/tests-532%20passed-brightgreen.svg)](tests/)
 
 ---
 
@@ -58,6 +58,12 @@ kernel = ConsciousKernel(obs_dim=4, latent_dim=32, alpha=1.0)
 result = kernel.step(torch.randn(4))
 print(result.psi)          # integration index [0, 1]
 print(result.free_energy)  # prediction error magnitude
+```
+
+Or run the full demo (learning loop + identity save/load):
+
+```bash
+make quickstart            # = PYTHONPATH=src python demos/quickstart.py
 ```
 
 ### Multi-Kernel Organism (Darwinian Brain)
@@ -144,7 +150,7 @@ python experiments/kernel/exp_organism_emergence.py
 ### Run Tests
 
 ```bash
-PYTHONPATH=src pytest tests/ -q   # 524 tests (or `pip install -e .` first)
+PYTHONPATH=src pytest tests/ -q   # 532 tests (or `pip install -e .` first)
 ```
 
 ---
@@ -162,10 +168,12 @@ zeta-life/
 |   +-- utils/           # Shared utilities
 |
 |-- experiments/
-|   |-- kernel/          # 20 kernel experiments (the live research)
+|   |-- kernel/          # 25 kernel experiments (the live research)
 |   +-- datasets/        # 1 experiment (Psi on real data)
 |
-|-- tests/               # 28 test files (524 tests)
+|-- demos/               # quickstart.py - the 60-line kernel demo
+|
+|-- tests/               # 27 test files (532 tests)
 +-- docs/                # Documentation, papers, plans
 
 (Legacy subsystems -- psyche, hierarchical/IPUESA integration, organism,

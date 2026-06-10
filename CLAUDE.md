@@ -42,11 +42,10 @@ zeta-life/
 ├── experiments/
 │   ├── kernel/          # 25 experiments (the live research)
 │   └── datasets/        # 1 experiment (Psi on real data)
-├── tests/               # 28 test files (524 tests)
+├── tests/               # 27 test files (532 tests)
 ├── results/             # experiment outputs (PNG + run .txt)
 ├── docs/                # reports, papers, plans, theory
-├── models/              # trained weights (.pt)
-└── demos/               # interactive demonstrations
+└── demos/               # quickstart.py — the 60-line kernel demo
 ```
 
 ## Commands
