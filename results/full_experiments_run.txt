@@ -1,0 +1,668 @@
+FULL EXPERIMENT RUN (sistema arreglado, 10k steps) — Fri May 29 19:26:40 PST 2026
+
+════════════════════ kernel/exp_conscious_kernel_validation.py ════════════════════
+============================================================
+  CONSCIOUS KERNEL VALIDATION
+  Active Inference + Zeta Binding + Strange Loop
+============================================================
+
+=== Test 1: Prediction Error Decreases ===
+  First 10 avg free energy: 0.1439
+  Last 10 avg free energy:  0.0006
+  Reduction:                99.6%
+  RESULT: PASS
+
+=== Test 2: Identity Persistence ===
+  Steps saved:          30
+  Steps restored:       30
+  Embedding distance:   0.035351
+  RESULT: PASS
+
+=== Test 3: Generalization ===
+  Training pattern (softmax): ['0.378', '0.207', '0.207', '0.207']
+  Novel input (softmax):      ['0.362', '0.220', '0.209', '0.209']
+  Predicted:                  ['-0.166', '-0.069', '0.061', '0.045']
+  Error:                      0.6410
+  RESULT: FAIL
+
+=== Test 4: Memory Consolidation ===
+  Pre-dream error:  0.6965
+  Post-dream error: 0.6965
+  RESULT: PASS
+
+=== Test 5: Self-Awareness Depth ===
+  Depth levels: 4
+    Level 1: PE = 0.7397
+    Level 2: PE = 0.6739
+    Level 3: PE = 0.7281
+    Level 4: PE = 0.8056
+  RESULT: PASS
+
+=== Test 6: Zeta Binding in Dreams ===
+  Duration:    50
+  Selections:  8
+  Transfers:   27
+  Replays:     15
+  Phases:      {'slow_oscillation': 8, 'spindle': 27, 'ripple': 15}
+  All phases visited: True
+  Has activity:       True
+  RESULT: PASS
+
+============================================================
+  SUMMARY
+============================================================
+  [PASS] Prediction Error Decreases
+  [PASS] Identity Persistence
+  [FAIL] Generalization
+  [PASS] Memory Consolidation
+  [PASS] Self-Awareness Depth
+  [PASS] Zeta Binding in Dreams
+
+  Total: 5/6 passed
+============================================================
+[exit: 0]
+
+════════════════════ kernel/exp_grounding.py --steps 10000 ════════════════════
+======================================================================
+  Referential Grounding — Closing the Causal Loop
+======================================================================
+  Steps per condition: 10000
+
+
+  ------------------------------------------------------------
+  Organism — Grounded
+  ------------------------------------------------------------
+    Done in 60.4s
+
+  ------------------------------------------------------------
+  Organism — Ungrounded
+  ------------------------------------------------------------
+    Done in 65.9s
+
+  ------------------------------------------------------------
+  Organism — Goal-directed
+  ------------------------------------------------------------
+    Done in 69.2s
+
+  ------------------------------------------------------------
+  Individual — Grounded
+  ------------------------------------------------------------
+    Done in 30.6s
+
+  ------------------------------------------------------------
+  Individual — Ungrounded
+  ------------------------------------------------------------
+    Done in 30.6s
+
+  ------------------------------------------------------------
+  Individual — Goal-directed
+  ------------------------------------------------------------
+    Done in 31.0s
+
+======================================================================
+  RESULTS
+======================================================================
+
+  Free Energy (avg last 2000 steps):
+    ind_goal                 : 0.3556
+    ind_grounded             : 0.6901
+    ind_ungrounded           : 1.9026
+    org_goal                 : 0.0056
+    org_grounded             : 0.0103
+    org_ungrounded           : 0.0466
+
+  Broadcast Entropy (avg last 2000 steps):
+    ind_goal                 : 1.9997
+    ind_grounded             : 2.0000
+    ind_ungrounded           : 1.9999
+    org_goal                 : 1.9998
+    org_grounded             : 2.0000
+    org_ungrounded           : 1.9999
+
+  Goal Convergence (avg last 2000 steps):
+    org_goal                 : 0.8059
+    ind_goal                 : 0.8188
+
+  FE Decrease Rate (linear fit slope):
+    ind_goal                 : 0.000040
+    ind_grounded             : 0.000077
+    ind_ungrounded           : 0.000204
+    org_goal                 : -0.000000
+    org_grounded             : -0.000000
+    org_ungrounded           : 0.000000
+
+  ------------------------------------------------------------
+  GROUNDING CRITERIA
+  ------------------------------------------------------------
+  [PASS] FE grounded < FE ungrounded (0.0103 < 0.0466)
+  [FAIL] Broadcast entropy grounded < ungrounded (2.0000 < 1.9999)
+  [PASS] Goal convergence > 0.5 (0.8059)
+  [PASS] FE slope grounded more negative (-0.000000 < 0.000000)
+
+  3/4 criteria met
+
+  Plot saved: results\grounding.png
+[exit: 0]
+
+════════════════════ kernel/exp_grammar.py --steps 10000 ════════════════════
+======================================================================
+  Emergent Grammar Analysis — Proto-Language Temporal Structure
+======================================================================
+  Steps per condition: 10000
+  Cycle length: 200 (50 steps per symbol)
+
+
+  ------------------------------------------------------------
+  Organism — Structured
+  ------------------------------------------------------------
+    Done in 73.4s
+    Transition entropy: 0.1415
+    Bigram predictability: 0.9293
+    Position decode: 98.0%
+    MI lags: 1.8585, 1.7581, 1.5321, 1.2795, 1.0297, 1.9999
+
+  ------------------------------------------------------------
+  Organism — Random
+  ------------------------------------------------------------
+    Done in 72.1s
+    Transition entropy: 1.9992
+    Bigram predictability: 0.0004
+    Position decode: 24.5%
+    MI lags: 0.0005, 0.0007, 0.0005, 0.0005, 0.0013, 0.0003
+
+  ------------------------------------------------------------
+  Individual — Structured
+  ------------------------------------------------------------
+    Done in 33.0s
+    Transition entropy: 0.1415
+    Bigram predictability: 0.9293
+    Position decode: 98.0%
+    MI lags: 1.8585, 1.7581, 1.5321, 1.2795, 1.0297, 1.9999
+
+  ------------------------------------------------------------
+  Individual — Random
+  ------------------------------------------------------------
+    Done in 33.0s
+    Transition entropy: 1.9990
+    Bigram predictability: 0.0005
+    Position decode: 25.6%
+    MI lags: 0.0004, 0.0006, 0.0010, 0.0003, 0.0006, 0.0005
+
+======================================================================
+  RESULTS
+======================================================================
+
+  Metric                  Org-Struct  Org-Rand  Ind-Struct  Ind-Rand
+  ------------------------------------------------------------------
+  Bigram predictability       0.9293    0.0004      0.9293    0.0005
+  Transition entropy          0.1415    1.9992      0.1415    1.9990
+  Position decode              98.0%     24.5%       98.0%     25.6%
+
+  Entropy ratio (struct/rand):
+    Organism:   0.0708
+    Individual: 0.0708
+
+  ------------------------------------------------------------
+  GRAMMAR CRITERIA
+  ------------------------------------------------------------
+  [PASS] struct_entropy < rand_entropy (Org) (0.1415 < 1.9992)
+  [PASS] position_decode > 25% (Org-Struct) (98.0%)
+  [PASS] bigram_pred > 0.2 (Org-Struct) (0.9293)
+  [PASS] MI_lag1 > 0.01 (Org-Struct) (1.8585)
+  [FAIL] Org > Ind (bigram pred, structured) (0.9293 vs 0.9293)
+
+  4/5 criteria met
+
+  Plot saved: results\grammar.png
+[exit: 0]
+
+════════════════════ kernel/exp_compositionality.py --steps 10000 ════════════════════
+======================================================================
+  Compositionality Analysis — Proto-Language Structure
+======================================================================
+  Phase 1: 5000 steps (vocabulary learning)
+  Phase 2: 5000 steps (combination testing)
+  Context trials: 10
+
+----------------------------------------------------------------------
+  ORGANISM (multi-agent with Global Workspace)
+----------------------------------------------------------------------
+
+  Phase 1: Learning vocabulary...
+
+  Phase 2: Testing combinations...
+
+  Phase 2b: Measuring context effect...
+
+  Organism done in 81.6s
+
+----------------------------------------------------------------------
+  INDIVIDUAL KERNEL (single agent, no GW)
+----------------------------------------------------------------------
+
+  Phase 1: Learning vocabulary...
+
+  Phase 2: Testing combinations...
+
+  Phase 2b: Measuring context effect...
+
+  Individual done in 35.7s
+
+======================================================================
+  RESULTS
+======================================================================
+
+  1. LINEARITY INDEX: f(aA+bB) ~ a*f(A) + b*f(B)?
+     1.0 = perfectly linear (predictable from components)
+     Organism avg:   0.9999
+     Individual avg: 0.9998
+     Per-combo (organism):
+       AB_0.3    : org=0.9999  ind=0.9998  diff=+0.0001
+       AB_0.5    : org=0.9999  ind=0.9998  diff=+0.0001
+       AB_0.7    : org=0.9999  ind=0.9998  diff=+0.0001
+       AC_0.3    : org=0.9999  ind=0.9999  diff=+0.0001
+       AC_0.5    : org=0.9999  ind=0.9998  diff=+0.0001
+       AC_0.7    : org=0.9999  ind=0.9998  diff=+0.0001
+       AD_0.3    : org=1.0000  ind=0.9999  diff=+0.0001
+       AD_0.5    : org=0.9999  ind=0.9997  diff=+0.0002
+       AD_0.7    : org=0.9999  ind=0.9999  diff=+0.0001
+       BC_0.3    : org=0.9999  ind=0.9998  diff=+0.0001
+       BC_0.5    : org=0.9999  ind=0.9998  diff=+0.0001
+       BC_0.7    : org=0.9999  ind=0.9998  diff=+0.0001
+       BD_0.3    : org=1.0000  ind=0.9999  diff=+0.0001
+       BD_0.5    : org=0.9999  ind=0.9998  diff=+0.0002
+       BD_0.7    : org=0.9999  ind=0.9999  diff=+0.0001
+       CD_0.3    : org=0.9999  ind=0.9998  diff=+0.0001
+       CD_0.5    : org=0.9999  ind=0.9997  diff=+0.0001
+       CD_0.7    : org=0.9999  ind=0.9999  diff=+0.0001
+
+  2. SYSTEMATICITY INDEX: distance preservation (Spearman rho)
+     1.0 = perfect isomorphism between stimulus and broadcast spaces
+     Organism:   0.9846
+     Individual: 0.9787
+
+  3. CONTEXT EFFECT: influence of previous stimulus on broadcast
+     Higher = more context-dependent (compositional context)
+     Organism:   0.000018
+     Individual: 0.000000
+
+----------------------------------------------------------------------
+  COMPOSITIONALITY VERDICT
+----------------------------------------------------------------------
+  [PASS] Linearity > 0.8 (0.9999)
+  [PASS] Systematicity > 0.7 (0.9846)
+  [PASS] Org linearity > Ind linearity (0.9999 vs 0.9998)
+  [PASS] Org systematicity > Ind systematicity (0.9846 vs 0.9787)
+
+  4/4 criteria met
+
+  >>> COMPOSITIONAL PROTO-LANGUAGE <<<
+  The organism's broadcast signals exhibit compositional structure:
+  mixtures are predictable from individual components, and the
+  multi-agent architecture adds emergent compositionality.
+
+  Plot saved: results\compositionality.png
+[exit: 0]
+
+════════════════════ kernel/exp_proto_language.py --steps 10000 ════════════════════
+======================================================================
+  Proto-Language Analysis — GW Broadcast Signal Consistency
+======================================================================
+
+  Total: 10000 steps in 73.7s (136 steps/s)
+
+======================================================================
+  RESULTS
+======================================================================
+
+  1. WITHIN-CLASS SIMILARITY (consistency of signal per stimulus)
+     Goal: high = same stimulus -> similar broadcast
+       Type A: 1.000
+       Type B: 1.000
+       Type C: 1.000
+       Type D: 1.000
+       Average: 1.000
+
+  2. BETWEEN-CLASS SIMILARITY (confusion between stimulus types)
+     Goal: low = different stimuli -> different broadcasts
+       Average: 0.941
+
+  3. DISCRIMINATION INDEX (within - between)
+     > 0 means broadcasts carry stimulus information
+       Index: 0.058
+
+  4. DECODE ACCURACY (nearest centroid classifier)
+     Chance level: 25.0%
+       Accuracy: 100.0%
+
+  5. TEMPORAL STABILITY (centroid consistency across windows)
+     1.0 = perfectly stable vocabulary
+       Stability: 1.000
+
+----------------------------------------------------------------------
+  PROTO-LANGUAGE VERDICT
+----------------------------------------------------------------------
+  [PASS] Discrimination > 0
+  [PASS] Decode > chance
+  [PASS] Within-class > 0.5
+  [PASS] Stability > 0.5
+
+  4/4 criteria met
+
+  >>> PROTO-LANGUAGE DETECTED <<<
+  The organism's GW broadcast spontaneously encodes
+  stimulus type with consistent, stable, discriminable signals.
+
+  Plot saved: results\proto_language.png
+[exit: 0]
+
+════════════════════ kernel/exp_organism_emergence.py --steps 10000 ════════════════════
+======================================================================
+  ConsciousOrganism — Emergence Monitor
+======================================================================
+
+======================================================================
+  RESULTS
+======================================================================
+
+  Steps: 10000 in 70.3s (142 steps/s)
+  Final population: 2
+  Population range: 2-3
+  Avg psi (last 500): 0.642
+  Avg diversity (last 500): 0.646
+  Avg coherence (last 500): 0.997
+
+  GW Winners (50 unique):
+    kernel 1: 203 wins (2.0%)
+    kernel 9: 202 wins (2.0%)
+    kernel 11: 202 wins (2.0%)
+    kernel 3: 201 wins (2.0%)
+    kernel 4: 201 wins (2.0%)
+
+  Lifecycle events (98 total):
+    Spawns: 49, Merges: 0, Deaths: 49
+    t=201: SPAWN parent=1
+    t=202: DEATH kernel=0
+    t=402: SPAWN parent=2
+    t=403: DEATH kernel=1
+    t=603: SPAWN parent=3
+    t=604: DEATH kernel=2
+    t=804: SPAWN parent=4
+    t=805: DEATH kernel=3
+    t=1005: SPAWN parent=5
+    t=1006: DEATH kernel=4
+    ... and 88 more
+
+----------------------------------------------------------------------
+  SUCCESS CRITERIA
+----------------------------------------------------------------------
+  [PASS] Population varies 2-10
+  [PASS] No kernel wins >40% GW
+  [PASS] Diversity in 0.3-0.7 (avg)
+  [PASS] At least 1 lifecycle event
+
+  4/4 criteria met
+
+  Plot saved: results\organism_emergence.png
+[exit: 0]
+
+════════════════════ kernel/exp_organism_vs_individual.py ════════════════════
+======================================================================
+  Organism vs Individual — Comparative Experiment
+======================================================================
+
+  Generating 10000 stimuli...
+  Running Individual ConsciousKernel...
+    Done in 30.9s (324 steps/s)
+  Running ConsciousOrganism...
+    Done in 69.9s (143 steps/s)
+
+======================================================================
+  RESULTS
+======================================================================
+
+  Phase             Individual FE     Organism FE     Winner
+  ---------------------------------------------------------
+  stable                   0.0537          0.0094   ORGANISM
+  alternating              2.3313          0.1351   ORGANISM
+  oscillating              0.7553          0.0239   ORGANISM
+  chaotic                 10.1600          0.2908   ORGANISM
+  ---------------------------------------------------------
+  OVERALL                  2.9687          0.1077   ORGANISM
+
+  Phase             Ind ActionDiv   Org ActionDiv
+  -----------------------------------------------
+  stable                   0.0042          0.0031
+  alternating              0.0419          0.0312
+  oscillating              0.0315          0.0237
+  chaotic                  0.0310          0.0217
+
+  Organism Metrics:
+    Avg psi: 0.498
+    Avg diversity:     0.362
+    Population range:  2-3
+    Events: spawn=50 merge=0 death=50
+
+  Adaptation Speed (steps to reach 90% of phase minimum FE):
+    stable          individual       6 steps
+    stable          organism         4 steps
+    alternating     individual     143 steps
+    alternating     organism        23 steps
+    oscillating     individual       6 steps
+    oscillating     organism         4 steps
+    chaotic         individual      22 steps
+    chaotic         organism        13 steps
+
+----------------------------------------------------------------------
+  SUCCESS CRITERIA
+----------------------------------------------------------------------
+  [PASS] Organism FE < Individual FE (0.1077 vs 2.9687)
+
+  Plot saved: results\organism_vs_individual.png
+[exit: 0]
+
+════════════════════ kernel/exp_emergence_monitor.py ════════════════════
+================================================================================
+  CONSCIOUS KERNEL — EMERGENCE MONITOR
+  Long-running experiment to observe emergent properties
+================================================================================
+  Total steps:     3000
+  Report every:    100
+  Gen test every:  250
+  Save every:      500
+================================================================================
+
+  [Running...]
+
+     Step | Phase           |     Avg FE     Min FE |      Embed | Attractors  Hits |  Gen Err | Dreams Reflects
+  ------------------------------------------------------------------------------------------------------------------------
+  Step   100 | Phase: single_pattern  | FE: 0.0223 (min 0.0009) | Embed drift: 0.6072 | Attractors: 1 (hits: 99) | Gen err: inf | Dreams: 2 Reflects: 20
+  Step   200 | Phase: single_pattern  | FE: 0.0203 (min 0.0005) | Embed drift: 0.7640 | Attractors: 1 (hits: 199) | Gen err: inf | Dreams: 2 Reflects: 20
+  Step   300 | Phase: single_pattern  | FE: 0.0251 (min 0.0028) | Embed drift: 0.8112 | Attractors: 1 (hits: 299) | Gen err: 0.5679 | Dreams: 2 Reflects: 20
+  Step   400 | Phase: single_pattern  | FE: 0.0246 (min 0.0021) | Embed drift: 0.8162 | Attractors: 1 (hits: 399) | Gen err: 0.5679 | Dreams: 2 Reflects: 20
+  Step   500 | Phase: single_pattern  | FE: 0.0389 (min 0.0025) | Embed drift: 0.8083 | Attractors: 1 (hits: 499) | Gen err: 0.5492 | Dreams: 2 Reflects: 20
+  Step   600 | Phase: alternating     | FE: 3.4639 (min 0.0128) | Embed drift: 0.6149 | Attractors: 1 (hits: 599) | Gen err: 0.5492 | Dreams: 2 Reflects: 20
+  Step   700 | Phase: alternating     | FE: 3.2141 (min 1.3262) | Embed drift: 1.1795 | Attractors: 1 (hits: 699) | Gen err: 0.5492 | Dreams: 2 Reflects: 20
+  Step   800 | Phase: alternating     | FE: 2.0396 (min 0.0121) | Embed drift: 1.4401 | Attractors: 1 (hits: 799) | Gen err: 0.5240 | Dreams: 2 Reflects: 20
+  Step   900 | Phase: alternating     | FE: 1.6418 (min 0.0292) | Embed drift: 1.4565 | Attractors: 1 (hits: 899) | Gen err: 0.5240 | Dreams: 2 Reflects: 20
+  Step  1000 | Phase: alternating     | FE: 1.6993 (min 0.0208) | Embed drift: 1.4282 | Attractors: 1 (hits: 999) | Gen err: 0.5000 | Dreams: 2 Reflects: 20
+  Step  1100 | Phase: transition      | FE: 0.0756 (min 0.0039) | Embed drift: 1.4082 | Attractors: 1 (hits: 1099) | Gen err: 0.5000 | Dreams: 2 Reflects: 20
+  Step  1200 | Phase: transition      | FE: 0.0419 (min 0.0013) | Embed drift: 1.3946 | Attractors: 1 (hits: 1199) | Gen err: 0.5000 | Dreams: 2 Reflects: 20
+  Step  1300 | Phase: transition      | FE: 0.0519 (min 0.0015) | Embed drift: 1.3825 | Attractors: 1 (hits: 1299) | Gen err: 0.4770 | Dreams: 2 Reflects: 20
+  Step  1400 | Phase: transition      | FE: 0.0690 (min 0.0065) | Embed drift: 1.3718 | Attractors: 1 (hits: 1399) | Gen err: 0.4770 | Dreams: 2 Reflects: 20
+  Step  1500 | Phase: transition      | FE: 0.0707 (min 0.0090) | Embed drift: 1.3722 | Attractors: 1 (hits: 1499) | Gen err: 0.4550 | Dreams: 2 Reflects: 20
+  Step  1600 | Phase: random          | FE: 3.9469 (min 0.2530) | Embed drift: 0.9956 | Attractors: 1 (hits: 1599) | Gen err: 0.4550 | Dreams: 2 Reflects: 20
+  Step  1700 | Phase: random          | FE: 3.8116 (min 0.4821) | Embed drift: 0.8416 | Attractors: 1 (hits: 1699) | Gen err: 0.4550 | Dreams: 2 Reflects: 20
+  Step  1800 | Phase: random          | FE: 3.8466 (min 0.1596) | Embed drift: 0.6666 | Attractors: 1 (hits: 1799) | Gen err: 0.4343 | Dreams: 2 Reflects: 20
+  Step  1900 | Phase: random          | FE: 3.4753 (min 0.0542) | Embed drift: 0.6129 | Attractors: 1 (hits: 1899) | Gen err: 0.4343 | Dreams: 2 Reflects: 20
+  Step  2000 | Phase: random          | FE: 3.5083 (min 0.0203) | Embed drift: 0.6274 | Attractors: 1 (hits: 1999) | Gen err: 0.4145 | Dreams: 2 Reflects: 20
+  Step  2100 | Phase: return          | FE: 0.4320 (min 0.0064) | Embed drift: 0.6145 | Attractors: 1 (hits: 2099) | Gen err: 0.4145 | Dreams: 2 Reflects: 20
+  Step  2200 | Phase: return          | FE: 0.0820 (min 0.0057) | Embed drift: 0.6324 | Attractors: 1 (hits: 2199) | Gen err: 0.4145 | Dreams: 2 Reflects: 20
+  Step  2300 | Phase: return          | FE: 0.0746 (min 0.0075) | Embed drift: 0.6589 | Attractors: 1 (hits: 2299) | Gen err: 0.3955 | Dreams: 2 Reflects: 20
+  Step  2400 | Phase: return          | FE: 0.0814 (min 0.0109) | Embed drift: 0.6934 | Attractors: 1 (hits: 2399) | Gen err: 0.3955 | Dreams: 2 Reflects: 20
+  Step  2500 | Phase: return          | FE: 0.0803 (min 0.0050) | Embed drift: 0.7192 | Attractors: 1 (hits: 2499) | Gen err: 0.3774 | Dreams: 2 Reflects: 20
+  Step  2600 | Phase: novel           | FE: 1.0565 (min 0.0315) | Embed drift: 0.6911 | Attractors: 1 (hits: 2599) | Gen err: 0.3774 | Dreams: 2 Reflects: 20
+  Step  2700 | Phase: novel           | FE: 0.4910 (min 0.0694) | Embed drift: 0.7236 | Attractors: 1 (hits: 2699) | Gen err: 0.3774 | Dreams: 2 Reflects: 20
+  Step  2800 | Phase: novel           | FE: 0.5304 (min 0.0118) | Embed drift: 0.7595 | Attractors: 1 (hits: 2799) | Gen err: 0.3605 | Dreams: 2 Reflects: 20
+  Step  2900 | Phase: novel           | FE: 0.4927 (min 0.0606) | Embed drift: 0.7499 | Attractors: 1 (hits: 2899) | Gen err: 0.3605 | Dreams: 2 Reflects: 20
+  Step  3000 | Phase: novel           | FE: 0.5385 (min 0.0518) | Embed drift: 0.7443 | Attractors: 1 (hits: 2999) | Gen err: 0.3445 | Dreams: 2 Reflects: 20
+
+================================================================================
+  EMERGENCE ANALYSIS
+================================================================================
+
+  1. LEARNING CURVE
+     First 100 avg FE:  0.0223
+     Last 100 avg FE:   0.5385
+     Reduction:         -2310.2%
+
+  2. IDENTITY STABILITY
+     Max embedding drift:   1.5088
+     Final drift:           0.7443
+     Late stability (1=max): 0.9093
+
+  3. ATTRACTOR FORMATION
+     Unique attractors found: 1
+     Attractor revisits:      2999
+     Hit rate:                0.9997
+
+  4. DREAM CONSOLIDATION
+     Total dream cycles: 60
+     Dreams that improved FE: 30/60
+
+  5. GENERALIZATION TRAJECTORY
+     Step   250: error = 0.5679
+     Step   500: error = 0.5492
+     Step   750: error = 0.5240
+     Step  1000: error = 0.5000
+     Step  1250: error = 0.4770
+     Step  1500: error = 0.4550
+     Step  1750: error = 0.4343
+     Step  2000: error = 0.4145
+     Step  2250: error = 0.3955
+     Step  2500: error = 0.3774
+     Step  2750: error = 0.3605
+     Step  3000: error = 0.3445
+     Improvement: 39.3%
+
+  6. PHASE ADAPTATION
+     alternating    : avg FE = 2.4117  (500 steps)
+     novel          : avg FE = 0.6218  (500 steps)
+     random         : avg FE = 3.7177  (500 steps)
+     return         : avg FE = 0.1500  (500 steps)
+     single_pattern : avg FE = 0.0263  (500 steps)
+     transition     : avg FE = 0.0618  (500 steps)
+
+  7. EMERGENT PROPERTIES DETECTED
+     + Identity stability (embedding converges)
+     + Attractor dynamics (2999 revisits)
+     + Improving generalization
+     + Dream consolidation (60 cycles)
+     + Self-reflection (600 cycles)
+
+  Elapsed time: 9.2s (327 steps/sec)
+================================================================================
+[exit: 0]
+
+════════════════════ datasets/exp_phase_transitions.py ════════════════════
+Experiment: Phase Transitions in Hierarchical Consciousness
+Formal equation: Psi = B^3 + Phi (phase transition at Phi = Phi_c)
+Grid: 3 noise types x 5 alpha values = 15 conditions
+Steps per condition: 500, Cells: 60
+
+
+                 a=0.5     a=1.0     a=1.5     a=2.0     a=2.5
+--------------------------------------------------------------
+
+Psi (mean):
+       brown    0.0000    0.8302    0.8415    1.4668    3.6265
+        pink    0.0000    0.0000    0.9130    1.1038    2.0344
+       white    0.0000    0.0000    0.8506    1.1038    2.0626
+
+Supercritical %:
+       brown      0.0%    100.0%    100.0%    100.0%    100.0%
+        pink      0.0%      0.0%    100.0%    100.0%    100.0%
+       white      0.0%      0.0%    100.0%    100.0%    100.0%
+
+Phi (mean):
+       brown    0.6160    0.6194    0.6138    0.6160    0.6313
+        pink    0.6211    0.6166    0.6200    0.6172    0.6211
+       white    0.6149    0.6194    0.6138    0.6121    0.6183
+
+B factor (mean):
+       brown   -0.5261    0.1600    0.2654    0.8634    1.4027
+        pink   -0.5123   -0.1946    0.4394    0.6571    1.0608
+       white   -0.5099   -0.2420    0.2972    0.6587    1.0701
+
+Critical Alpha (first supercritical > 50%):
+--------------------------------------------------
+     brown: alpha_c = 1.0
+      pink: alpha_c = 1.5
+     white: alpha_c = 1.5
+
+Phase Transition Signatures:
+--------------------------------------------------
+     white a=1.0: onset=step 0, final_std=0.0000, psi_final=0.0000
+     white a=1.5: onset=step 0, final_std=0.0434, psi_final=0.8502
+     white a=2.0: onset=step 0, final_std=0.1448, psi_final=1.1015
+     white a=2.5: onset=step 0, final_std=0.3577, psi_final=2.0636
+      pink a=1.0: onset=step 0, final_std=0.0000, psi_final=0.0000
+      pink a=1.5: onset=step 0, final_std=0.0815, psi_final=0.9129
+      pink a=2.0: onset=step 0, final_std=0.1291, psi_final=1.1041
+      pink a=2.5: onset=step 0, final_std=0.3734, psi_final=2.0349
+     brown a=1.0: onset=step 0, final_std=0.0355, psi_final=0.8303
+     brown a=1.5: onset=step 0, final_std=0.0472, psi_final=0.8412
+     brown a=2.0: onset=step 0, final_std=0.2191, psi_final=1.4675
+     brown a=2.5: onset=step 0, final_std=0.6640, psi_final=3.6266
+
+============================================================
+SUMMARY
+============================================================
+     white: peak Psi=2.0626 at alpha=2.5
+      pink: peak Psi=2.0344 at alpha=2.5
+     brown: peak Psi=3.6265 at alpha=2.5
+
+Experiment complete.
+[exit: 0]
+
+════════════════════ datasets/exp_real_data_psi.py ════════════════════
+Experiment: Real Data vs Synthetic — Consciousness Response
+Steps per condition: 2000
+Using ConsciousOrganism (multi-kernel Darwinian Brain)
+
+  Done. Psi final: 0.4056
+  Done. Psi final: 0.5105
+
+======================================================================
+Metric                               Real Data       Synthetic
+----------------------------------------------------------------------
+Free Energy (mean)                      2.1986          3.0352
+Free Energy (std)                       1.8443          2.7905
+Free Energy (final 100)                 2.2445          3.6326
+Psi (mean)                              0.4745          0.5500
+Psi (max)                               0.9158          1.0000
+Psi (final 100)                         0.4056          0.5105
+Diversity (mean)                        0.3099          0.4524
+Coherence (mean)                        0.9940          0.9940
+Population (final)                           2               2
+Population (max)                             3               3
+======================================================================
+
+Phase Transition Detection:
+  Real:
+    Free energy transitions:  90 at steps [100, 128, 150, 161, 179]
+    Psi transitions:           83 at steps [405, 406, 407, 408, 409]
+    Diversity transitions:     116 at steps [275, 276, 277, 278, 280]
+  Synthetic:
+    Free energy transitions:  83 at steps [102, 119, 126, 157, 202]
+    Psi transitions:           85 at steps [306, 307, 308, 309, 310]
+    Diversity transitions:     86 at steps [301, 302, 303, 304, 305]
+
+Free energy ratio (real/synthetic): 0.618
+Psi ratio (real/synthetic): 0.795
+-> Random data produced higher integration (more diversity)
+
+Experiment complete.
+[exit: 0]
+
+════════ TODOS COMPLETADOS — Fri May 29 19:44:56 PST 2026 ════════
