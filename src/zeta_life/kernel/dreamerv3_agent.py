@@ -13,9 +13,8 @@ the kernel's CartPole limitation. Components:
 
 from __future__ import annotations
 
-from collections import deque
-
 import math
+from collections import deque
 
 import torch
 import torch.nn.functional as F
@@ -123,6 +122,40 @@ class DreamerV3Agent:
     def reset_state(self) -> None:
         self._h, self._z = self.rssm.initial_state(1)
         self._prev_a = torch.zeros(1, self.action_dim)
+
+    # ------------------------------------------------------------------
+    # Persistence
+    # ------------------------------------------------------------------
+
+    def state_dict(self) -> dict:
+        """Full agent state: networks, optimizers and return-scale EMA.
+
+        The replay buffer and the recurrent state are deliberately NOT
+        persisted: the buffer refills from fresh experience (warmup) and the
+        recurrent state is episode-local (call :meth:`reset_state` after load).
+        """
+        return {
+            'rssm': self.rssm.state_dict(),
+            'actor': self.actor.state_dict(),
+            'critic': self.critic.state_dict(),
+            'critic_target': self.critic_target.state_dict(),
+            'wm_opt': self.wm_opt.state_dict(),
+            'actor_opt': self.actor_opt.state_dict(),
+            'critic_opt': self.critic_opt.state_dict(),
+            'adv_std': self._adv_std,
+        }
+
+    def load_state_dict(self, state: dict) -> None:
+        """Restore the agent from :meth:`state_dict`; resets recurrent state."""
+        self.rssm.load_state_dict(state['rssm'])
+        self.actor.load_state_dict(state['actor'])
+        self.critic.load_state_dict(state['critic'])
+        self.critic_target.load_state_dict(state['critic_target'])
+        self.wm_opt.load_state_dict(state['wm_opt'])
+        self.actor_opt.load_state_dict(state['actor_opt'])
+        self.critic_opt.load_state_dict(state['critic_opt'])
+        self._adv_std = state['adv_std']
+        self.reset_state()
 
     def _actor_gaussian(self, feat: Tensor) -> tuple[Tensor, Tensor]:
         """Continuous actor: (mean, std) of the pre-tanh Gaussian."""

@@ -63,6 +63,8 @@ class PersistenceLayer:
             - ``fast_memory`` : :class:`FastMemory` (plain object with serialize)
             - ``slow_memory`` : :class:`SlowMemory` (nn.Module)
             - ``step`` : int
+            - ``rssm_agent`` : optional, :class:`DreamerV3Agent` — present only
+              when the kernel runs with ``world_model_type="rssm"``
 
         identity_name : str
             Name for the identity checkpoint (filename stem).
@@ -98,6 +100,11 @@ class PersistenceLayer:
             'state_dicts': state_dicts,
             'fast_memory': fast_memory_data,
         }
+
+        # RSSM agent (world_model_type="rssm"): networks + optimizers + EMA
+        rssm_agent = components.get('rssm_agent')
+        if rssm_agent is not None:
+            checkpoint['rssm_agent'] = rssm_agent.state_dict()
 
         # Write .ckpt (PyTorch binary)
         ckpt_path = self.base_path / f'{identity_name}.ckpt'
@@ -171,6 +178,12 @@ class PersistenceLayer:
         for key in nn_module_keys:
             if key in checkpoint['state_dicts']:
                 components[key].load_state_dict(checkpoint['state_dicts'][key])
+
+        # Restore RSSM agent when both sides have one (older checkpoints
+        # and GRU-mode kernels simply skip this block)
+        rssm_agent = components.get('rssm_agent')
+        if rssm_agent is not None and 'rssm_agent' in checkpoint:
+            rssm_agent.load_state_dict(checkpoint['rssm_agent'])
 
         # Restore fast memory
         from zeta_life.kernel.complementary_memory import FastMemory

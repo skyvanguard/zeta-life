@@ -27,18 +27,17 @@ import torch
 import torch.nn.functional as F
 from torch import Tensor
 
-from .world_model import WorldModel
-from .prediction_error import PredictionErrorEngine
-from .self_model import SelfModel
+from ..integration.formal_equations import compute_phi_c, compute_psi, compute_psi_hill
 from .complementary_memory import Episode, FastMemory, SlowMemory
 from .dream_engine import DreamEngine
-from .persistence import PersistenceLayer
-from .temporal_features import OscillatorBank
-from .policy import Actor, Critic
-from .replay import ReplayBuffer
 from .dreamerv3_agent import DreamerV3Agent
-from ..integration.formal_equations import compute_phi_c, compute_psi, compute_psi_hill
-
+from .persistence import PersistenceLayer
+from .policy import Actor, Critic
+from .prediction_error import PredictionErrorEngine
+from .replay import ReplayBuffer
+from .self_model import SelfModel
+from .temporal_features import OscillatorBank
+from .world_model import WorldModel
 
 # ---------------------------------------------------------------------------
 # StepResult
@@ -1008,8 +1007,9 @@ class ConsciousKernel:
         """
         pl = PersistenceLayer(base_path)
         self.t = pl.load_state(self._get_components(), identity_name)
-        # Wake-up reflection after loading
-        self.self_model.reflect(torch.zeros(self.obs_dim), depth=2)
+        # Wake-up reflection after loading (the self-model lives in the RSSM
+        # feature space when world_model_type="rssm")
+        self.self_model.reflect(torch.zeros(self.self_model.state_dim), depth=2)
 
     # ------------------------------------------------------------------
     # Internal helpers
@@ -1017,7 +1017,7 @@ class ConsciousKernel:
 
     def _get_components(self) -> dict:
         """Build the components dict expected by PersistenceLayer."""
-        return {
+        components = {
             'world_model': self.world_model,
             'self_model': self.self_model,
             'error_engine': self.error_engine,
@@ -1025,6 +1025,9 @@ class ConsciousKernel:
             'slow_memory': self.slow_memory,
             'step': self.t,
         }
+        if self._rssm_agent is not None:
+            components['rssm_agent'] = self._rssm_agent
+        return components
 
     @staticmethod
     def _dominant_name(state: Tensor) -> str:
