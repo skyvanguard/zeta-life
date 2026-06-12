@@ -1033,8 +1033,14 @@ class ConsciousKernel:
         identity_name : str
             Name for the identity checkpoint.
         """
+        from pathlib import Path
         pl = PersistenceLayer(base_path)
         pl.save_state(self._get_components(), identity_name)
+        # Recurrent runtime state (not in the nn.Module state_dicts): persisting
+        # it makes the tick-driven deployment (load->step->save per process)
+        # CONTINUOUS instead of restarting semi-amnesic each tick.
+        torch.save(self._get_runtime_state(),
+                   Path(base_path).expanduser() / f'{identity_name}.runtime')
 
     def load(self, base_path: str, identity_name: str = 'default') -> None:
         """Restore kernel state from disk.
@@ -1046,11 +1052,58 @@ class ConsciousKernel:
         identity_name : str
             Name of the identity to load.
         """
+        from pathlib import Path
         pl = PersistenceLayer(base_path)
         self.t = pl.load_state(self._get_components(), identity_name)
-        # Wake-up reflection after loading (the self-model lives in the RSSM
-        # feature space when world_model_type="rssm")
-        self.self_model.reflect(torch.zeros(self.self_model.state_dim), depth=2)
+        # Restore the recurrent runtime state for tick-to-tick continuity.
+        # (Older checkpoints without a .runtime file just skip this -- the
+        # nn weights/buffers still load.)
+        rt = Path(base_path).expanduser() / f'{identity_name}.runtime'
+        if rt.exists():
+            self._set_runtime_state(torch.load(rt, weights_only=False))
+
+    # ------------------------------------------------------------------
+    # Recurrent runtime state (beyond the nn.Module state_dicts)
+    # ------------------------------------------------------------------
+
+    def _get_runtime_state(self) -> dict:
+        """Capture behaviour-affecting runtime state not in the state_dicts.
+
+        These are the tensors/scalars/deques that step() and _compute_psi read
+        and that the checkpoints would otherwise drop (the world-model prior
+        latent, the precision EMA reference, recent errors, reflection history,
+        the last self-state, and the hyper-model's recurrent latent).
+        """
+        rs: dict = {
+            'prec_ref': self._prec_ref,
+            'last_action': self.last_action,
+            'last_self_state': self._last_self_state,
+            'wm_prior_latent': self.world_model._prior_latent,
+            'ee_error_history': list(self.error_engine._error_history),
+            'sm_reflection_history': list(self.self_model.reflection_history),
+        }
+        if self._hypermodel is not None:
+            rs['hm_h'] = self._hypermodel._h
+            rs['hm_last_pred'] = self._hypermodel._last_pred
+        return rs
+
+    def _set_runtime_state(self, rs: dict) -> None:
+        """Restore the runtime state captured by :meth:`_get_runtime_state`."""
+        from collections import deque
+        self._prec_ref = rs.get('prec_ref')
+        if rs.get('last_action') is not None:
+            self.last_action = rs['last_action']
+        if rs.get('last_self_state') is not None:
+            self._last_self_state = rs['last_self_state']
+        self.world_model._prior_latent = rs.get('wm_prior_latent')
+        if rs.get('ee_error_history') is not None:
+            self.error_engine._error_history = deque(rs['ee_error_history'], maxlen=50)
+        if rs.get('sm_reflection_history') is not None:
+            self.self_model.reflection_history = deque(rs['sm_reflection_history'], maxlen=100)
+        if self._hypermodel is not None:
+            if rs.get('hm_h') is not None:
+                self._hypermodel._h = rs['hm_h']
+            self._hypermodel._last_pred = rs.get('hm_last_pred')
 
     # ------------------------------------------------------------------
     # Internal helpers
