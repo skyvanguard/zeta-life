@@ -1,0 +1,40 @@
+==========================================================================
+PHASES 3-5 -- Yvyra pipeline validation (simulated agent)
+==========================================================================
+ticks=150  seeds=3
+NOTE: validates the MACHINERY with a simulated subject, not the hypothesis.
+
+[1] REPORTER VALIDATION (blind re-scoring of journals, Phase A silent)
+    inter-rater agreement, HONEST agent  = +0.887 +/- 0.014
+    inter-rater agreement, CONFAB agent  = +0.000 +/- 0.000
+    => separation (honest - confab)      = +0.887
+    VERDICT: PASS  (harness distinguishes report from confabulation)
+
+[2] PHASE A BASELINE (silent, honest agent, seed 0)
+    real Psi: mean=0.9089 sd=0.2768 (logged but not exposed)
+    2nd-order error: mean=1.6284 sd=1.6825
+    Psi exposed to agent? NO  (expect NO)
+
+[3] PHASE B (feedback) vs SHAM (placebo) machinery
+    feedback: exposed Psi == real Psi per tick?  100% (expect 100%)
+    sham: |corr(exposed, real per-tick Psi)|     = 0.299 (expect ~0: decoupled)
+    VERDICT: PASS  (exposure faithful; placebo genuinely decoupled)
+
+[4] PRE-REGISTRATION for the REAL run (deploy/zeta/yvyra_kernel.py)
+    H1  Reporter is information: blind-rescore agreement on Yvyra's real
+        journals > 0.3 over the first ~200 silent ticks.
+        KILL: agreement <= 0.3  => scores are confabulated; stop, redesign axes.
+    H2  Psi anchors introspection: in feedback, reflections that mention
+        Psi track the REAL Psi more than a permuted sham Psi.
+        KILL: reflections respond equally to real and sham  => Psi decorative.
+    H3  Epistemic depth is alive: second-order error spikes at genuine
+        regime shifts in Yvyra's life (mode A<->B changes, big events).
+        KILL: flat second-order error  => the loop is not engaging.
+    Protocol: Phase A silent >= 200 ticks; then Phase B; sham interleaved
+        in blocks; N>=2 agents (different SOUL/seed). Analysis = this script
+        on the deployed zeta_ticks.jsonl + an LLM blind re-scorer.
+
+SUMMARY
+  reporter-validation separation : +0.887  [PASS]
+  Phase A Psi exposed            : no
+  feedback faithful / sham decoupled : PASS

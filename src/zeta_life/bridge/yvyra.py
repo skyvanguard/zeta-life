@@ -22,11 +22,22 @@ the contract specifies ("sugerencia, no orden").
 from __future__ import annotations
 
 import json
+import random
+from collections import deque
 
 import torch
 import torch.nn.functional as F
 
+from ..instrumentation import TickLogger
 from ..kernel import ConsciousKernel
+
+# Experiment modes (see docs/SCIENCE_PLAN.md):
+#   silent   -- Phase A: kernel runs and logs, but Psi/suggestion are NOT
+#               exposed to the agent. Establishes the uncontaminated baseline.
+#   feedback -- Phase B: Psi and the suggestion are returned to the agent.
+#   sham     -- placebo control: a permuted (fake) Psi is returned instead of
+#               the real one; the real Psi is still logged for analysis.
+MODES = ("silent", "feedback", "sham")
 
 # The 4 experiential axes (ASCII keys for safe JSON; see the contract table).
 AXES: tuple[str, str, str, str] = ("novedad", "introspeccion", "conexion", "resolucion")
@@ -66,26 +77,41 @@ class YvyraBridge:
         save_dir: str | None = None,
         dream_every: int = 20,
         score_ema: float = 0.8,
+        mode: str = "feedback",
+        log_path: str | None = None,
+        sham_seed: int = 0,
     ) -> None:
         pref = torch.tensor(preference if preference is not None else DEFAULT_C,
                             dtype=torch.float32)
         if pref.numel() != 4:
             raise ValueError("preference must have 4 entries (the 4 axes)")
+        if mode not in MODES:
+            raise ValueError(f"mode must be one of {MODES}, got {mode!r}")
         self._C = (pref / pref.sum()).detach()
+        self.mode = mode
 
-        # Reactive kernel: the world model learns on the ACTUAL experience.
-        # Auto-dreaming is disabled here; the bridge controls dreaming per the
-        # contract ("cada N ticks: kernel.dream()").
+        # Reactive kernel WITH the precision hyper-model, so each tick also
+        # reports the second-order error over precision (epistemic depth) for
+        # the science log. The world model learns on the ACTUAL experience;
+        # auto-dreaming is off (the bridge controls dreaming per the contract).
         self.kernel = ConsciousKernel(
             obs_dim=4,
             action_mode="reactive",
             preference=self._C,
             efe_obs_norm="l1",   # faithful projection for the EFE suggestion
             dream_interval=10**9,
+            precision_hypermodel=True,
         )
         self.save_dir = save_dir
         self.dream_every = dream_every
         self.score_ema = score_ema
+
+        # Paired logging (Phase 0): scores + psi(real) + free_energy +
+        # second_order + suggestion + mode, one record per tick, append-only.
+        self._logger = TickLogger(log_path) if log_path is not None else None
+        # Buffer of real Psi values for the sham control (temporal permutation).
+        self._psi_buffer: deque[float] = deque(maxlen=200)
+        self._sham_rng = random.Random(sham_seed)
 
         self._last: dict | None = None
         self._recent_scores: torch.Tensor | None = None
@@ -123,15 +149,46 @@ class YvyraBridge:
 
         idx = self._suggest_axis()
         action = result.action.tolist()
+        psi_real = result.psi
+
+        # Decide what the AGENT sees, per experiment mode.
+        if self.mode == "silent":
+            psi_exposed: float | None = None
+            axis_exposed: str | None = None
+        elif self.mode == "sham":
+            # Placebo: a Psi value sampled from past real values (temporal
+            # permutation) -- same marginal distribution, no real-time link.
+            psi_exposed = (self._sham_rng.choice(self._psi_buffer)
+                           if self._psi_buffer else psi_real)
+            axis_exposed = AXES[self._sham_rng.randrange(4)]
+        else:  # feedback
+            psi_exposed = psi_real
+            axis_exposed = AXES[idx]
+        self._psi_buffer.append(psi_real)
+
+        # Paired log: the REAL signals always recorded, plus what was exposed.
+        if self._logger is not None:
+            self._logger.log({
+                "scores": {AXES[i]: float(stim[i]) for i in range(4)},
+                "psi": psi_real,
+                "psi_exposed": psi_exposed,
+                "free_energy": result.free_energy,
+                "second_order_error": result.second_order_error,
+                "suggested_axis": AXES[idx],       # real suggestion (for analysis)
+                "gw_winner": None,
+                "mode": self.mode,
+            })
+
         out = {
             "tick": self.kernel.t,
-            "psi": result.psi,
+            "psi": psi_exposed,
             "free_energy": result.free_energy,
             "errors": result.errors,
-            "suggested_axis": AXES[idx],
-            "suggestion": _SUGGESTION[AXES[idx]],
+            "suggested_axis": axis_exposed,
+            "suggestion": _SUGGESTION[axis_exposed] if axis_exposed else None,
             "action": {AXES[i]: action[i] for i in range(4)},
             "dreamed": result.dreamed,
+            "mode": self.mode,
         }
         if self.dream_every and self.kernel.t % self.dream_every == 0:
             out["dream"] = self.dream()
