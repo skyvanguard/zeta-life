@@ -63,3 +63,25 @@ fabricates a Psi.
 
 Analyse with `experiments/kernel/exp_yvyra_experiment.py`'s machinery on the
 deployed `zeta_ticks.jsonl`, plus an LLM blind re-scorer over the journals.
+
+## Capturing the reflection: oneshot, not write_file (small-model robustness)
+
+A small agentic model (e.g. qwen3-8b) is unreliable at the `write_file` tool.
+Three distinct failure modes were observed, one per tick, all leaving the
+journal blank (`jlen=0`):
+
+- **Hidden-filename stripping** — the model "cleans" the leading dot, writing
+  `tick-reflection.md` when asked for `.tick-reflection.md`.
+- **write_file loop** — it re-writes the same file dozens of times until the
+  turn cap, never "stopping".
+- **empty write** — it calls `write_file` with no content.
+
+Root-cause fix: don't depend on the tool. The heartbeat's `tick.sh` now uses
+`hermes -z "$PROMPT"` (oneshot), which prints ONLY the model's final response to
+stdout; bash captures that to the journal file directly. The model just
+generates text — no tool, no path, no loop. In research mode the agent's tools
+still run (silently, no previews), so `USED_NET` is inferred from the response
+content (a real fetch mentions the URL/source) rather than from tool-call logs.
+
+A more capable model still gives richer journals for the *final* experiment; the
+oneshot flow makes the small fast model usable for validating the pipeline.
