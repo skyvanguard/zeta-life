@@ -95,11 +95,11 @@ class YvyraBridge:
         # reports the second-order error over precision (epistemic depth) for
         # the science log. The world model learns on the ACTUAL experience;
         # auto-dreaming is off (the bridge controls dreaming per the contract).
-        # psi_fe_scale default 1.0 (not the kernel's 5.0): Yvyra's free energy
-        # runs higher than the bench, so scale 5 keeps phi-base subcritical and
-        # Psi pins at 0. Under a FAITHFUL deployment simulation (load/save per
-        # tick, exp_psi_recalibration.py), scale 1.0 maximises Psi variance
-        # (std 0.45) while tracking coherence (corr +0.54).
+        # Adaptive psi_fe_scale: a fixed scale is a moving target (richer journals
+        # raise Yvyra's free energy and re-pin Psi at 0). The adaptive scale
+        # auto-calibrates to an EMA of free energy, so Psi discriminates whatever
+        # the regime's absolute free-energy level. psi_fe_scale is kept only as
+        # the non-adaptive fallback.
         self.kernel = ConsciousKernel(
             obs_dim=4,
             action_mode="reactive",
@@ -108,6 +108,7 @@ class YvyraBridge:
             dream_interval=10**9,
             precision_hypermodel=True,
             psi_fe_scale=psi_fe_scale,
+            psi_fe_adaptive=True,
         )
         self.save_dir = save_dir
         self.dream_every = dream_every

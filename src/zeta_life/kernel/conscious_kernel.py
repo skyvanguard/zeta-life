@@ -114,6 +114,9 @@ class ConsciousKernel:
         alpha: float = 1.0,
         psi_mode: str = "hill",
         psi_fe_scale: float = 5.0,
+        psi_fe_adaptive: bool = False,
+        psi_fe_target: float = 1.0,
+        psi_fe_decay: float = 0.99,
         psi_hill_n: float = 4.0,
         psi_hill_K: float = 0.1,
         psi_prec_half: float = 5.0,
@@ -186,6 +189,15 @@ class ConsciousKernel:
         #                       free-energy operating point and is task-dependent.
         self.psi_mode = psi_mode
         self.psi_fe_scale = psi_fe_scale
+        # Adaptive free-energy scale (opt-in): instead of a fixed psi_fe_scale,
+        # track an EMA of free energy (_fe_ref) and set the effective scale to
+        # psi_fe_target / _fe_ref, so phi-base sits at ~1/(1+target) at the
+        # typical free energy. This makes Psi discriminate regardless of the
+        # regime's absolute free-energy level (no more moving-target calibration).
+        self.psi_fe_adaptive = psi_fe_adaptive
+        self.psi_fe_target = psi_fe_target
+        self.psi_fe_decay = psi_fe_decay
+        self._fe_ref: float | None = None
         self.psi_hill_n = psi_hill_n
         self.psi_hill_K = psi_hill_K
         # Binding force F_i = psi_w_prec * prec_term + psi_w_ref * reflection_conv,
@@ -630,7 +642,18 @@ class ConsciousKernel:
         # compresses Phi to ~0.96 regardless of input, which the cubic form then
         # saturates anyway).
         if self.psi_mode == "hill":
-            phi_base = 1.0 / (1.0 + self.psi_fe_scale * free_energy)
+            if self.psi_fe_adaptive:
+                # Self-calibrating scale: track an EMA of free energy and set the
+                # effective scale so phi-base ~ 1/(1+target) at the typical level.
+                if self._fe_ref is None:
+                    self._fe_ref = max(free_energy, 1e-6)
+                else:
+                    d = self.psi_fe_decay
+                    self._fe_ref = d * self._fe_ref + (1.0 - d) * free_energy
+                eff_scale = self.psi_fe_target / max(self._fe_ref, 1e-6)
+            else:
+                eff_scale = self.psi_fe_scale
+            phi_base = 1.0 / (1.0 + eff_scale * free_energy)
         else:
             phi_base = 1.0 / (1.0 + free_energy / 10.0)
         mem_ratio = len(self.fast_memory) / 500.0
@@ -1076,6 +1099,7 @@ class ConsciousKernel:
         """
         rs: dict = {
             'prec_ref': self._prec_ref,
+            'fe_ref': self._fe_ref,
             'last_action': self.last_action,
             'last_self_state': self._last_self_state,
             'wm_prior_latent': self.world_model._prior_latent,
@@ -1091,6 +1115,7 @@ class ConsciousKernel:
         """Restore the runtime state captured by :meth:`_get_runtime_state`."""
         from collections import deque
         self._prec_ref = rs.get('prec_ref')
+        self._fe_ref = rs.get('fe_ref')
         if rs.get('last_action') is not None:
             self.last_action = rs['last_action']
         if rs.get('last_self_state') is not None:
