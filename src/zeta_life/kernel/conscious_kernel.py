@@ -33,6 +33,7 @@ from .dream_engine import DreamEngine
 from .dreamerv3_agent import DreamerV3Agent
 from .persistence import PersistenceLayer
 from .policy import Actor, Critic
+from .precision_hypermodel import PrecisionHyperModel
 from .prediction_error import PredictionErrorEngine
 from .replay import ReplayBuffer
 from .self_model import SelfModel
@@ -69,6 +70,9 @@ class StepResult:
     psi: float = 0.0
     reflected: bool = False
     dreamed: bool = False
+    # Second-order prediction error over precision (epistemic depth), or None
+    # when the precision hyper-model is disabled. See precision_hypermodel.py.
+    second_order_error: float | None = None
 
 
 # ---------------------------------------------------------------------------
@@ -150,6 +154,7 @@ class ConsciousKernel:
         world_model_type: str = "gru",
         rssm_kwargs: dict | None = None,
         temporal_features: OscillatorBank | None = None,
+        precision_hypermodel: bool = False,
     ) -> None:
         self.obs_dim = obs_dim
         # Action dimensionality, decoupled from obs_dim (defaults to obs_dim for
@@ -377,6 +382,16 @@ class ConsciousKernel:
         # style RSSM (recurrent, sequence-trained, learned reward) via _step_rssm(),
         # reusing the faculties (self-model, memory, dream, Psi) resized to the RSSM
         # feature space. The "gru" path (default) is untouched / byte-identical.
+        # --- Optional precision hyper-model (epistemic depth) ---
+        # When enabled, predicts per-channel precisions from a global recurrent
+        # latent and reports a second-order error over precision each tick. OFF
+        # by default => byte-identical to the pre-hypermodel kernel (the helper
+        # below returns None and StepResult.second_order_error stays None).
+        self._hypermodel: PrecisionHyperModel | None = (
+            PrecisionHyperModel(n_channels=2 if world_model_type == "rssm" else 4)
+            if precision_hypermodel else None
+        )
+
         self.world_model_type = world_model_type
         self._rssm_agent = None
         if world_model_type == "rssm":
@@ -497,6 +512,10 @@ class ConsciousKernel:
         # staying frozen at its initial value.
         self.error_engine.update_precisions(errors)
 
+        # Epistemic depth: predict precisions and measure the second-order error
+        # over precision (None when the hyper-model is disabled).
+        second_order = self._hypermodel_step(errors)
+
         # Dreamer: store the real transition (prev_obs, action, obs) and improve
         # the actor/critic in imagination from replayed states (no effect in other
         # modes). self.last_action is still the action that produced this stimulus
@@ -561,9 +580,29 @@ class ConsciousKernel:
             psi=self._compute_psi(free_energy.item()),
             reflected=reflected,
             dreamed=dreamed,
+            second_order_error=second_order,
         )
         self._last_result = result
         return result
+
+    # ------------------------------------------------------------------
+    # Epistemic depth: second-order error over precision (optional)
+    # ------------------------------------------------------------------
+
+    def _hypermodel_step(self, errors: dict) -> float | None:
+        """Run the precision hyper-model for one tick; return the 2nd-order error.
+
+        Returns ``None`` when the hyper-model is disabled (the default), keeping
+        the step loop byte-identical to the pre-hypermodel kernel. The context
+        is the current per-channel error magnitudes (a global, fixed-size view).
+        """
+        if self._hypermodel is None:
+            return None
+        chans = self.error_engine.channels
+        context = torch.tensor([float(errors[ch]['magnitude'].detach()) for ch in chans])
+        self._hypermodel.predict(context)
+        realised, mask = self._hypermodel.realised_logprec(errors, chans)
+        return self._hypermodel.update(realised, mask)
 
     # ------------------------------------------------------------------
     # Integration index Psi (engineering heuristic; bounded Hill metric)
@@ -659,6 +698,7 @@ class ConsciousKernel:
         free_energy = self.error_engine.free_energy(errors)
         self.self_model.update_from_error(errors["interoceptive"]["raw"])
         self.error_engine.update_precisions(errors)
+        second_order = self._hypermodel_step(errors)
 
         # MEMORIZE
         surprise = max(errors[ch]["magnitude"].item() for ch in self.error_engine.channels)
@@ -689,7 +729,8 @@ class ConsciousKernel:
         result = StepResult(
             free_energy=free_energy.item(),
             errors={ch: errors[ch]["magnitude"].item() for ch in self.error_engine.channels},
-            action=a_oh.detach(), psi=psi, reflected=reflected, dreamed=dreamed)
+            action=a_oh.detach(), psi=psi, reflected=reflected, dreamed=dreamed,
+            second_order_error=second_order)
         self._last_result = result
         return result
 
@@ -1027,6 +1068,8 @@ class ConsciousKernel:
         }
         if self._rssm_agent is not None:
             components['rssm_agent'] = self._rssm_agent
+        if self._hypermodel is not None:
+            components['hypermodel'] = self._hypermodel
         return components
 
     @staticmethod

@@ -106,6 +106,11 @@ class PersistenceLayer:
         if rssm_agent is not None:
             checkpoint['rssm_agent'] = rssm_agent.state_dict()
 
+        # Precision hyper-model (epistemic depth, when enabled)
+        hypermodel = components.get('hypermodel')
+        if hypermodel is not None:
+            checkpoint['hypermodel'] = hypermodel.state_dict()
+
         # Write .ckpt (PyTorch binary)
         ckpt_path = self.base_path / f'{identity_name}.ckpt'
         torch.save(checkpoint, ckpt_path)
@@ -184,6 +189,11 @@ class PersistenceLayer:
         rssm_agent = components.get('rssm_agent')
         if rssm_agent is not None and 'rssm_agent' in checkpoint:
             rssm_agent.load_state_dict(checkpoint['rssm_agent'])
+
+        # Restore precision hyper-model when both sides have one
+        hypermodel = components.get('hypermodel')
+        if hypermodel is not None and 'hypermodel' in checkpoint:
+            hypermodel.load_state_dict(checkpoint['hypermodel'])
 
         # Restore fast memory
         from zeta_life.kernel.complementary_memory import FastMemory

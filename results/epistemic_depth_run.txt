@@ -1,0 +1,25 @@
+========================================================================
+PHASE 2 -- Epistemic depth: second-order error over precision
+========================================================================
+block=200 ticks/regime  seed=0
+regimes: coherent [0,200) -> fragmented [200,400) -> coherent [400,600)
+
+[A] SIGNATURE (second-order error)
+    coherent-1 settled mean = 1.1192
+    fragmented settled mean = 1.0174
+    coherent-2 settled mean = 1.0606
+    spike at seam->frag (max first 10) = 8.2692
+    spike at seam->coh  (max first 10) = 1.7922
+    => regime change visible in the signal? yes
+
+[B] INDEPENDENCE FROM FREE ENERGY (|corr| of fluctuations)
+    |corr(d second_order, d FE)| = 0.0006
+    |corr(d Psi,           d FE)| = 0.5321   (Phase 1: ~0.74, tautological)
+    => hyper-model signal less coupled to FE than Psi? yes
+
+[plot] results/epistemic_depth.png
+
+SUMMARY
+  signature visible      : yes
+  |corr(2nd-order, FE)|  : 0.0006  vs  |corr(Psi, FE)| 0.5321
+  more independent of FE : yes
