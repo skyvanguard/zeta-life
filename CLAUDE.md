@@ -36,15 +36,17 @@ zeta-life/
 │   ├── kernel/          # CORE — active-inference Conscious Kernel (19 files)
 │   ├── bridge/          # Yvyra coupling — feed a live agent's experience to the kernel
 │   ├── integration/     # formal_equations.py — the integration index Psi
+│   ├── instrumentation/ # TickLogger — paired per-tick logging (science pipeline)
 │   ├── datasets/        # real/synthetic signal loaders for Psi validation
 │   ├── core/            # zeta_constants, vertex, tetrahedral geometry
 │   └── utils/           # statistics helpers
 ├── experiments/
-│   ├── kernel/          # 25 experiments (the live research)
+│   ├── kernel/          # 28 experiments (the live research)
 │   └── datasets/        # 1 experiment (Psi on real data)
-├── tests/               # 27 test files (532 tests)
+├── deploy/zeta/         # yvyra_kernel.py — the tick-driven entry point for Yvyra
+├── tests/               # 30 test files (556 tests)
 ├── results/             # experiment outputs (PNG + run .txt)
-├── docs/                # reports, papers, plans, theory
+├── docs/                # reports, papers, plans, theory (see SCIENCE_PLAN.md)
 └── demos/               # quickstart.py — the 60-line kernel demo
 ```
 
@@ -69,6 +71,10 @@ PYTHONPATH=src python experiments/kernel/exp_zeta_vs_baselines.py    # zeta vs f
 PYTHONPATH=src python experiments/kernel/exp_spacing_statistics.py --kernel  # GUE vs Poisson vs lattice
 PYTHONPATH=src python experiments/kernel/exp_grounding.py
 PYTHONPATH=src python experiments/kernel/exp_organism_vs_individual.py
+# Science pipeline (docs/SCIENCE_PLAN.md):
+PYTHONPATH=src python experiments/kernel/exp_psi_vs_free_energy.py   # Phase 1: validate Psi (Albantakis method)
+PYTHONPATH=src python experiments/kernel/exp_epistemic_depth.py      # Phase 2: hyper-model / 2nd-order error
+PYTHONPATH=src python experiments/kernel/exp_yvyra_experiment.py     # Phases 3-5: Yvyra pipeline (simulated)
 # Datasets:
 PYTHONPATH=src python experiments/datasets/exp_real_data_psi.py
 ```
@@ -179,6 +185,7 @@ The competing consciousness formalisms (psyche `ConsciousnessIndex`, hierarchica
 | `critic_tau` / `return_norm` / `actor_grad_clip` | 0.98 / True / 100 | Dreamer stabilizers: EMA target critic, return-scale normalization, gradient clipping |
 | `replay_capacity` / `replay_wm` | 10000 / True | DreamerV3 transition replay: imagine behaviour from re-encoded replayed states + ground the world model on diverse transitions (improves CartPole curve/peak; doesn't reach the ceiling — late collapse persists) |
 | `action_dim` / `dreamer_reward` | None / kl | decouple action from obs space; `neg_distance` reward for regulation to a raw goal state (e.g. CartPole) |
+| `precision_hypermodel` | False | epistemic depth ("A beautiful loop", Friston 2025): a hyper-model that PREDICTS per-channel precisions globally and reports a **second-order error over precision** (`StepResult.second_order_error`). OFF = byte-identical kernel. The signal spikes at regime change and is independent of free energy (|corr|≈0 vs Psi's 0.53) — see `precision_hypermodel.py`, `exp_epistemic_depth.py`, `docs/SCIENCE_PLAN.md` |
 
 ## Documentation
 
@@ -187,6 +194,7 @@ The competing consciousness formalisms (psyche `ConsciousnessIndex`, hierarchica
 - `docs/YVYRA_BRIDGE.md` — contract for feeding a live agent's experience into the kernel; the zeta-life side is implemented in `src/zeta_life/bridge/` (demo: `experiments/kernel/exp_yvyra_bridge.py`)
 - `docs/theory/EXPERIMENTO_ZETA_VS_BASELINE.md` — zeta vs uniform/none/random (zeta == uniform)
 - `docs/papers/conscious-kernel-paper.md` — **current thesis**: the active-inference Conscious Kernel (architecture, honest results, the "what helped / what didn't" ledger)
+- `docs/SCIENCE_PLAN.md` — **the toy→instrument pipeline**: 6 phases (paired logging, Psi bench-validation via the Albantakis method, the precision hyper-model / epistemic depth, the Yvyra modes + blind re-scorer + pre-registration), each with its honest results. The master plan referenced by `instrumentation/`, `precision_hypermodel.py`, the `bridge/` modes, the `exp_psi_vs_free_energy`/`exp_epistemic_depth`/`exp_yvyra_experiment` experiments, and `deploy/zeta/`
 - `docs/RELATED_WORK.md` — curated literature scan mapped to each kernel component (Dreamer, Plan2Explore, CLS, Butlin indicator properties, LLM+active-inference) with validate/inspire/SOTA-gap takeaways and a ranked "what to adopt" list
 - `docs/INDICATOR_PROPERTIES.md` — honest, conservative audit of the kernel against Butlin et al. (2023) consciousness *indicator properties* (strong on PP/agency/embodiment, partial on GWT/recurrence/HOT, absent AST/HOT-4/GWT-4); the rigorous framework replacing Ψ-as-consciousness. Explicitly: indicators ≠ consciousness
 - `docs/papers/zeta-life-framework-paper.md` — the original "zeta unification" paper (predates the kernel; its zeta thesis is partly falsified by the project's own evidence; superseded by the kernel paper)

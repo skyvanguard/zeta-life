@@ -5,7 +5,7 @@
 [![Python 3.9+](https://img.shields.io/badge/python-3.9+-blue.svg)](https://www.python.org/downloads/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Code style: ruff](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/astral-sh/ruff/main/assets/badge/v2.json)](https://github.com/astral-sh/ruff)
-[![Tests](https://img.shields.io/badge/tests-532%20passed-brightgreen.svg)](tests/)
+[![Tests](https://img.shields.io/badge/tests-556%20passed-brightgreen.svg)](tests/)
 
 ---
 
@@ -145,12 +145,17 @@ python experiments/kernel/exp_conscious_kernel_validation.py
 
 # Multi-kernel organism dynamics
 python experiments/kernel/exp_organism_emergence.py
+
+# Science pipeline (toy -> instrument; see docs/SCIENCE_PLAN.md)
+python experiments/kernel/exp_psi_vs_free_energy.py   # validate Psi (Albantakis method)
+python experiments/kernel/exp_epistemic_depth.py      # precision hyper-model (epistemic depth)
+python experiments/kernel/exp_yvyra_experiment.py     # Yvyra pipeline (modes + blind re-scorer)
 ```
 
 ### Run Tests
 
 ```bash
-PYTHONPATH=src pytest tests/ -q   # 532 tests (or `pip install -e .` first)
+PYTHONPATH=src pytest tests/ -q   # 556 tests (or `pip install -e .` first)
 ```
 
 ---
@@ -168,12 +173,12 @@ zeta-life/
 |   +-- utils/           # Shared utilities
 |
 |-- experiments/
-|   |-- kernel/          # 25 kernel experiments (the live research)
+|   |-- kernel/          # 28 kernel experiments (the live research)
 |   +-- datasets/        # 1 experiment (Psi on real data)
 |
 |-- demos/               # quickstart.py - the 60-line kernel demo
 |
-|-- tests/               # 27 test files (532 tests)
+|-- tests/               # 30 test files (556 tests)
 +-- docs/                # Documentation, papers, plans
 
 (Legacy subsystems -- psyche, hierarchical/IPUESA integration, organism,
