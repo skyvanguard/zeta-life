@@ -1,0 +1,35 @@
+==========================================================================
+PHASE A BASELINE ANALYSIS -- Yvyra's real silent run
+==========================================================================
+paired ticks: 215
+
+[A] SIGNAL DISTRIBUTIONS
+    Psi:            mean=0.555 std=0.483 >0 in 60% of ticks
+    free_energy:    median=3.05 first20_avg=6.20 last20_avg=4.28 (adaptation)
+    epistemic depth:mean=1.026 std=1.050 range=[0.01,7.55]
+    silent integrity: Psi exposed in 0 ticks (expect 0)
+
+[B] CORRELATIONS (|corr| of fluctuations)
+    |corr(d Psi,        d FE)| = 0.859  (high: Psi derives from FE)
+    |corr(d epistemic,  d FE)| = 0.001  (LOW expected: independent signal)
+    |corr(d epistemic,  d Psi)|= 0.141
+    => epistemic depth more independent of FE than Psi is? yes -- replicates the bench finding
+
+[C] 4-AXIS DYNAMICS (Yvyra's experience, from bash objective signals)
+           novedad: mean=0.59 std=0.29 range=[0.30,0.90]
+     introspeccion: mean=0.68 std=0.23 range=[0.40,0.90]
+          conexion: mean=0.13 std=0.07 range=[0.10,0.30]
+        resolucion: mean=0.59 std=0.07 range=[0.45,0.80]
+
+[D] JOURNALS (real text Yvyra wrote)
+    introspection journal: 137 entries, avg 130 words
+    research journal:      134 entries, avg 80 words
+    blind re-score of INTROSPECTION journals: introspeccion=0.68 vs novedad=0.15 (introspective text OK)
+    blind re-score of RESEARCH journals: novedad=0.59 vs introspeccion=0.02
+
+[plot] results/phase_a_analysis.png
+
+SUMMARY
+  Psi discriminates: 60% of ticks > 0
+  epistemic depth independent of FE: yes (|corr| 0.00 vs Psi's 0.86)
+  journals: 137 introspection + 134 research, all captured
