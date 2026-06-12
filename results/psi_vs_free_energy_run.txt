@@ -1,0 +1,39 @@
+==========================================================================
+PHASE 1 -- Psi vs free energy: instrument validation (Albantakis method)
+==========================================================================
+steps=600  seeds=5
+
+[1] MANIPULATION CHECK (steady-state tail, mean +/- sd over seeds)
+    Psi  coherent  = 0.9999 +/- 0.0002
+    Psi  fragmented= 0.1971 +/- 0.0253
+    FE   coherent  = 0.0266 +/- 0.0128
+    FE   fragmented= 1.1013 +/- 0.0422
+    => Psi gap (coh-frag) = +0.8028   (expect > 0)
+    => FE  gap (frag-coh) = +1.0747   (expect > 0: more surprise on noise)
+    VERDICT: PASS
+
+[2] CO-FLUCTUATION  d(Psi) vs d(free_energy)  (fluctuations, not levels)
+    lag-0 correlation       = -0.7416
+    slope beta (dPsi~dFE)    = -0.00106   R^2 = 0.5500
+    lag profile             = -5:+0.13, -4:-0.08, -3:-0.16, -2:+0.29, -1:+0.18, 0:-0.74, 1:-0.08, 2:+0.01, 3:-0.21, 4:-0.11, 5:+0.12
+    peak |corr| at lag      = 0 (expect ~0: simultaneous, per Albantakis)
+    per-window sign dist     = {'positive': 0, 'negative': 23, 'neutral': 0}  (mean hides the spread)
+
+[3] TRAINING-PROGRESS CONTROL (fitness confound)
+    coupling early half     = -0.7202
+    coupling late half      = -0.9087
+    => persists in stationary late window? yes
+
+[4] AR(1) BASELINE -- does d(Psi) beat a moving average?
+    R^2  AR(1) of d(FE)            = 0.0164
+    R^2  AR(1) + d(Psi)           = 0.7855
+    R^2  gain attributable to Psi = +0.7691
+    => Psi adds signal beyond AR(1)? yes
+
+[plot] results/psi_vs_free_energy.png
+
+SUMMARY
+  manipulation check : PASS
+  coupling lag-0     : -0.7416 (peak lag 0)
+  late-half coupling : -0.9087
+  Psi beats AR(1)    : yes (R2 gain +0.7691)
