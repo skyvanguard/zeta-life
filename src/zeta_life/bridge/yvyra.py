@@ -80,6 +80,7 @@ class YvyraBridge:
         mode: str = "feedback",
         log_path: str | None = None,
         sham_seed: int = 0,
+        psi_fe_scale: float = 1.0,
     ) -> None:
         pref = torch.tensor(preference if preference is not None else DEFAULT_C,
                             dtype=torch.float32)
@@ -94,6 +95,11 @@ class YvyraBridge:
         # reports the second-order error over precision (epistemic depth) for
         # the science log. The world model learns on the ACTUAL experience;
         # auto-dreaming is off (the bridge controls dreaming per the contract).
+        # psi_fe_scale default 1.0 (not the kernel's 5.0): Yvyra's free energy
+        # runs higher than the bench, so scale 5 keeps phi-base subcritical and
+        # Psi pins at 0. Under a FAITHFUL deployment simulation (load/save per
+        # tick, exp_psi_recalibration.py), scale 1.0 maximises Psi variance
+        # (std 0.45) while tracking coherence (corr +0.54).
         self.kernel = ConsciousKernel(
             obs_dim=4,
             action_mode="reactive",
@@ -101,6 +107,7 @@ class YvyraBridge:
             efe_obs_norm="l1",   # faithful projection for the EFE suggestion
             dream_interval=10**9,
             precision_hypermodel=True,
+            psi_fe_scale=psi_fe_scale,
         )
         self.save_dir = save_dir
         self.dream_every = dream_every

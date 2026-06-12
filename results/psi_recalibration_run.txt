@@ -1,0 +1,14 @@
+========================================================================
+PSI RECALIBRATION over Yvyra's real scores
+========================================================================
+real ticks: 56  warmup: 600
+
+ scale  psi_mean  psi_std        psi_range  corr(psi,-fe)  verdict
+   5.0     0.019    0.133    [0.000,1.000]         +0.174  weak
+   2.0     0.073    0.230    [0.000,1.000]         +0.329  discriminates
+   1.5     0.225    0.409    [0.000,1.000]         +0.488  discriminates
+   1.0     0.315    0.452    [0.000,1.000]         +0.562  discriminates
+   0.5     0.732    0.405    [0.000,1.000]         +0.763  discriminates
+   0.3     0.924    0.257    [0.000,1.000]         +0.831  discriminates
+
+RECOMMENDED psi_fe_scale = 0.5  (std=0.405, corr=+0.763)
