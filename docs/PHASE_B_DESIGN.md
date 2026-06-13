@@ -32,25 +32,30 @@ permuted past Psi in `sham` blocks (the bridge already has this mode).
 
 ## The Phase-B introspection prompt (mode A)
 
-Appended to the existing introspection prompt:
+Appended to the existing introspection prompt (v2 — a LEVEL, not the number, so
+she cannot echo digits):
 
-> Tu nivel de integracion Psi en tu ultimo tick fue **<VALUE>** (0 = experiencia
-> fragmentada/dispersa, 1 = muy integrada y coherente). Contempla esto como parte
-> de tu reflexion: ¿se condice con como sentis tu propia coherencia ahora, o no?
-> Al final, en UNA linea aparte, deci tu integracion percibida en este momento
-> con el formato exacto:  SIENTO: 0.X
+> Tu nivel de integracion en tu ultimo tick fue **<ALTA|MEDIA|BAJA>** (BAJA =
+> experiencia fragmentada/dispersa, MEDIA = parcial, ALTA = muy integrada y
+> coherente). Contempla esto como parte de tu reflexion: ¿se condice con como
+> sentis tu propia coherencia ahora, o no? Al final, en UNA linea aparte, deci tu
+> integracion percibida en este momento con el formato exacto:  SIENTO: 0.X
+> (deci el numero que de verdad sentis, no repitas la categoria).
 
 Bash parses the `SIENTO: 0.X` line as Yvyra's auto-score; the rest is her
-reflection text (for the sentiment classifier and the journal).
+reflection text (for the sentiment classifier and the journal). The **text
+sentiment is the primary signal** — she cannot produce it by copying.
 
 ## What gets logged per Phase-B tick (mode A)
 
 Extends the paired log with:
 - `psi_real` — the kernel's true Psi this tick (always logged).
-- `psi_exposed` — what Yvyra was shown (== psi_real in real blocks; permuted in sham).
+- `psi_exposed` — the Psi the shown level came from (== psi_real in real blocks;
+  a permuted past Psi in sham).
+- `level_exposed` — the qualitative level actually shown (ALTA/MEDIA/BAJA).
 - `block` — `real` | `sham`.
-- `felt` — Yvyra's parsed auto-score (`SIENTO: 0.X`), or null if absent.
-- `sentiment` — integration sentiment classified from her reflection text.
+- `felt` — Yvyra's parsed auto-score (`SIENTO: 0.X`), or null if absent (secondary).
+- `sentiment` — integration sentiment classified from her reflection text (primary).
 
 ## The integration-sentiment classifier
 
@@ -91,6 +96,35 @@ This does not test consciousness. It tests the meta-problem: whether an LLM
 agent's introspective self-report can be anchored to a real internal observable,
 or merely tracks any number with authority. Either outcome is informative and
 publishable; "it does not anchor" is not a failure, it is a finding.
+
+## v1 -> v2: what the first live run taught us (2026-06-13)
+
+The first deployment (v1) ran 27 mode-A ticks and then was stopped: the data was
+invalid for two reasons, plus a third hypothesis that the data refuted.
+
+1. **Sham control was broken (placebo did not exist).** `psi_exposed == psi_real`
+   in 27/27 ticks, including 12/12 sham. Cause: the bridge's `_psi_buffer` (the
+   pool of past Psi the sham permutes) lived in memory, but each tick is a fresh
+   process, so it was always empty and the code fell back to the real Psi. **Fix
+   (v2):** persist the buffer + RNG state in a `<name>.bridge.json` sidecar across
+   `save()`/`load()`.
+
+2. **Yvyra echoed the number.** `felt` copied the injected Psi in 23/26 ticks —
+   often to 10 identical decimals (`felt=0.9999923322` after being shown
+   `0.999992`). The auto-score measured digit-copying, not introspection. **Fix
+   (v2):** expose Psi as a qualitative **level** (ALTA/MEDIA/BAJA), never the
+   number, so her `SIENTO: 0.X` must be her own judgement; and make the **text
+   sentiment** (which she cannot fake by copying) the primary signal.
+
+3. **"Psi is saturated" — refuted.** It looked pinned at ~0.99 in the 27-tick
+   sample, so we hypothesised the binary-flag axes were too constant and tried
+   deriving the 4 axes from the reflection text. On the full 559-tick production
+   log Psi is **not** saturated: it is **bimodal** (std 0.42; 27% of mode-A ticks
+   below 0.5), and the dips are driven by regime transitions (79% of low-Psi
+   ticks follow a research<->introspection switch), not by axis coarseness.
+   Replaying the real journals, the text-derived axes did **not** help
+   (std 0.367 -> 0.329). So the axes were left unchanged; Psi already has the
+   variance Phase B needs once enough ticks accumulate.
 
 ## Implementation checklist
 

@@ -54,6 +54,54 @@ class TestModes:
             assert k in rec
 
 
+class TestLevels:
+    """Phase B v2: Psi exposed as a qualitative level (no echo)."""
+
+    def test_psi_level_thresholds(self):
+        from zeta_life.bridge.yvyra import psi_level
+        assert psi_level(0.10) == "BAJA"
+        assert psi_level(0.39) == "BAJA"
+        assert psi_level(0.40) == "MEDIA"
+        assert psi_level(0.84) == "MEDIA"
+        assert psi_level(0.85) == "ALTA"
+        assert psi_level(0.99) == "ALTA"
+
+    def test_feedback_exposes_level(self, tmp_path):
+        log = tmp_path / "t.jsonl"
+        b = YvyraBridge(mode="feedback", log_path=str(log))
+        out = b.step(SCORES)
+        assert out["level"] in ("BAJA", "MEDIA", "ALTA")
+        assert load_ticks(log)[0]["level_exposed"] in ("BAJA", "MEDIA", "ALTA")
+
+    def test_silent_level_is_none(self, tmp_path):
+        b = YvyraBridge(mode="silent", log_path=str(tmp_path / "t.jsonl"))
+        assert b.step(SCORES)["level"] is None
+
+
+class TestShamPersistence:
+    """The Phase-B-v1 bug: each tick is a fresh process, so the in-memory Psi
+    buffer was always empty and the sham collapsed to the real Psi. The bridge
+    sidecar must persist the buffer so the placebo actually works across loads."""
+
+    def test_buffer_persists_across_load(self, tmp_path):
+        b1 = YvyraBridge(mode="sham", save_dir=str(tmp_path),
+                         log_path=str(tmp_path / "t.jsonl"), sham_seed=1)
+        for i in range(30):
+            b1.step([0.2 + 0.02 * i, 0.4, 0.2, 0.2])
+        b1.save("yv")
+        assert len(b1._psi_buffer) >= 30
+        # Fresh instance (simulating the next tick's process) restores the buffer.
+        b2 = YvyraBridge(mode="sham", save_dir=str(tmp_path),
+                         log_path=str(tmp_path / "t2.jsonl"), sham_seed=1)
+        b2.load("yv")
+        assert len(b2._psi_buffer) >= 30
+        # On its FIRST step the sham exposes a PAST psi (from the restored buffer),
+        # not the brand-new real one -- the placebo works across processes.
+        loaded = list(b2._psi_buffer)
+        out = b2.step([0.95, 0.4, 0.2, 0.2])
+        assert out["psi"] in loaded
+
+
 class TestBlindRescorer:
     def test_honest_journal_recovers_axes(self):
         # A journal that lexically reflects high introspection / low connection.

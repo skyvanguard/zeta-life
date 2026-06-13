@@ -54,6 +54,26 @@ _SUGGESTION = {
     "resolucion": "busca cerrar / sintetizar",
 }
 
+# Phase B exposes Psi as a QUALITATIVE LEVEL (not the number), so the agent
+# cannot echo the digits -- her "SIENTO: 0.X" must be her own judgement, not a
+# copy. Thresholds reflect Psi's bimodal shape (mostly ~1.0 with a <0.5 tail;
+# see the de-saturation investigation in docs/PHASE_B_DESIGN.md).
+PSI_LEVEL_LO = 0.40
+PSI_LEVEL_HI = 0.85
+PSI_LEVELS = ("BAJA", "MEDIA", "ALTA")
+# Numeric value of each level, for the analysis (does felt/sentiment follow the
+# shown level?).
+LEVEL_VALUE = {"BAJA": 0.0, "MEDIA": 0.5, "ALTA": 1.0}
+
+
+def psi_level(psi: float) -> str:
+    """Map a Psi value to its qualitative integration level."""
+    if psi < PSI_LEVEL_LO:
+        return "BAJA"
+    if psi < PSI_LEVEL_HI:
+        return "MEDIA"
+    return "ALTA"
+
 
 class YvyraBridge:
     """Couples a live agent's self-report to a ConsciousKernel.
@@ -174,12 +194,17 @@ class YvyraBridge:
             axis_exposed = AXES[idx]
         self._psi_buffer.append(psi_real)
 
+        # Phase B exposes the qualitative LEVEL of the exposed Psi (real in
+        # feedback, permuted in sham), never the raw number (no echo).
+        level_exposed = psi_level(psi_exposed) if psi_exposed is not None else None
+
         # Paired log: the REAL signals always recorded, plus what was exposed.
         if self._logger is not None:
             self._logger.log({
                 "scores": {AXES[i]: float(stim[i]) for i in range(4)},
                 "psi": psi_real,
                 "psi_exposed": psi_exposed,
+                "level_exposed": level_exposed,
                 "free_energy": result.free_energy,
                 "second_order_error": result.second_order_error,
                 "suggested_axis": AXES[idx],       # real suggestion (for analysis)
@@ -191,6 +216,7 @@ class YvyraBridge:
             "tick": self.kernel.t,
             "psi": psi_exposed,
             "psi_real": psi_real,   # the true Psi (Phase B logs both real & exposed)
+            "level": level_exposed,  # qualitative level shown to the agent
             "free_energy": result.free_energy,
             "errors": result.errors,
             "suggested_axis": axis_exposed,
@@ -254,15 +280,37 @@ class YvyraBridge:
             "identity_updated": report.identity_updated,
         }
 
+    def _sidecar_path(self, name: str):
+        from pathlib import Path
+        return Path(self.save_dir) / f"{name}.bridge.json"
+
     def save(self, name: str = "yvyra") -> None:
         if self.save_dir is None:
             raise ValueError("save_dir was not set")
         self.kernel.save(self.save_dir, name)
+        # Persist the sham state across ticks. Each tick is a fresh process, so
+        # without this the Psi buffer is always empty and the sham control
+        # collapses to the real Psi (the Phase-B-v1 bug). The RNG state is saved
+        # too, so the temporal permutation is reproducible from a logged seed.
+        st = self._sham_rng.getstate()
+        payload = {
+            "psi_buffer": list(self._psi_buffer),
+            "sham_rng": [st[0], list(st[1]), st[2]],
+        }
+        self._sidecar_path(name).write_text(json.dumps(payload), encoding="utf-8")
 
     def load(self, name: str = "yvyra") -> None:
         if self.save_dir is None:
             raise ValueError("save_dir was not set")
         self.kernel.load(self.save_dir, name)
+        p = self._sidecar_path(name)
+        if p.exists():
+            data = json.loads(p.read_text(encoding="utf-8"))
+            self._psi_buffer.clear()
+            self._psi_buffer.extend(float(x) for x in data.get("psi_buffer", []))
+            rng = data.get("sham_rng")
+            if rng is not None:
+                self._sham_rng.setstate((rng[0], tuple(rng[1]), rng[2]))
 
     # ------------------------------------------------------------------
     # JSON string API (for the tool/skill wiring in Yvyra's container)

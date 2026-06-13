@@ -117,6 +117,7 @@ def main(argv: list[str]) -> int:
             bridge.save(identity)
             _emit({"ok": True, "tick": out["tick"], "mode": out["mode"],
                    "psi": out["psi"], "psi_real": out.get("psi_real"),
+                   "level": out.get("level"),
                    "suggest": out["suggested_axis"], "suggestion": out["suggestion"]})
             return 0
 
