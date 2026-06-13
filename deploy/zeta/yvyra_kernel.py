@@ -116,8 +116,8 @@ def main(argv: list[str]) -> int:
             out = bridge.step(vals)
             bridge.save(identity)
             _emit({"ok": True, "tick": out["tick"], "mode": out["mode"],
-                   "psi": out["psi"], "suggest": out["suggested_axis"],
-                   "suggestion": out["suggestion"]})
+                   "psi": out["psi"], "psi_real": out.get("psi_real"),
+                   "suggest": out["suggested_axis"], "suggestion": out["suggestion"]})
             return 0
 
         if cmd == "state":

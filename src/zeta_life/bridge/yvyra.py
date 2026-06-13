@@ -190,6 +190,7 @@ class YvyraBridge:
         out = {
             "tick": self.kernel.t,
             "psi": psi_exposed,
+            "psi_real": psi_real,   # the true Psi (Phase B logs both real & exposed)
             "free_energy": result.free_energy,
             "errors": result.errors,
             "suggested_axis": axis_exposed,
