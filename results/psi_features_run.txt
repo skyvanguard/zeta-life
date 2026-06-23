@@ -1,0 +1,18 @@
+==========================================================================
+PSI_ACT OVER SAE FEATURES (Qwen-Scope layer 18, TopK k=50)
+==========================================================================
+[A] reconstruction explained-variance (alignment check)
+    hidden_states[18] sub_bdec=True : EV=-0.474
+    hidden_states[18] sub_bdec=False: EV=+0.481
+    hidden_states[19] sub_bdec=True : EV=-0.280
+    hidden_states[19] sub_bdec=False: EV=+0.540
+  -> best: hidden_states[19] sub_bdec=False (EV=0.540)
+
+[B] Psi_act over FEATURES vs raw (between-tick std)
+                      metric  raw mean  raw std  feat mean  feat std  x more var
+         participation_ratio    0.0088   0.0009     0.0008    0.0001         0.1
+                   phi_proxy    0.1234   0.0081     0.0000    0.0000         0.0
+   trajectory_predictability    0.8697   0.0069     0.6887    0.0145         2.1
+
+  (feat std >> raw std => the SAE de-saturates Psi_act: features carry the
+   between-prompt variance the raw basis hid.)

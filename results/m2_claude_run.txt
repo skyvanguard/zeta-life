@@ -1,0 +1,10 @@
+====================================================================
+F2.4b BINDER -- M1 (trained self-report) vs M2 = Claude (strong, blind)
+====================================================================
+N=100  base rate (Qwen correct)=0.650
+  AUROC M1 (Qwen-LoRA self-report)      = 0.764
+  AUROC M2 (Claude, question text only) = 0.823
+  delta (M1 - M2) = -0.059
+
+  => M1 < M2-Claude: a stronger external predictor wins. Does NOT refute
+     introspection (Claude is more capable); inconclusive on this control.

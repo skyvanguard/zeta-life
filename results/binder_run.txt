@@ -1,0 +1,16 @@
+==========================================================================
+BINDER PRIVILEGED-ACCESS TEST over Psi_act
+==========================================================================
+ticks with a self-report (felt): 33
+embedding reflections (MiniLM)...
+                    metric   R2_text  R2_+felt   delta  r(felt)  r(sent)
+       participation_ratio     0.219     0.222  +0.003   +0.330   -0.191
+                 phi_proxy    -0.030    -0.024  +0.007   -0.554   +0.165
+      interlayer_coherence     0.112     0.112  +0.001   -0.205   +0.275
+ trajectory_predictability     0.002    -0.000  -0.002   -0.110   +0.104
+
+VERDICT
+  felt adds no predictive power over the text for any metric.
+  => COMMON CAUSE: no privileged access. The self-report is inferable from the
+     text; consistent with the concept-injection negative.
+  (low-powered at this N; treat as first look)

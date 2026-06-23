@@ -1,0 +1,10 @@
+================================================================
+F3 -- trained detection of injected concept (non-textual state)
+================================================================
+concepts=10  strength=8.0  eval_n=220
+  accuracy naming injected concept = 1.000   (chance = 0.091)
+  false-positive rate on NADA      = 0.000   (n_nada=21)
+
+  => the model reads an INJECTED (non-textual) state and names it, with
+     low false positives -> TRAINED INTROSPECTION of a non-textual state.
+     (prompt is constant -> answer cannot come from the text.)

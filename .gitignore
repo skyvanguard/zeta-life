@@ -107,3 +107,7 @@ notas_extracted/
 # Type checking cache
 .mypy_cache/
 .worktrees/
+
+# Introspection experiment artifacts (large/regenerable: LoRA adapters, datasets, captured activations)
+data/
+results/_train_log.txt

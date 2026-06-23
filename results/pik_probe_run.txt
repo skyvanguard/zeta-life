@@ -1,0 +1,8 @@
+======================================================================
+F2.2 PROBE -- is 'I know' (correctness) in the activations?
+======================================================================
+N=800  layer=18  MMLU acc=0.723
+  AUROC probe(state -> correct)      = 0.717
+  AUROC model softmax conf -> correct= 0.806  (reference)
+
+  => YES: 'I know' is decodable from the state. Training self-report (F2.3) is warranted.

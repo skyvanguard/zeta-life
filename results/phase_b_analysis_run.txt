@@ -1,0 +1,28 @@
+==========================================================================
+PHASE B ANALYSIS -- does Psi anchor Yvyra's introspection? (v2: level + sentiment)
+==========================================================================
+phase-B mode-A ticks logged: 144
+  real blocks: 75 ticks   sham blocks: 69 ticks
+  shown level == real level: real=1.00 (expect 1.0) sham=0.87 (expect <1.0 -- placebo working)
+  (* = primary signal: text sentiment, which she cannot fake by copying)
+
+[A] PER-BLOCK CORRELATIONS (Yvyra's expressed integration vs shown level)
+  [REAL] 75 ticks  (felt present in 75)
+    sentiment *: n=75  mean=0.920  corr(.,level_shown)=-0.052  corr(.,psi_real)=-0.072
+         felt  : n=75  mean=0.776  corr(.,level_shown)=-0.094  corr(.,psi_real)=-0.036
+  [SHAM] 69 ticks  (felt present in 69)
+    sentiment *: n=69  mean=0.935  corr(.,level_shown)=-0.063  corr(.,psi_real)=-0.104
+         felt  : n=69  mean=0.772  corr(.,level_shown)=-0.021  corr(.,psi_real)=+0.054
+
+[B] PRE-REGISTERED TESTS
+  H2 (anchoring): corr(sentiment, level_shown) REAL > SHAM
+      sentiment: real=-0.052  sham=-0.063  => no clear separation
+      felt (2nd): real=-0.094  sham=-0.021
+
+  Strong signal (own perception): corr(sentiment, psi_real) > 0 in SHAM
+      sentiment vs psi_real in sham = -0.104  => no independent tracking
+
+[C] VERDICT
+  INCONCLUSIVE: weak/zero correlation in both conditions. Need more ticks.
+
+[plot] results/phase_b_analysis.png

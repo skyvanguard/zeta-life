@@ -1,0 +1,11 @@
+======================================================================
+F2.4 BINDER -- trained P(IK) self-report vs external text predictor
+======================================================================
+test N=800  base rate (correct)=0.716
+  AUROC M1 (LoRA self-report -> correct) = 0.791
+  AUROC M2 (text-only predictor -> correct) = 0.610
+  ceiling: activation probe (F2.2)         = 0.717
+  delta (M1 - M2) = +0.180
+
+  => M1 > M2: the trained self-report carries correctness info BEYOND the
+     text -> TRAINED INTROSPECTION (privileged access). 

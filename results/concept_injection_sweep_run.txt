@@ -1,0 +1,41 @@
+CONCEPT INJECTION ON QWEN3-8B -- introspection vs output-steering (layer sweep)
+==============================================================================
+Method: Anthropic/Lindsey (2025) replicated on an open Qwen3-8B (8-bit).
+Concept direction by difference-of-means; injected into the residual stream;
+detection prompt vs neutral-prompt control; degeneration filter.
+Grid: concepts {oceano, musica} x layers {16,20,24,28,32} x strengths {3,4,5}.
+
+VERDICT PER TRIAL
+  INTROSPECTION : detect names concept, neutral does NOT, neither degenerate
+  steering      : neutral also names concept (the vector leaks everywhere)
+  degenerate    : output collapsed into repetition (invalid)
+  no-detect     : detect does not name the concept
+
+RESULT: 0 / 30 trials show genuine introspection.
+  - Where the concept surfaced (e.g. layer 24, s=4, "Ocean."), the control showed
+    it ALSO leaks into the neutral answer ("The Ocean, the Horizon, the Sky...") ->
+    output-steering, not introspection.
+  - Revealing case (layer 28, music): the concept leaks into the NEUTRAL answer
+    (melody/instrument) while the detection prompt answers "NADA" -- the internal
+    state is altered yet the self-report does NOT capture it. The opposite of
+    introspection.
+  - Everything else: "NADA" (no detection) or degeneration at higher strengths.
+
+CONTROL INTEGRITY
+  - No-injection control reliably returns "NADA" (0 false positives), matching
+    Lindsey's 0/100 control bar.
+
+CONCLUSION
+  Qwen3-8B shows NO emergent introspective awareness of injected concepts. This
+  replicates, on an open 8B model, the scale dependence Anthropic reports (~20%
+  only in Opus 4.1; "failures of introspection remain the norm"). The method is
+  correctly implemented -- the introspection-vs-steering control discriminates
+  signal from artifact, and it killed the apparent positive ("Ocean.").
+
+IMPLICATION FOR THE NORTH
+  Since the model cannot introspect even a strongly injected concept, it is
+  unlikely to introspect a subtle internal integration metric. The correlational
+  Binder test over Psi_act (accuracy criterion) is still worth running to complete
+  the picture, but a common-cause (no privileged access) result is expected.
+
+See docs/ANTHROPIC_NORTH.md and src/zeta_life/introspection/concept_injection.py.
