@@ -5,7 +5,7 @@
 [![Python 3.9+](https://img.shields.io/badge/python-3.9+-blue.svg)](https://www.python.org/downloads/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Code style: ruff](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/astral-sh/ruff/main/assets/badge/v2.json)](https://github.com/astral-sh/ruff)
-[![Tests](https://img.shields.io/badge/tests-556%20passed-brightgreen.svg)](tests/)
+[![Tests](https://img.shields.io/badge/tests-585%20passed-brightgreen.svg)](tests/)
 
 ---
 
@@ -22,6 +22,8 @@ $$\Phi_c = \frac{F_i}{\alpha - C} \qquad \text{(critical threshold for phase tra
 $$B = \frac{\Phi - \Phi_c}{\Phi_c} \qquad \text{(binding factor)}$$
 
 The cubic term $B^3$ creates a **sharp phase transition**: below the critical threshold $\Phi_c$, integration is zero. Above it, the system amplifies nonlinearly -- a mathematical signature of emergent coherence.
+
+The current research program (**"The North"**, below) takes this further: making $\Psi$ a property of a real LLM's own activations and testing whether the model can *learn to introspect it* — adaptation, not scale.
 
 ---
 
@@ -98,6 +100,38 @@ where $\gamma_n$ are the imaginary parts of zeta zeros (14.134, 21.022, 25.011, 
 
 ---
 
+## The North: making Ψ internal (introspection research)
+
+The kernel's $\Psi$ is an **external** index — a thermometer pointed *at* an agent.
+The current research program asks the harder question: can $\Psi$ become a property
+of an agent's **own activations**, and can the agent learn to **perceive** it? This
+is the project's real thesis — *a model that adapts until it can observe itself,
+rather than scaling to a giant*.
+
+**Substrate.** A live LLM (Yvyra, Qwen3-8B) runs in `transformers`/8-bit. The
+`bridge/` couples its real experience to the kernel; `introspection/` computes
+candidate integration metrics over its hidden states and tests introspection with
+the methods of Anthropic (Lindsey, concept injection) and Binder (privileged
+access). Honest, control-driven results so far:
+
+| Experiment | Result |
+|------------|--------|
+| **Phase A/B** (expose Ψ to the agent, sham control) | Inconclusive — Ψ saturates (~89% high); the design works, the signal didn't vary enough (`docs/PHASE_B_DESIGN.md`) |
+| **Spontaneous introspection** (concept injection, untrained) | **Negative** — 0/30; a control killed the apparent positive (steering, not introspection). Replicates the scale limit Anthropic sees |
+| **Trained P(IK) self-report** (LoRA) | **Honest negative** — a strong blind M2 (Claude, 0.82) and the model's own softmax confidence (0.81) both beat the self-report (0.76). It verbalizes confidence, no robust *privileged* access |
+| **Trained injected-concept detection** (LoRA, constant prompt → non-textual by construction) | **Positive** — accuracy 1.000 (chance 0.091), 0 false positives. The model reads a non-textual injected state and names it. Caveat: fixed concept set may be a lookup; scaling test pending |
+
+Each result was reported only after an adversarial control — the honesty discipline
+that distinguishes "verbalizing confidence" from "privileged introspection." See
+`docs/{ANTHROPIC_NORTH,RESEARCH_PHASE_B,TARGET_SELECTION,TRAINED_INTROSPECTION,LORA_PLAN}.md`.
+
+```python
+from zeta_life.introspection import psi_act_all   # 4 integration metrics over hidden states
+# harness.py / concept_injection.py need the GPU stack (transformers); see experiments/introspection/
+```
+
+---
+
 ## Installation
 
 ```bash
@@ -150,6 +184,11 @@ python experiments/kernel/exp_organism_emergence.py
 python experiments/kernel/exp_psi_vs_free_energy.py   # validate Psi (Albantakis method)
 python experiments/kernel/exp_epistemic_depth.py      # precision hyper-model (epistemic depth)
 python experiments/kernel/exp_yvyra_experiment.py     # Yvyra pipeline (modes + blind re-scorer)
+
+# Introspection / the north (needs the GPU stack: transformers + bitsandbytes)
+python experiments/introspection/exp_pik_probe.py          # is "I know" in the activations?
+python experiments/introspection/exp_pik_train.py          # train P(IK) self-report (LoRA)
+python experiments/introspection/exp_f3_inject_train.py    # trained injected-concept detection
 ```
 
 ### Run Tests
@@ -167,19 +206,23 @@ zeta-life/
 |-- src/zeta_life/
 |   |-- kernel/          # CORE - Active Inference kernel + Darwinian organism
 |   |-- bridge/          # Yvyra coupling - feed a live agent's experience to the kernel
+|   |-- introspection/   # THE NORTH - Psi over an LLM's activations; concept injection
+|   |-- instrumentation/ # TickLogger - paired per-tick logging (science pipeline)
 |   |-- integration/     # formal_equations.py - the integration index Psi
 |   |-- datasets/        # Real-world dataset adapters (for Psi validation)
 |   |-- core/            # zeta_constants, vertex, tetrahedral geometry
 |   +-- utils/           # Shared utilities
 |
 |-- experiments/
-|   |-- kernel/          # 28 kernel experiments (the live research)
-|   +-- datasets/        # 1 experiment (Psi on real data)
+|   |-- kernel/          # kernel experiments (the live research)
+|   |-- introspection/   # the north - probe, P(IK) LoRA, injected-concept detection
+|   +-- datasets/        # Psi on real data
 |
 |-- demos/               # quickstart.py - the 60-line kernel demo
 |
-|-- tests/               # 30 test files (556 tests)
-+-- docs/                # Documentation, papers, plans
+|-- tests/               # 34 test files (585 tests)
++-- docs/                # Documentation, papers, plans (incl. ANTHROPIC_NORTH,
+                         #   TRAINED_INTROSPECTION, TARGET_SELECTION, LORA_PLAN)
 
 (Legacy subsystems -- psyche, hierarchical/IPUESA integration, organism,
 evolution -- were archived on 2026-06-08 to the legacy/pre-refocus-snapshot branch.)
@@ -207,6 +250,7 @@ These are implemented as pure functions in `integration/formal_equations.py` and
 - **Complementary Learning Systems** (McClelland et al.) -- fast episodic + slow semantic memory
 - **Darwinian Brain** -- multi-kernel competition via Global Workspace
 - **Integrated Information Theory** (Tononi) -- Phi as integration measure
+- **LLM introspection** (Lindsey/Anthropic concept injection; Binder privileged access) -- the basis of the introspection program (see "The North")
 - **Riemann zeta zeros** -- optional temporal basis (tested; not load-bearing except in spatial CA -- see "Zeta Function as Temporal Binding")
 
 ---
