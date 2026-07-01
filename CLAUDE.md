@@ -8,6 +8,11 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 > subsystems (psyche, hierarchical/IPUESA integration, evolution, organism) were
 > **archived on 2026-06-08** to the `legacy/pre-refocus-snapshot` branch and
 > removed from the working tree. See "Core vs Archived" below.
+>
+> **Update (2026-06-13):** the live research frontier is now "the north" —
+> making Ψ a property of a real LLM's **own activations** and testing whether the
+> model can learn to **introspect** it (`src/zeta_life/introspection/`). See
+> "The North" below. The kernel remains the core substrate.
 
 ## What this project actually is
 
@@ -35,17 +40,20 @@ zeta-life/
 ├── src/zeta_life/
 │   ├── kernel/          # CORE — active-inference Conscious Kernel (19 files)
 │   ├── bridge/          # Yvyra coupling — feed a live agent's experience to the kernel
+│   ├── introspection/   # THE NORTH — Psi over an LLM's activations; concept injection
 │   ├── integration/     # formal_equations.py — the integration index Psi
 │   ├── instrumentation/ # TickLogger — paired per-tick logging (science pipeline)
 │   ├── datasets/        # real/synthetic signal loaders for Psi validation
 │   ├── core/            # zeta_constants, vertex, tetrahedral geometry
 │   └── utils/           # statistics helpers
 ├── experiments/
-│   ├── kernel/          # 28 experiments (the live research)
+│   ├── kernel/          # kernel experiments (the live research)
+│   ├── introspection/   # the north — probe, P(IK) LoRA, injected-concept detection
 │   └── datasets/        # 1 experiment (Psi on real data)
 ├── deploy/zeta/         # yvyra_kernel.py — the tick-driven entry point for Yvyra
-├── tests/               # 30 test files (556 tests)
+├── tests/               # 34 test files (585 tests)
 ├── results/             # experiment outputs (PNG + run .txt)
+├── data/                # GITIGNORED — LoRA adapters, datasets, captured activations (regenerable)
 ├── docs/                # reports, papers, plans, theory (see SCIENCE_PLAN.md)
 └── demos/               # quickstart.py — the 60-line kernel demo
 ```
@@ -79,8 +87,26 @@ PYTHONPATH=src python experiments/kernel/exp_yvyra_experiment.py     # Phases 3-
 PYTHONPATH=src python experiments/datasets/exp_real_data_psi.py
 ```
 
+### Introspection ("the north") — SEPARATE GPU venv
+These load a real LLM (Qwen3-8B) via `transformers` + 4/8-bit `bitsandbytes`, which
+the base install does NOT provide. Use a dedicated venv with the GPU stack (torch
+CUDA, transformers, peft, bitsandbytes, datasets, scikit-learn):
+```bash
+# e.g. C:/Users/skyva/.venvs/ztf/Scripts/python  (torch cu128 for Blackwell sm_120)
+PYTHONPATH=src <gpu-python> experiments/introspection/exp_pik_probe.py         # is "I know" decodable from activations?
+PYTHONPATH=src <gpu-python> experiments/introspection/exp_pik_train.py         # train P(IK) self-report (LoRA)
+PYTHONPATH=src <gpu-python> experiments/introspection/exp_pik_binder.py        # Binder: self-report vs external text predictor
+PYTHONPATH=src <gpu-python> experiments/introspection/exp_f3_inject_train.py   # trained injected-concept detection
+```
+The pure-numeric metric tests DO run on the base install:
+`PYTHONPATH=src python -m pytest tests/test_psi_act.py -q`.
+Note: after a WSL reset the host IPv6 can break HF downloads — force IPv4 (the
+scripts monkeypatch `socket.getaddrinfo`) or pre-download datasets with `curl -4`.
+
 ### Dependencies
 `numpy`, `torch`, `matplotlib`, `scipy` (required). `mpmath` optional.
+Introspection extras (GPU venv only): `transformers`, `peft`, `bitsandbytes`,
+`datasets`, `scikit-learn`, `accelerate`.
 
 ## Architecture — the Conscious Kernel (`src/zeta_life/kernel/`)
 
@@ -143,10 +169,53 @@ This session's experiments (and the project's own prior results) settled it:
 **Recommendation in code:** fixed basis → `fourier`/`log_spaced`; adaptive →
 `learned`. Zeta is an optional, documented-and-falsified design choice.
 
+## The North — Ψ-internal & trained introspection (`src/zeta_life/introspection/`)
+
+The frontier program: stop treating Ψ as an **external** index pointed *at* an
+agent, and make it a property of a real LLM's **own activations** — then test
+whether the model can learn to **introspect** it. Thesis: *adaptation, not scale*
+(a small model that learns to observe itself, per Fran's original vision).
+
+**Substrate.** A live LLM (Yvyra = Qwen3-8B) runs in `transformers`/8-bit; the
+`bridge/` couples its real experience to the kernel (Phase A/B), and
+`introspection/` computes/tests internal signals with the methods of Anthropic
+(Lindsey, concept injection) and Binder (privileged access).
+
+| File | Role |
+|------|------|
+| `introspection/psi_act.py` | 4 candidate integration metrics over hidden states (participation ratio, phi-proxy, inter-layer coherence, trajectory predictability). Pure-numeric, tested. |
+| `introspection/harness.py` | Loads Qwen in transformers/8-bit; generates a reflection, captures hidden states, elicits a self-report. Needs the GPU stack; NOT imported by the package `__init__`. |
+| `introspection/concept_injection.py` | Difference-of-means concept vectors + residual-stream injection hook + detection/bias-control trials (Lindsey's method). |
+
+**Honest results ledger (each reported only after an adversarial control):**
+- **Phase A/B** (expose Ψ to the agent, sham control): **inconclusive** — Ψ
+  saturates (~89% high); the design works, the signal didn't vary enough
+  (`docs/PHASE_B_DESIGN.md`).
+- **Spontaneous introspection** (concept injection, untrained): **NEGATIVE** —
+  0/30; the introspection-vs-steering control killed the apparent "Ocean." hit.
+  Replicates the scale limit Anthropic sees (`results/concept_injection_sweep_run.txt`).
+- **Trained P(IK) self-report** (LoRA on MMLU correctness): **honest negative** —
+  the "+0.18 vs a weak logreg M2" was an artifact; a strong blind M2 (Claude, 0.82)
+  and the model's own softmax confidence (0.81) both beat the self-report (0.76).
+  Verbalizes confidence, no robust *privileged* access (`results/{pik_binder,m2_claude}_run.txt`).
+- **Trained injected-concept detection** (LoRA; **constant prompt → non-textual by
+  construction**): **POSITIVE** — accuracy 1.000 (chance 0.091), 0 false positives.
+  The model reads a non-textual injected state and names it — closes the P(IK) hole.
+  Caveat: fixed 10-concept set may be a lookup; the 45-concept scaling test is
+  pending (`results/f3_inject_run.txt`).
+
+**Working discipline (critical):** every apparent positive here died or survived a
+control (weak vs strong M2, injection-vs-steering, softmax-confidence baseline).
+When continuing this line, **always build the adversarial control before believing
+a result** — the honest-negative on P(IK) is the template.
+
+Docs: `docs/{ANTHROPIC_NORTH, RESEARCH_PHASE_B, TARGET_SELECTION, TRAINED_INTROSPECTION, LORA_PLAN, PHASE_B_DESIGN}.md`.
+
 ## Core vs Archived
 
-**Core (this is the whole project now):** `kernel/`,
-`integration/formal_equations.py`, `datasets/`,
+**Core (this is the whole project now):** `kernel/`, `bridge/` (Yvyra coupling),
+`introspection/` (the north), `integration/formal_equations.py`,
+`instrumentation/`, `datasets/`,
 `core/{zeta_constants,vertex,tetrahedral_space}.py`, `utils/`.
 
 **Archived 2026-06-08** — removed from the working tree, preserved on the
@@ -199,3 +268,11 @@ The competing consciousness formalisms (psyche `ConsciousnessIndex`, hierarchica
 - `docs/INDICATOR_PROPERTIES.md` — honest, conservative audit of the kernel against Butlin et al. (2023) consciousness *indicator properties* (strong on PP/agency/embodiment, partial on GWT/recurrence/HOT, absent AST/HOT-4/GWT-4); the rigorous framework replacing Ψ-as-consciousness. Explicitly: indicators ≠ consciousness
 - `docs/papers/zeta-life-framework-paper.md` — the original "zeta unification" paper (predates the kernel; its zeta thesis is partly falsified by the project's own evidence; superseded by the kernel paper)
 - `docs/REPORTE_ZETA_ORGANISM.md`, `docs/ZETA_PSYCHE.md` — legacy subsystem reports
+
+**The North (introspection program):**
+- `docs/PHASE_B_DESIGN.md` — the Yvyra Phase-B experiment (expose Ψ + sham control); why it came back inconclusive (Ψ saturation)
+- `docs/ANTHROPIC_NORTH.md` — verified dossier of Anthropic's interpretability/introspection work (SAEs, concept injection, model welfare) mapped to the north
+- `docs/RESEARCH_PHASE_B.md` — the meta-problem, common-cause/confound analysis, and the privileged-access (Binder) test
+- `docs/TARGET_SELECTION.md` — choosing the internal target (why P(IK)/uncertainty over IIT-integration, which saturates)
+- `docs/LORA_PLAN.md` — how to train the P(IK) self-report + QLoRA-on-Blackwell config, verified
+- `docs/TRAINED_INTROSPECTION.md` — can introspection be *trained*? methods, the Qwen-Scope SAE, the honest expectation
