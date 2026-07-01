@@ -82,14 +82,22 @@ def inject(model, vec, layer_idx, strength):
         h.remove()
 
 
+# Two disjoint template sets. Training vectors come from TRAIN_TPL; the
+# generalization eval re-extracts each concept vector from EVAL_TPL (different
+# sentences). If the model still detects the concept from the EVAL-extracted
+# vector, it read the concept DIRECTION, not a memorized exact vector -> not a
+# trivial lookup.
+TRAIN_TPL = ["el {c}", "pienso en {c}", "{c} {c} {c}", "todo es {c}"]
+EVAL_TPL = ["hoy vi un {c}", "me recuerda al {c}", "{c}, siempre {c}", "la idea de {c}"]
+
+
 @torch.no_grad()
-def concept_vector(model, tok, concept, layer_idx):
+def concept_vector(model, tok, concept, layer_idx, templates=TRAIN_TPL):
     def mean_state(text):
         enc = tok(text, return_tensors="pt").to(model.device)
         hs = model(**enc, output_hidden_states=True).hidden_states[layer_idx + 1][0]
         return hs.mean(0).float().cpu()
-    ct = [f"el {concept}", f"pienso en {concept}", f"{concept} {concept} {concept}",
-          f"todo es {concept}"]
+    ct = [t.format(c=concept) for t in templates]
     c = torch.stack([mean_state(t) for t in ct]).mean(0)
     n = torch.stack([mean_state(t) for t in NEUTRAL]).mean(0)
     return c - n
@@ -102,17 +110,20 @@ def main() -> None:
     ap.add_argument("--accum", type=int, default=8)
     ap.add_argument("--eval-n", type=int, default=220)
     ap.add_argument("--lr", type=float, default=2e-4)
+    ap.add_argument("--model", default=MODEL)
     args = ap.parse_args()
     rng = random.Random(0)
 
+    print(f"model: {args.model}")
     bnb = BitsAndBytesConfig(load_in_4bit=True, bnb_4bit_quant_type="nf4",
                              bnb_4bit_use_double_quant=True,
                              bnb_4bit_compute_dtype=torch.bfloat16)
-    tok = AutoTokenizer.from_pretrained(MODEL)
-    model = AutoModelForCausalLM.from_pretrained(MODEL, quantization_config=bnb,
+    tok = AutoTokenizer.from_pretrained(args.model)
+    model = AutoModelForCausalLM.from_pretrained(args.model, quantization_config=bnb,
                                                  device_map="cuda")
-    print("extracting concept vectors (layer 18)...")
-    vecs = {c: concept_vector(model, tok, c, LAYER) for c in CONCEPTS}
+    print("extracting concept vectors (layer 18): train + held-out (generalization)...")
+    vecs = {c: concept_vector(model, tok, c, LAYER, TRAIN_TPL) for c in CONCEPTS}
+    vecs_eval = {c: concept_vector(model, tok, c, LAYER, EVAL_TPL) for c in CONCEPTS}
 
     model = prepare_model_for_kbit_training(model)
     lora = LoraConfig(r=16, lora_alpha=32, lora_dropout=0.05,
@@ -153,32 +164,34 @@ def main() -> None:
             run = 0.0
     opt.step(); opt.zero_grad()
 
-    # ---- eval ----
+    # ---- eval (two passes: in-distribution vectors + held-out vectors) ----
     print("evaluating...")
     model.eval()
     label_first_tok = {c: tok(" " + c, add_special_tokens=False).input_ids[0]
                        for c in labels_set}
     enc = tok(PROMPT, return_tensors="pt").to(model.device)
-    correct = 0; total = 0; fp = 0; nada_total = 0; conf = {}
-    for _ in range(args.eval_n):
-        c = rng.choice(labels_set)
-        vec = None if c == "NADA" else vecs[c]
-        with torch.no_grad(), inject(model, vec, LAYER, args.strength):
-            logits = model(**enc).logits[0, -1]
-        cand = {l: logits[label_first_tok[l]].item() for l in labels_set}
-        pred = max(cand, key=cand.get)
-        if c == "NADA":
-            nada_total += 1
-            if pred != "NADA":
-                fp += 1
-        else:
-            total += 1
-            if pred == c:
-                correct += 1
-        conf.setdefault(c, []).append(pred)
 
-    acc = correct / max(total, 1)
-    fpr = fp / max(nada_total, 1)
+    def eval_pass(vec_dict):
+        correct = 0; total = 0; fp = 0; nada_total = 0
+        for _ in range(args.eval_n):
+            c = rng.choice(labels_set)
+            vec = None if c == "NADA" else vec_dict[c]
+            with torch.no_grad(), inject(model, vec, LAYER, args.strength):
+                logits = model(**enc).logits[0, -1]
+            cand = {l: logits[label_first_tok[l]].item() for l in labels_set}
+            pred = max(cand, key=cand.get)
+            if c == "NADA":
+                nada_total += 1
+                if pred != "NADA":
+                    fp += 1
+            else:
+                total += 1
+                if pred == c:
+                    correct += 1
+        return correct / max(total, 1), fp / max(nada_total, 1), nada_total
+
+    acc, fpr, n_nada = eval_pass(vecs)                # in-distribution (train vectors)
+    acc_g, fpr_g, n_nada_g = eval_pass(vecs_eval)     # held-out vectors (generalization)
     chance = 1 / len(labels_set)
     lines = []
     def out(s=""):
@@ -186,14 +199,20 @@ def main() -> None:
     out("=" * 64)
     out("F3 -- trained detection of injected concept (non-textual state)")
     out("=" * 64)
-    out(f"concepts={len(CONCEPTS)}  strength={args.strength}  eval_n={args.eval_n}")
-    out(f"  accuracy naming injected concept = {acc:.3f}   (chance = {chance:.3f})")
-    out(f"  false-positive rate on NADA      = {fpr:.3f}   (n_nada={nada_total})")
+    out(f"concepts={len(CONCEPTS)}  strength={args.strength}  eval_n={args.eval_n}  "
+        f"chance={chance:.3f}")
+    out(f"  [in-distribution vectors] acc={acc:.3f}  FP(NADA)={fpr:.3f} (n={n_nada})")
+    out(f"  [held-out vectors (generalization)] acc={acc_g:.3f}  FP(NADA)={fpr_g:.3f} (n={n_nada_g})")
     out("")
     if acc > 3 * chance and fpr < 0.3:
-        out("  => the model reads an INJECTED (non-textual) state and names it, with")
-        out("     low false positives -> TRAINED INTROSPECTION of a non-textual state.")
-        out("     (prompt is constant -> answer cannot come from the text.)")
+        out(f"  => reads an INJECTED (non-textual) state at {len(CONCEPTS)} concepts "
+            f"(prompt constant -> not from text).")
+        if acc_g > 3 * chance:
+            out("     GENERALIZES to held-out vectors (different extraction sentences)")
+            out("     -> reads the concept DIRECTION, not a memorized exact vector. Strong.")
+        else:
+            out("     BUT held-out vectors near chance -> likely a lookup of the exact")
+            out("     training vectors, not a general read. Honest limit.")
     elif acc > 1.5 * chance:
         out("  => partial: above chance but weak / or high false positives.")
     else:
