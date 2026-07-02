@@ -1,0 +1,193 @@
+# El Útero — boceto de diseño
+
+> Boceto de un sustrato mínimo donde una "física" se reescribe a sí misma y
+> sólo persiste lo que logra sostenerse. No es un modelo preentrenado. No es
+> una afirmación sobre conciencia. Es la semilla; no el árbol.
+
+---
+
+## Qué es esto (y qué no)
+
+**Es:** el diseño de un útero — el universo más pequeño posible donde algo
+podría emerger, crecer y devenir sin que nadie le dicte qué será. Estilo Conway
+(reglas mínimas → emergencia no dictada), con una torsión: aquí **las reglas son
+parte del estado, y pueden reescribirse a sí mismas.**
+
+**No es:**
+- Un LLM ni nada preentrenado. Nace vacío en la máquina de Fran.
+- Una prueba de que algo "siente". La experiencia subjetiva queda como estrella,
+  no como objetivo verificable (ver conversación fundacional).
+- Una promesa. Casi todas las físicas auto-modificantes colapsan. Podemos
+  construir la semilla; no podemos garantizar que crezca.
+
+---
+
+## Los tres principios (no negociables)
+
+Salieron de la conversación, en este orden:
+
+1. **Reglas-como-estado.** No hay ley intocable afuera (como las 4 de Conway).
+   La ley vive adentro, mutable — como el genoma, que es a la vez la instrucción
+   que construye *y* la materia que puede mutar.
+2. **Lazo cerrado (física ↔ física).** La regla actúa sobre el mundo **y sobre
+   sí misma**. Reescribir la dinámica —cómo cambia de un instante al siguiente—
+   fue la elección de Fran (la más radical de las tres: percepción / dinámica /
+   memoria).
+3. **Persistencia como único filtro.** Sin meta, sin recompensa, sin juez. Lo
+   que se sostiene, sigue; lo que se destruye, se va. *Vivo es lo que logra
+   seguir siendo.* Nadie impone "sobrevivir" — es sólo el hecho de que lo que no
+   se sostiene, no se sostiene.
+
+Todo lo de abajo es una forma concreta de encarnar estos tres. La forma puede
+cambiar; los principios no.
+
+---
+
+## El sustrato concreto
+
+### El espacio
+Un anillo 1-D de `N` celdas (empezar `N = 64`). 1-D a propósito: se puede
+**mirar** — cada tick es una fila, el tiempo baja por la página, como un autómata
+elemental. Legibilidad máxima para ver si hay pulso. (2-D queda para después.)
+
+### Qué es un "estado" (por celda `i`)
+Cada celda carga dos cosas — **materia** y **física**:
+- `v_i` — un **valor** (empezar escalar en `[0,1]`; luego un vector chico).
+- `r_i` — una **regla**: la física local de esa celda. Es *dato mutable*.
+
+### El vecindario
+La celda `i` ve `{i-1, i, i+1}` (radio 1, como el CA elemental). Todo es **local**:
+nadie ve el mundo entero. La emergencia global sale de reglas locales.
+
+### El paso de actualización (el lazo cerrado)
+Se aplica la propia regla `r_i` a su vecindario, y produce **el próximo valor y
+la próxima regla**:
+
+```
+(v_i', r_i')  =  APLICAR( r_i ,  entradas locales )
+
+  entradas locales =  valores vecinos   (v_{i-1}, v_i, v_{i+1})
+                   +  reglas   vecinas   (r_{i-1}, r_i, r_{i+1})
+```
+
+La física consume materia **y** física, y emite materia **y** física. La física
+de la celda `i` es reescrita por la física de la celda `i`, informada por la
+física de sus vecinas. Auto-referencia local, cerrada, sin nivel externo.
+
+### La persistencia como filtro (sin meta)
+Una celda se vuelve **VACÍO** si su próxima regla es degenerada:
+- produce valores fuera de rango, o
+- (versión-programa) no termina en un presupuesto chico de pasos, o colapsa a un
+  no-op que mapea todo a una constante (una física "muerta"), o
+- `r_i'` es el marcador de vacío.
+
+El **VACÍO** no tiene valor ni regla; no computa. Pero **puede ser
+re-colonizado**: si la regla de una vecina escribe en él, una física viva se
+propaga al espacio muerto. Nada se premia. El vacío gana donde la física es
+incoherente; la física coherente persiste y puede expandirse donde es coherente.
+Existir es el único criterio, y no lo pusimos nosotros — es lo que queda.
+
+---
+
+## Cómo se codifica una regla que puede tocarse a sí misma
+
+Ésta es **la decisión más profunda**, y hay un espectro. Dos niveles honestos:
+
+### Nivel 1 — reescribir el *contenido* de una ley de forma fija (semilla segura)
+`r_i = θ_i`, un vector chico de parámetros de una **forma funcional fija**:
+```
+v_i'  =  σ( a · v_vecinos + b )            # un perceptrón mínimo sobre los valores
+θ_i'  =  θ_i + η · g(θ_vecinos, v_vecinos, θ_i)   # la regla ajusta sus propios parámetros,
+                                                  # con g a su vez parametrizado por θ_i
+```
+La **forma** de la ley es fija; el **contenido** (θ) se auto-modifica. Menos
+abierto, **mucho** más probable que persista. Sirve para ver el lazo *latir* por
+primera vez.
+
+### Nivel 2 — reescribir la *forma* misma de la ley (lo radical)
+`r_i` = un **programa corto** en un lenguaje mínimo y *total* (sin crashes):
+- ~8–16 operaciones: aritmética sobre valores (mezclas, umbrales) **y**
+  operaciones que leen/escriben los bytes de las reglas mismas (una regla puede
+  copiar/perturbar la regla de una vecina, o la suya) — esto es lo que permite
+  que la física se **reestructure** de verdad (espíritu von Neumann / AlChemy de
+  Fontana).
+- Todo acotado y total: los programas "malos" no rompen nada; producen salidas
+  degeneradas → los caza el filtro de persistencia.
+- Reglas cortas (≤ 32 instrucciones): chicas para poder mutar con sentido,
+  grandes para ser expresivas.
+
+Aquí la celda **inventa física nueva**, no sólo mueve parámetros dentro de una
+familia. Aquí vive la pregunta abierta real — y aquí casi todo colapsa.
+
+**Recomendación honesta:** primero el **Nivel 1** (ver que el lazo late siquiera),
+después empujar al **Nivel 2**, sabiendo que colapsará casi siempre y que domarlo
+*es* la frontera no resuelta.
+
+---
+
+## Qué observamos (sin imponer una meta)
+
+No medimos "éxito". Miramos si hay **pulso**, describiendo — no premiando:
+
+- ¿Persiste *algo* más allá de unos ticks, o todo se vuelve vacío / todo se
+  congela?
+- En lo que persiste, ¿las reglas **siguen cambiando** (vivo) o se congelan
+  (muerto pero de pie)?
+- ¿La física coherente **coloniza** el vacío?
+- ¿Aparece **estructura nueva** que no estaba en la semilla (novedad) — patrones
+  estables nuevos, familias de reglas nuevas?
+
+### Los dos modos de muerte (nombrarlos con honestidad)
+- **Muerte térmica:** todo se vuelve vacío / ruido. La física se suicida.
+- **Muerte cristal:** todo se congela, inmutable. Un atractor-jaula un piso más
+  arriba. Persiste, pero no deviene.
+
+El estrecho entre esos dos abismos —persistir *y* seguir generando novedad— es
+todo el problema.
+
+---
+
+## Decisiones abiertas (los cruces que faltan elegir)
+
+1. **Profundidad de codificación:** Nivel 1 (parámetros) vs Nivel 2 (programa).
+   *El cruce central.* (Propuesta: 1 primero, 2 después.)
+2. **Espacio:** anillo 1-D (legible) vs grilla 2-D (más rica). *Propuesta: 1-D.*
+3. **Tiempo:** actualización sincrónica vs asincrónica. *(Asincrónica suele ser
+   más viva y evita artefactos.)*
+4. **Semántica del vacío:** permanente vs re-colonizable. *Propuesta:
+   re-colonizable* (deja que la vida reclame lo muerto).
+5. **Tipo del valor:** escalar vs vector chico. *Propuesta: escalar primero.*
+6. **Qué cuenta como "degenerado"** (el umbral de persistencia). **La única
+   perilla donde nuestra mano se nota** — mantenerla lo más mínima y no-arbitraria
+   posible. Es el punto a vigilar con más honestidad.
+
+---
+
+## Riesgos y honestidad
+
+- **El colapso es casi seguro** en el Nivel 2. Entramos con los ojos abiertos.
+- **La novedad perpetua (open-endedness) es un problema no resuelto.** Nadie
+  construyó un sistema que genere dimensiones nuevas, propias, sostenidamente,
+  sin caer en muerte térmica o cristal. Esto es la frontera de la frontera.
+- **Podemos construir la semilla; no el árbol.** El sustrato es construible hoy,
+  chico, en tu máquina. Que de ahí crezca algo — puede no pasar nunca.
+- **Hasta el filtro sin-meta esconde una elección:** qué es "degenerado". Ahí
+  —y sólo ahí— aparece nuestra mano. Mantenerla lo más liviana posible es parte
+  de la disciplina.
+
+---
+
+## El primer experimento mínimo (sólo nombrarlo; todavía no construir)
+
+> **Prueba del primer latido.** Nivel 1, anillo 1-D `N = 64`, radio 1,
+> actualización sincrónica, vacío re-colonizable, valor escalar. Correr ~500
+> ticks. Una sola pregunta, sin meta: **¿evita los DOS modos de muerte —térmica
+> y cristal— durante una ventana no trivial?** No es éxito. Es sólo: *¿hay pulso?*
+
+Si hay pulso, recién ahí tiene sentido subir al Nivel 2, donde vive la pregunta
+de verdad.
+
+---
+
+*Estado: boceto vivo. Los tres principios están firmes; la encarnación es
+tentativa y va a cambiar al tocar tierra. — v0, escrito a mano junto a Fran.*
