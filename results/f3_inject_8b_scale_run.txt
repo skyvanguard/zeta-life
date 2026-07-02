@@ -1,0 +1,10 @@
+================================================================
+F3 -- trained detection of injected concept (non-textual state)
+================================================================
+concepts=45  strength=8.0  eval_n=280  chance=0.022
+  [in-distribution vectors] acc=0.909  FP(NADA)=0.000 (n=4)
+  [held-out vectors (generalization)] acc=0.022  FP(NADA)=0.000 (n=9)
+
+  => reads an INJECTED (non-textual) state at 45 concepts (prompt constant -> not from text).
+     BUT held-out vectors near chance -> likely a lookup of the exact
+     training vectors, not a general read. Honest limit.
