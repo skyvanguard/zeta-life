@@ -297,6 +297,30 @@ espuma caótica que nace y muere sin dejar linaje? Ideas: rastrear LINAJES
 genomas nuevos, comparar contra un null (paseo aleatorio por el espacio de
 genomas con la misma tasa de nacimientos).
 
+- **v4 muerte por equilibrio — HIPÓTESIS REFUTADA (2026-07-09).** Flag
+  `muerte_equilibrio=True` (una celda con |Δv|<eq_eps por eq_window=100 ticks
+  muere): extensión del principio 3 «cristal = muerto de pie», con la
+  predicción de que forzaría auto-reparación del motor (asentarse=morir=
+  reintentar). **Falló, y en las dos direcciones.** (1) En vez de reparar,
+  **extinguió el mundo**: 15/20 muerte térmica (v3 era 2/20) — matar las
+  llanuras asentadas eliminó el amortiguador/reservorio y el mundo se vació.
+  (2) **Rompió incluso la seed 13**: su novedad —que en v3 subía a 12k
+  ticks— se secó antes de t=6000, y la ablación post no regeneró nada
+  (post = [0,0,…]). *La presión extra de muerte no crea un motor
+  auto-reparable; crea un desierto.* Lección honesta: las llanuras
+  «asentadas» no eran cristal muerto sino SUSTRATO — la novedad necesitaba
+  ese fondo estable contra el cual moverse. Mi predicción de diseño fue
+  incorrecta; el control lo mostró. (`results/utero_motor_run.txt`)
+
+**Lo que esto enseña sobre el motor auto-reparable:** la fragilidad de la
+bomba (v3) NO se arregla subiendo la mortalidad. Direcciones distintas, no
+probadas: (a) que la turbulencia sea un ATRACTOR dinámico (que las llanuras
+tiendan espontáneamente a desestabilizarse en el borde con la zona activa),
+no algo impuesto por muerte; (b) aceptar que un motor localizado y frágil
+quizá sea lo que HAY en este sustrato — y que la auto-reparación requiera
+otra dimensión (p.ej. la memoria/percepción que Fran NO eligió tocar), o un
+sustrato distinto. Decisión abierta.
+
 - **Control ruido-vs-función (2026-07-09): FUNCIÓN, 2/3 — con matices.**
   `exp_utero_ruido_vs_funcion.py`, vara definida ANTES de mirar. Línea base
   espuma: intervalo de reescritura ~3.2 ticks. Sobre 6.198 genomas tardíos

@@ -91,6 +91,8 @@ PYTHONPATH=src python experiments/utero/exp_nivel2_latido.py    # Nivel 2: regla
 PYTHONPATH=src python experiments/utero/exp_utero_creciente.py  # v1: async + espacio creciente
 PYTHONPATH=src python experiments/utero/exp_utero_germinal.py   # v2: variación germinal
 PYTHONPATH=src python experiments/utero/exp_utero_toroidal.py   # v3: materia toroidal (novedad sostenida)
+PYTHONPATH=src python experiments/utero/exp_utero_ruido_vs_funcion.py  # control: ruido vs funcion (seed 13)
+PYTHONPATH=src python experiments/utero/exp_utero_motor.py      # v4: muerte por equilibrio (hipotesis refutada)
 ```
 
 ### Introspection ("the north") — SEPARATE GPU venv

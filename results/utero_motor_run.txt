@@ -1,0 +1,42 @@
+==========================================================================
+EL UTERO -- v4: muerte por equilibrio (cristal = muerto de pie)
+==========================================================================
+n0=16 -> max 256  ticks=4000  semillas=20  (toroidal+germinal en ambos brazos)
+manos nuevas declaradas: eq_eps=1e-9, eq_window=100.
+
+seed  veredicto  mundo   vivo  genomas novedad_2da_mitad
+   0  termica       16   0.00       32                 0
+   1  pulso        256   0.96       75                 0
+   2  termica      256   0.00     1578                 0
+   3  termica       16   0.00       19                 0
+   4  termica       16   0.00       19                 0
+   5  termica      256   0.00       25                 0
+   6  termica       16   0.00       25                 0
+   7  termica      256   0.00       27                 0
+   8  termica      256   0.00       24                 0
+   9  termica      256   0.00       22                 0
+  10  pulso        256   0.82       34                 0
+  11  termica       16   0.00       17                 0
+  12  termica       17   0.00       26                 0
+  13  pulso        256   0.48    17296              3027
+  14  pulso         16   0.81       23                 0
+  15  termica       16   0.00       28                 0
+  16  termica       16   0.00       16                 0
+  17  termica      256   0.00       20                 0
+  18  termica      256   0.00      122                 0
+  19  pulso        256   0.59      218                 0
+
+termica: 15   cristal: 0   pulso: 5
+regimen sostenido (novedad tardia >100): 1/20 -> [13]   (v3 era 1/20)
+jaula nueva 'materia oscilante + codigo congelado': 1/20
+
+--------------------------------------------------------------------------
+ABLACION (t=8000, zona activa de 200 ticks) en las
+semillas sostenidas -- ¿la bomba se regenera con muerte por equilibrio?
+referencia v3 (seed 13, SIN muerte-eq): [2367, 383, 70, 58, 68, 20, 15, 3] -> murio
+  seed 13: pre [0, 0, 0, 0] | post [0, 0, 0, 0, 0, 0, 0, 0]
+
+  => NO regeneran: la muerte por equilibrio no basta para que el
+     motor se auto-repare (o extingue el mundo antes). Honesto.
+
+figura: results/utero_motor.png

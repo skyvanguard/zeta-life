@@ -51,7 +51,9 @@ class UteroCreciente:
     """Línea 1-D asincrónica que crece donde su física la abre."""
 
     def __init__(self, n0: int = N0, seed: int = 0, max_n: int = MAX_N,
-                 germinal: bool = False, toroidal: bool = False):
+                 germinal: bool = False, toroidal: bool = False,
+                 muerte_equilibrio: bool = False, eq_eps: float = 1e-9,
+                 eq_window: int = 100):
         """germinal=True (v2): SPAWN no copia exacto — la cría nace con UNA
         instrucción reescrita desde la materia del momento del parto (campos
         b,c del SPAWN + registro; la misma función de MUTO). La variación sale
@@ -63,9 +65,21 @@ class UteroCreciente:
         verdad), atacando la causa raíz de v2: la materia congelada. La sonda
         de muerte usa separación irracional (0 y 0.618…) porque 0 y 1 son el
         MISMO punto del toro (con la sonda vieja, todo mapa lineal colapsaría
-        y mataría física sana)."""
+        y mataría física sana).
+
+        muerte_equilibrio=True (v4): extensión del principio 3 — «cristal =
+        muerto de pie». Una celda cuya materia queda quieta (|Δv| < eq_eps)
+        durante eq_window ticks seguidos se vuelve VACÍO. Lo que deja de
+        devenir, deja de ser (Schrödinger: lejos del equilibrio o muerto).
+        No es meta ni recompensa: completa el filtro de persistencia, que ya
+        mataba a la física ciega a la materia, matando también a la materia
+        quieta. Manos declaradas: eq_eps, eq_window."""
         self.germinal = germinal
         self.toroidal = toroidal
+        self.muerte_eq = muerte_equilibrio
+        self.eq_eps = eq_eps
+        self.eq_window = eq_window
+        self.eq_count = np.zeros(n0, dtype=np.int64)
         # materias de prueba de la sonda ciega-a-la-materia (mano declarada)
         self._probe_hi = 0.6180339887498949 if toroidal else 1.0
         self.max_n = max_n
@@ -131,7 +145,20 @@ class UteroCreciente:
                 self.alive[i] = False
                 self.v[i] = 0.0
                 self.code[i] = 0
+                self.eq_count[i] = 0
                 continue
+            # v4: muerte por equilibrio — lo que deja de devenir, deja de ser
+            if self.muerte_eq:
+                if abs(v_new - float(self.v[i])) < self.eq_eps:
+                    self.eq_count[i] += 1
+                else:
+                    self.eq_count[i] = 0
+                if self.eq_count[i] > self.eq_window:
+                    self.alive[i] = False
+                    self.v[i] = 0.0
+                    self.code[i] = 0
+                    self.eq_count[i] = 0
+                    continue
             # async: efectos inmediatos
             self.v[i] = v_new
             self.code[i] = own_next
@@ -152,6 +179,7 @@ class UteroCreciente:
                 self.code[t] = child
                 self.v[t] = v_new
                 self.alive[t] = True
+                self.eq_count[t] = 0
                 colonized += 1
 
         # crecimiento del mundo (fin de tick; tope = la placa de Petri)
@@ -162,12 +190,14 @@ class UteroCreciente:
             self.v = np.concatenate([self.v, [val]])
             self.code = np.concatenate([self.code, c[None]])
             self.alive = np.concatenate([self.alive, [True]])
+            self.eq_count = np.concatenate([self.eq_count, [0]])
             grown += 1
         if edge_left is not None and self.n < self.max_n:
             c, val = edge_left
             self.v = np.concatenate([[val], self.v])
             self.code = np.concatenate([c[None], self.code])
             self.alive = np.concatenate([[True], self.alive])
+            self.eq_count = np.concatenate([[0], self.eq_count])
             self.left_grown += 1
             grown += 1
             grew_left = True
@@ -201,10 +231,11 @@ class UteroCreciente:
 
 def run_history(n0: int = N0, seed: int = 0, ticks: int = 2000,
                 max_n: int = MAX_N, germinal: bool = False,
-                toroidal: bool = False) -> dict:
+                toroidal: bool = False,
+                muerte_equilibrio: bool = False) -> dict:
     """Correr un útero creciente registrando historia + frames alineados."""
     u = UteroCreciente(n0=n0, seed=seed, max_n=max_n, germinal=germinal,
-                       toroidal=toroidal)
+                       toroidal=toroidal, muerte_equilibrio=muerte_equilibrio)
     keys = ("alive_frac", "n_world", "code_change", "value_change",
             "colonized", "grown", "new_genomes", "diversity")
     hist: dict = {k: [] for k in keys}
