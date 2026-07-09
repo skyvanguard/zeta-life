@@ -85,6 +85,8 @@ PYTHONPATH=src python experiments/kernel/exp_epistemic_depth.py      # Phase 2: 
 PYTHONPATH=src python experiments/kernel/exp_yvyra_experiment.py     # Phases 3-5: Yvyra pipeline (simulated)
 # Datasets:
 PYTHONPATH=src python experiments/datasets/exp_real_data_psi.py
+# El Útero (sustrato auto-reescribiente, docs/EL_UTERO.md):
+PYTHONPATH=src python experiments/utero/exp_primer_latido.py
 ```
 
 ### Introspection ("the north") — SEPARATE GPU venv

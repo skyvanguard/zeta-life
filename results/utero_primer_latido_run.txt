@@ -1,0 +1,53 @@
+====================================================================
+EL UTERO -- prueba del primer latido (Nivel 1)
+====================================================================
+anillo N=64  ticks=500  semillas=20  ventana de veredicto=100
+manos visibles: theta_bound=10000  mut_scale=0.01  vacio frio (v=0)
+umbrales de observacion: termica<0.05 vivo, congelado<1e-07
+
+seed  veredicto vivo_final  d_regla_final  d_valor_final coloniz_total
+   0  pulso          1.000      2.365e-02      3.979e-02           386
+   1  pulso          1.000      1.209e-01      3.040e-04           223
+   2  pulso          1.000      1.281e+00      7.580e-04           395
+   3  pulso          1.000      3.884e+00      1.483e-03           307
+   4  pulso          1.000      5.958e-01      2.250e-02           499
+   5  pulso          0.999      1.250e+01      5.641e-03           327
+   6  pulso          1.000      7.490e-05      1.685e-05           258
+   7  pulso          1.000      7.017e-05      1.745e-05           179
+   8  pulso          1.000      8.770e-04      1.056e-04           405
+   9  pulso          0.999      2.127e+00      2.847e-04           340
+  10  pulso          1.000      1.576e+00      4.029e-02           349
+  11  pulso          1.000      5.159e-02      3.431e-04           436
+  12  pulso          1.000      1.461e-04      1.721e-05           226
+  13  pulso          1.000      7.154e-02      9.325e-03           298
+  14  pulso          1.000      5.070e-01      4.083e-04           313
+  15  pulso          1.000      1.424e-04      2.615e-05           406
+  16  pulso          1.000      1.007e+00      5.088e-04           318
+  17  pulso          1.000      1.296e+00      7.931e-03           340
+  18  pulso          1.000      1.377e-02      4.872e-04           282
+  19  pulso          1.000      2.701e+00      7.726e-04           321
+
+muerte termica: 0/20   muerte cristal: 0/20   PULSO: 20/20
+
+=> HAY PULSO en al menos una semilla: fisicas auto-reescribientes
+   que ni se suicidan ni se congelan durante la ventana observada.
+   No es 'exito' ni emergencia probada -- es solo el primer latido.
+
+--------------------------------------------------------------------
+CONTROL A -- mut_scale=0 (ruido de colonizacion apagado): el pulso
+no debe depender de la variacion que inyectamos nosotros.
+  termica=0  cristal=0  pulso=20  (de 20)
+
+CONTROL B -- horizonte 10x (5000 ticks): transitorio lento o pulso real?
+  veredicto formal (umbral 1e-07): termica=0  cristal=0  pulso=20
+  d_regla medio por tramo: t~500: 1.39e+00  t~1500: 1.88e-01  t~3000: 3.73e-01  t~5000: 7.14e-01
+  semillas con cambio MACROSCOPICO (>1e-3) en t=5000: 3/20
+
+  Lectura honesta: el latido existe (0 muertes termicas, muerte y
+  re-colonizacion reales al inicio), pero la mayoria de las fisicas
+  se congela en camara lenta (~1e-6 y cayendo) -- cristalizacion
+  asintotica, el atractor-jaula esperado. Solo 3/20 sostienen
+  cambio macroscopico a largo plazo. El Nivel 1 late pero tiende al
+  cristal: motiva el Nivel 2 (reescribir la FORMA de la ley), donde
+  vive la pregunta real de la novedad sostenida.
+figura: results/utero_primer_latido.png (seed 0=pulso)
