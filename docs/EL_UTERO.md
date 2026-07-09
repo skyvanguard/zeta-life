@@ -189,5 +189,36 @@ de verdad.
 
 ---
 
+## Ledger honesto de resultados (cada uno tras su control adversarial)
+
+- **Nivel 1 — primer latido (2026-07-09):** `utero/nivel1.py`,
+  `exp_primer_latido.py`. 20/20 semillas con pulso a 500 ticks (0 térmicas,
+  0 cristal; muerte+re-colonización reales; seed 0 desarrolla un oscilador
+  persistente no programado). Controles: sin ruido de colonización sigue
+  20/20; a 5000 ticks la lectura honesta es **cristalización en cámara
+  lenta** — sólo 3/20 sostienen cambio macroscópico. *La semilla late pero
+  tiende al atractor-cristal.* (`results/utero_primer_latido_run.txt`)
+- **Nivel 2 v0 — reglas-programa (2026-07-09):** `utero/nivel2.py`,
+  `exp_nivel2_latido.py`. Lenguaje total de 10 ops con MUTO/COPY (reescritura
+  de la propia forma) y SPAWN (colonización literal); sin ruido inyectado.
+  Ecología real: extinción inicial 75% → recuperación al 70% vía SPAWN;
+  cambio de código PLANO a 5000 ticks (no decae como el Nivel 1); 16 genomas
+  distintos sostenidos. **Pero el control anti-ciclo lo desenmascara:** 20/20
+  semillas en ciclos límite cortos (1–20 estados) — la física reescribe y
+  des-reescribe lo mismo para siempre; hasta la muerte/renacimiento entra en
+  el bucle. *Atractores más ricos, pero atractores: la novedad perpetua no
+  emergió.* Tal como advirtió este boceto: aquí casi todo colapsa.
+  (`results/utero_nivel2_run.txt`)
+
+**Lo aprendido:** determinismo + espacio fijo + actualización sincrónica ⇒
+recurrencia casi inevitable. Las direcciones que el propio boceto deja
+abiertas y que estos resultados vuelven candidatas para v1: actualización
+**asincrónica** (decisión abierta #3), espacio **más grande o creciente** (el
+adyacente-posible necesita lugar donde abrirse), acoplamiento más rico entre
+materia y código. Los tres principios quedan intactos; la encarnación es lo
+que debe cambiar.
+
+---
+
 *Estado: boceto vivo. Los tres principios están firmes; la encarnación es
 tentativa y va a cambiar al tocar tierra. — v0, escrito a mano junto a Fran.*

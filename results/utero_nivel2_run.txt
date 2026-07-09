@@ -1,0 +1,56 @@
+========================================================================
+EL UTERO -- Nivel 2: reglas-programa que reescriben su propia forma
+========================================================================
+anillo N=64  ticks=500  semillas=20  ventana=100
+manos visibles: sonda ciega-a-la-materia, orden sembrado de SPAWN,
+vacio frio. SIN ruido inyectado (menos manos que el Nivel 1).
+
+seed  veredicto vivo_fin  d_codigo_fin  coloniz  divers spawn_ini spawn_fin
+   0  pulso        0.844     3.819e-04       49      19     0.108     0.219
+   1  pulso        0.841     9.625e-04      127      20     0.107     0.101
+   2  cristal      0.625     0.000e+00       42      11     0.104     0.094
+   3  cristal      0.250     0.000e+00       12       5     0.087     0.070
+   4  pulso        0.750     1.651e-03      378      26     0.113     0.125
+   5  pulso        0.766     9.566e-04       49      19     0.097     0.110
+   6  pulso        0.812     1.202e-03       49      14     0.092     0.131
+   7  pulso        0.745     1.103e-03      202      15     0.098     0.121
+   8  pulso        0.484     5.040e-04       36      16     0.092     0.103
+   9  pulso        0.943     2.481e-03      387      18     0.088     0.139
+  10  pulso        0.562     4.340e-04       36      13     0.099     0.097
+  11  pulso        0.620     1.046e-03      197      10     0.097     0.075
+  12  pulso        0.766     1.594e-03       38      16     0.110     0.134
+  13  pulso        0.656     1.674e-03       38      15     0.091     0.070
+  14  pulso        0.312     7.812e-04       18      13     0.102     0.122
+  15  pulso        0.732     7.600e-04      154      20     0.101     0.121
+  16  pulso        0.781     9.375e-04       63      15     0.096     0.081
+  17  cristal      0.781     0.000e+00       44      16     0.111     0.147
+  18  pulso        0.775     1.362e-03      187      19     0.095     0.083
+  19  pulso        0.891     2.522e-03       63      20     0.113     0.144
+
+muerte termica: 0/20   muerte cristal: 3/20   PULSO: 17/20
+extincion inicial media (tick 1): vivo=0.25 -> recuperacion final: vivo=0.70 (via SPAWN literal)
+enriquecimiento de SPAWN en codigo vivo: +0.0144 medio (12/20 semillas al alza)
+
+------------------------------------------------------------------------
+CONTROL -- horizonte 5000 ticks: el cambio de codigo se sostiene?
+(la razon de ser del Nivel 2: el Nivel 1 se congelaba aqui)
+  veredicto formal: termica=0  cristal=3  pulso=17
+  d_codigo medio por tramo: t~500: 1.02e-03  t~1500: 1.02e-03  t~3000: 1.02e-03  t~5000: 1.02e-03
+  semillas con cambio de codigo MACROSCOPICO (>1e-4) en t=5000: 17/20
+  diversidad final media: 16.0 genomas distintos; colonizaciones en los ultimos 1000 ticks (media): 130.6
+
+CONTROL ANTI-CICLO -- estados distintos en los ultimos 1000 ticks de
+5000 (pocos estados = ciclo limite = una jaula dinamica, no novedad):
+  estados distintos por semilla: [6, 12, 1, 1, 6, 6, 2, 6, 2, 12, 2, 3, 2, 4, 2, 7, 3, 1, 20, 10]
+  en ciclo corto (<50 estados): 20/20   aperiodicas (>900): 0/20
+
+  => VEREDICTO HONESTO: el 'cambio sostenido' es un CICLO LIMITE --
+     la fisica reescribe y des-reescribe lo mismo para siempre (hasta
+     la muerte/re-colonizacion entra en el bucle). El Nivel 2 v0
+     encuentra atractores mas ricos que el Nivel 1 (ciclos con
+     reescritura de codigo y ecologia de muerte-renacimiento) pero
+     sigue siendo un atractor-jaula. La novedad perpetua no emergio;
+     el problema abierto muestra los dientes tal como el boceto
+     advirtio ('aqui casi todo colapsa').
+
+figura: results/utero_nivel2_latido.png (seed 0=pulso, seed 2=cristal)
