@@ -66,11 +66,16 @@ def _sigmoid(x: float) -> float:
 
 
 def execute(code: np.ndarray, vl: float, v: float, vr: float,
-            ctx: tuple) -> tuple:
+            ctx: tuple, wrap: bool = False) -> tuple:
     """Ejecutar una regla. ctx = (code_izq|None, code_self, code_der|None).
 
-    Devuelve (v', own_next, spawn) con spawn en {None, 0=izq, 1=der}.
+    Devuelve (v', own_next, spawn) con spawn=None o (lado, pos, opcode).
     Total por construcción: nunca lanza, siempre termina en K pasos.
+
+    wrap=False: v' = sigmoid(R3) — materia en un segmento (contractiva casi
+    siempre; nivel2/v1/v2, byte-idéntico). wrap=True: v' = R3 mod 1 — MATERIA
+    TOROIDAL (v3): el valor vive en un círculo; envolver permite mapas
+    expansivos (ADD v,v->R3 es el doubling map). Más simple que la sigmoide.
     """
     r = [vl, v, vr, 0.0]
     own_next = code.copy()
@@ -103,13 +108,14 @@ def execute(code: np.ndarray, vl: float, v: float, vr: float,
             # momento del parto — la misma función de MUTO, acoplada a materia.
             spawn = (a % 2, c % K, int(abs(r[b % 4]) * N_OPS) % N_OPS)
         # NOP: nada
-    return _sigmoid(r[3]), own_next, spawn
+    out = (r[3] % 1.0) if wrap else _sigmoid(r[3])
+    return out, own_next, spawn
 
 
 def _output_only(code: np.ndarray, vl: float, v: float, vr: float,
-                 ctx: tuple) -> float:
+                 ctx: tuple, wrap: bool = False) -> float:
     """Ejecución fantasma (sin efectos): sólo la salida de materia."""
-    return execute(code, vl, v, vr, ctx)[0]
+    return execute(code, vl, v, vr, ctx, wrap=wrap)[0]
 
 
 class UteroNivel2:

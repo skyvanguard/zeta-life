@@ -51,13 +51,23 @@ class UteroCreciente:
     """Línea 1-D asincrónica que crece donde su física la abre."""
 
     def __init__(self, n0: int = N0, seed: int = 0, max_n: int = MAX_N,
-                 germinal: bool = False):
+                 germinal: bool = False, toroidal: bool = False):
         """germinal=True (v2): SPAWN no copia exacto — la cría nace con UNA
         instrucción reescrita desde la materia del momento del parto (campos
         b,c del SPAWN + registro; la misma función de MUTO). La variación sale
         del estado del mundo, no de un RNG nuestro. False = v1 (copia exacta),
-        byte-idéntica a los resultados commiteados."""
+        byte-idéntica a los resultados commiteados.
+
+        toroidal=True (v3): la materia vive en un círculo — v' = R3 mod 1 en
+        vez de sigmoid. El wrap permite mapas expansivos (caos expresable de
+        verdad), atacando la causa raíz de v2: la materia congelada. La sonda
+        de muerte usa separación irracional (0 y 0.618…) porque 0 y 1 son el
+        MISMO punto del toro (con la sonda vieja, todo mapa lineal colapsaría
+        y mataría física sana)."""
         self.germinal = germinal
+        self.toroidal = toroidal
+        # materias de prueba de la sonda ciega-a-la-materia (mano declarada)
+        self._probe_hi = 0.6180339887498949 if toroidal else 1.0
         self.max_n = max_n
         self.rng = np.random.default_rng(seed)
         self.v = self.rng.uniform(0.0, 1.0, size=n0)
@@ -108,10 +118,12 @@ class UteroCreciente:
                 continue
             ctx, vl, vr = self._ctx(i)
             v_new, own_next, spawn = execute(self.code[i], vl, float(self.v[i]),
-                                             vr, ctx)
+                                             vr, ctx, wrap=self.toroidal)
             # persistencia: la física ciega a la materia muere (sonda)
-            p1 = _output_only(self.code[i], 0.0, 0.0, 0.0, ctx)
-            p2 = _output_only(self.code[i], 1.0, 1.0, 1.0, ctx)
+            h = self._probe_hi
+            p1 = _output_only(self.code[i], 0.0, 0.0, 0.0, ctx,
+                              wrap=self.toroidal)
+            p2 = _output_only(self.code[i], h, h, h, ctx, wrap=self.toroidal)
             if (not math.isfinite(v_new)
                     or (abs(v_new - p1) < PROBE_EPS
                         and abs(v_new - p2) < PROBE_EPS
@@ -188,9 +200,11 @@ class UteroCreciente:
 
 
 def run_history(n0: int = N0, seed: int = 0, ticks: int = 2000,
-                max_n: int = MAX_N, germinal: bool = False) -> dict:
+                max_n: int = MAX_N, germinal: bool = False,
+                toroidal: bool = False) -> dict:
     """Correr un útero creciente registrando historia + frames alineados."""
-    u = UteroCreciente(n0=n0, seed=seed, max_n=max_n, germinal=germinal)
+    u = UteroCreciente(n0=n0, seed=seed, max_n=max_n, germinal=germinal,
+                       toroidal=toroidal)
     keys = ("alive_frac", "n_world", "code_change", "value_change",
             "colonized", "grown", "new_genomes", "diversity")
     hist: dict = {k: [] for k in keys}

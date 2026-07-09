@@ -273,6 +273,30 @@ mano nuestra:
       qué ser, sólo le impide asentarse).
   (c) ambas.
 
+- **v3 toroidal — materia en un círculo (2026-07-09): PRIMERA NOVEDAD
+  SOSTENIDA.** Flag `toroidal=True` (`v' = R3 mod 1`; sonda con separación
+  irracional 0/0.618 porque 0 y 1 son el mismo punto del toro),
+  `exp_utero_toroidal.py`. Resultado (20 seeds × 4000, brazo sigmoid como
+  control): novedad tardía **3816 vs 0** del sigmoid. Una semilla (13) entra
+  en un régimen sostenido: control a **12.000 ticks → 26.409 genomas** y los
+  últimos tramos [419, 278, 697, **1526**] — no decae: **sube**; materia aún
+  moviéndose (Δv≈0.14). La figura muestra diferenciación espacial en
+  regímenes coexistentes (zona turbulenta = bomba de novedad + llanuras
+  asentadas) — nichos emergentes. **Cautelas honestas:** (1) es 1/20 — el
+  régimen es RARO, el toro lo hace posible, no típico (¿como la
+  abiogénesis?); (2) "genoma nuevo" = combinación nunca vista (vara
+  estructural), pero la RIQUEZA FUNCIONAL no está evaluada — podría ser
+  paseo caótico por el espacio de código (novedad-ruido) y no novedad
+  adaptativa; distinguirlas es el próximo control obligatorio.
+  (`results/utero_toroidal_run.txt`)
+
+**El próximo control (pendiente): ruido vs función.** ¿Los genomas tardíos de
+la seed 13 HACEN algo (persisten más, colonizan mejor, se re-encuentran) o son
+espuma caótica que nace y muere sin dejar linaje? Ideas: rastrear LINAJES
+(¿algún genoma tardío funda una población estable?), medir vida media de los
+genomas nuevos, comparar contra un null (paseo aleatorio por el espacio de
+genomas con la misma tasa de nacimientos).
+
 ---
 
 *Estado: boceto vivo. Los tres principios están firmes; la encarnación es

@@ -1,0 +1,48 @@
+==========================================================================
+EL UTERO -- v3 toroidal: materia en un circulo (v' = R3 mod 1)
+==========================================================================
+n0=16 -> max 256  ticks=4000  semillas=20  (germinal=True en ambos brazos)
+manos declaradas: sonda con separacion irracional (0, 0.618) en el toro.
+
+seed  veredicto  mundo   vivo  genomas novedad_2da_mitad d_materia_fin
+   0  cristal       16   0.12       29                 0        0.0000
+   1  pulso        256   0.96       75                 0        0.0056
+   2  cristal      256   0.93      852                 0        0.0000
+   3  cristal       16   0.12       19                 0        0.0000
+   4  cristal       16   0.12       19                 0        0.0000
+   5  pulso         16   0.44       25                 0        0.0000
+   6  cristal       16   0.19       25                 0        0.0000
+   7  cristal      256   0.99       26                 0        0.0000
+   8  pulso         16   0.31       24                 0        0.0000
+   9  pulso        256   0.98       22                 0        0.0019
+  10  cristal      256   0.92       34                 0        0.0000
+  11  termica       16   0.00       17                 0        0.0000
+  12  cristal       17   0.12       23                 0        0.0000
+  13  pulso        256   0.99    18045              3816        0.1426
+  14  pulso         16   0.81       23                 0        0.1268
+  15  cristal       16   0.06       28                 0        0.0000
+  16  termica       16   0.00       16                 0        0.0000
+  17  cristal      256   0.98       20                 0        0.0000
+  18  pulso         16   0.31       32                 0        0.0000
+  19  pulso        256   0.97      239                 0        0.2333
+
+novedad media por tramo (500 ticks):
+  v3 toroidal:      472  177  79  45  45  61  41  45
+  v2 sigmoid (base):23.6  0.0  0.0  0.0  0.0  0.0  0.0  0.0
+novedad 2da mitad (total 20 seeds): toroidal=3816  sigmoid=0
+semillas con novedad tardia SOSTENIDA (>100): 1/20 -> [13]
+
+--------------------------------------------------------------------------
+CONTROL horizonte 12000 ticks (semillas sostenidas): la curva
+decae a cero o se estabiliza?
+  seed 13: genomas totales 26409, ultimos 4 tramos [419, 278, 697, 1526], d_materia fin 0.1436
+
+  => 1/1 siguen acunando genomas nuevos
+     a t=12000: PRIMERA encarnacion con novedad estructural
+     sostenida a largo plazo. Cautela honesta: la curva decae;
+     si es transitorio largo o regimen estable requiere mas
+     horizonte. Y 'genomas nuevos' = combinaciones nunca vistas
+     (vara estructural), pero su RIQUEZA funcional no esta
+     evaluada -- ese es el proximo control.
+
+figura: results/utero_toroidal.png

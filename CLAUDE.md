@@ -90,6 +90,7 @@ PYTHONPATH=src python experiments/utero/exp_primer_latido.py    # Nivel 1: pará
 PYTHONPATH=src python experiments/utero/exp_nivel2_latido.py    # Nivel 2: reglas-programa
 PYTHONPATH=src python experiments/utero/exp_utero_creciente.py  # v1: async + espacio creciente
 PYTHONPATH=src python experiments/utero/exp_utero_germinal.py   # v2: variación germinal
+PYTHONPATH=src python experiments/utero/exp_utero_toroidal.py   # v3: materia toroidal (novedad sostenida)
 ```
 
 ### Introspection ("the north") — SEPARATE GPU venv
