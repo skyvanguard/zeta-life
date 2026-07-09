@@ -55,6 +55,7 @@ def ablation_run(seed: int, muerte_eq: bool) -> list:
     por tick."""
     u = UteroCreciente(n0=N0, seed=seed, max_n=MAX_N, germinal=True,
                        toroidal=True, muerte_equilibrio=muerte_eq)
+    seen: set = set()   # registro externo (u.step() ya puebla u.seen -> daría 0)
     last_code: dict = {}
     last_change: dict = {}
     new_per_tick = []
@@ -62,11 +63,15 @@ def ablation_run(seed: int, muerte_eq: bool) -> list:
         u.step()
         cg = {i - u.left_grown: u.code[i].tobytes()
               for i in np.flatnonzero(u.alive)}
+        new = 0
         for coord, g in cg.items():
+            if g not in seen:
+                seen.add(g)
+                new += 1
             if coord in last_code and last_code[coord] != g:
                 last_change[coord] = t
         last_code = cg
-        new_per_tick.append(u._register_genomes())
+        new_per_tick.append(new)
         if t == ABLATE_AT:
             pump = [c for c, tc in last_change.items()
                     if t - tc <= ACTIVE_WIN]

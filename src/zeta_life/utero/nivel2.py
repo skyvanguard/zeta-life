@@ -66,18 +66,24 @@ def _sigmoid(x: float) -> float:
 
 
 def execute(code: np.ndarray, vl: float, v: float, vr: float,
-            ctx: tuple, wrap: bool = False) -> tuple:
+            ctx: tuple, wrap: bool = False, r3_init: float = 0.0) -> tuple:
     """Ejecutar una regla. ctx = (code_izq|None, code_self, code_der|None).
 
-    Devuelve (v', own_next, spawn) con spawn=None o (lado, pos, opcode).
-    Total por construcción: nunca lanza, siempre termina en K pasos.
+    Devuelve (v', own_next, spawn, r3_raw) con spawn=None o (lado, pos, opcode)
+    y r3_raw = el R3 crudo final (potencial interno, antes de envolver — la
+    MEMORIA de la celda; distinto de la materia observable v', que es su
+    proyección con pérdida). Total por construcción: nunca lanza, termina en K.
 
     wrap=False: v' = sigmoid(R3) — materia en un segmento (contractiva casi
     siempre; nivel2/v1/v2, byte-idéntico). wrap=True: v' = R3 mod 1 — MATERIA
     TOROIDAL (v3): el valor vive en un círculo; envolver permite mapas
     expansivos (ADD v,v->R3 es el doubling map). Más simple que la sigmoide.
+
+    r3_init: valor inicial de R3 (por defecto 0 = byte-idéntico). La
+    encarnación con MEMORIA (v5) lo siembra con el R3 crudo del tick anterior
+    de la celda — recurrencia / integración temporal.
     """
-    r = [vl, v, vr, 0.0]
+    r = [vl, v, vr, r3_init]
     own_next = code.copy()
     spawn = None
     for k in range(K):
@@ -108,14 +114,15 @@ def execute(code: np.ndarray, vl: float, v: float, vr: float,
             # momento del parto — la misma función de MUTO, acoplada a materia.
             spawn = (a % 2, c % K, int(abs(r[b % 4]) * N_OPS) % N_OPS)
         # NOP: nada
-    out = (r[3] % 1.0) if wrap else _sigmoid(r[3])
-    return out, own_next, spawn
+    raw = r[3]
+    out = (raw % 1.0) if wrap else _sigmoid(raw)
+    return out, own_next, spawn, raw
 
 
 def _output_only(code: np.ndarray, vl: float, v: float, vr: float,
-                 ctx: tuple, wrap: bool = False) -> float:
+                 ctx: tuple, wrap: bool = False, r3_init: float = 0.0) -> float:
     """Ejecución fantasma (sin efectos): sólo la salida de materia."""
-    return execute(code, vl, v, vr, ctx, wrap=wrap)[0]
+    return execute(code, vl, v, vr, ctx, wrap=wrap, r3_init=r3_init)[0]
 
 
 class UteroNivel2:
@@ -148,7 +155,7 @@ class UteroNivel2:
             vl = v[l] if alive[l] else 0.0
             vr = v[r_] if alive[r_] else 0.0
 
-            v_new, own_next, spawn = execute(code[i], vl, float(v[i]), vr, ctx)
+            v_new, own_next, spawn, _ = execute(code[i], vl, float(v[i]), vr, ctx)
 
             # persistencia: muere la física ciega a la materia (mapa constante)
             p1 = _output_only(code[i], 0.0, 0.0, 0.0, ctx)

@@ -321,6 +321,30 @@ quizá sea lo que HAY en este sustrato — y que la auto-reparación requiera
 otra dimensión (p.ej. la memoria/percepción que Fran NO eligió tocar), o un
 sustrato distinto. Decisión abierta.
 
+- **v5 memoria — la dimensión no tocada: PRIMERA auto-reparación (2026-07-09).**
+  Flag `memoria=True` en `creciente.py`, `exp_utero_memoria.py`. Cada celda
+  retiene su R3 crudo (potencial interno, NO la materia observable v — un
+  estado oculto tipo membrana, distinto de v porque v es su proyección con
+  pérdida en el toro) y lo re-inyecta como R3 inicial el tick siguiente:
+  recurrencia / integración temporal, dinámica de 2º orden. La cría nace sin
+  recuerdos. Sin manos nuevas; `memoria=False` byte-idéntico a v3.
+  **Bug corregido antes de creer nada:** el conteo de novedad post-ablación
+  usaba `u._register_genomes()`, que `step()` ya llama internamente → daba 0
+  siempre; se pasó a un registro externo (afectaba también la sub-métrica de
+  ablación de v4, cuyo veredicto de extinción se sostiene por otra vía).
+  Resultado (control ON vs OFF, misma seed 13, ablación de la zona-bomba,
+  midiendo la COLA sostenida y no el pulso de recolonización): **en el
+  régimen MADURO (ablación a t≥8000) cola/pre = 2.05 con memoria vs 0.10 sin**
+  — el motor se auto-repara donde v3 colapsaba a ~0. Es el 3er criterio del
+  control ruido-vs-función, recuperado, en el régimen donde importa.
+  **Matices honestos:** (1) NO universal — en la ablación TEMPRANA (t=6000)
+  ambos regeneran y OFF hasta gana (1.31 vs 0.48): el sistema joven aún tiene
+  momentum de la sopa; la memoria ayuda cuando el motor ya depende de sí
+  mismo. (2) n=1 semilla (sólo la 13 sostiene). (3) la memoria NO hizo más
+  típico el régimen (sigue 1/20). *Primera pieza que mueve la auto-reparación
+  en la dirección correcta — no un triunfo cerrado.*
+  (`results/utero_memoria_run.txt`)
+
 - **Control ruido-vs-función (2026-07-09): FUNCIÓN, 2/3 — con matices.**
   `exp_utero_ruido_vs_funcion.py`, vara definida ANTES de mirar. Línea base
   espuma: intervalo de reescritura ~3.2 ticks. Sobre 6.198 genomas tardíos

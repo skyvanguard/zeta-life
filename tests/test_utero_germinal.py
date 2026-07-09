@@ -17,7 +17,7 @@ def prog(*instrs):
 def test_spawn_carries_birth_variation_fields():
     # CONST 10 -> R0 = 0.5 ; SPAWN side=izq, b=0 (usa R0), c=9 (posición)
     code = prog((CONST, 10, 0, 0), (ADD, 1, 1, 3), (SPAWN, 0, 0, 9))
-    _, _, spawn = execute(code, 0.2, 0.5, 0.8, (None, code, None))
+    _, _, spawn, _ = execute(code, 0.2, 0.5, 0.8, (None, code, None))
     side, mpos, mop = spawn
     assert side == 0
     assert mpos == 9

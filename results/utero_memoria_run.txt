@@ -1,0 +1,54 @@
+==========================================================================
+EL UTERO -- v5: memoria (R3 crudo persistente, estado oculto recurrente)
+==========================================================================
+n0=16 -> max 256  ticks=4000  semillas=20
+sin manos nuevas. memoria OFF = byte-identico a v3.
+
+seed  veredicto  mundo   vivo  genomas novedad_2da_mitad
+   0  cristal       16   0.12       29                 0
+   1  pulso        256   0.96      107                 0
+   2  cristal      256   0.93      852                 0
+   3  cristal       16   0.12       19                 0
+  13  pulso        256   0.97    22986              4654
+  ...
+regimen sostenido: 1/20 -> [13]  (v3 sin memoria: 1/20 = [13])
+
+--------------------------------------------------------------------------
+AUTO-REPARACION: ablacion de la zona-bomba, memoria ON vs OFF
+referencia v3 (seed 13, memoria OFF): post=[2367, 383, 70, 58, 68, 20, 15, 3] -> murio (3er
+criterio del control ruido-vs-funcion que fallo)
+
+  seed 13 memoria ON : pre [428, 595, 649, 437] | post [3525, 2061, 1036, 1170, 1070, 526, 490, 153]
+  seed 13 memoria OFF: pre [453, 269, 258, 345] | post [2367, 383, 70, 58, 68, 20, 15, 3]
+
+regeneran (novedad post sostenida): memoria ON = 1/1   memoria OFF = 0/1
+
+ROBUSTEZ -- ablar en 3 tiempos (seed 13), medir la COLA sostenida
+(novedad/tramo en t_abl+1000..+3000, IGNORANDO el pulso de
+recolonizacion). cola/pre > 1 = el motor se auto-reparo.
+   t_abl  mem    pre   pulso   COLA  cola/pre
+    6000   ON    664    2548    320      0.48
+    6000  OFF    418    5058    550      1.31
+    8000   ON    543    3525    950      1.75
+    8000  OFF    302    2367     54      0.18
+   10000   ON    347    3950    814      2.35
+   10000  OFF    592    2052     15      0.03
+
+cola/pre MADURO (t>=8000): memoria ON=2.05  OFF=0.10
+cola/pre TEMPRANO (t=6000): memoria ON=0.48  OFF=1.31
+
+=> LA MEMORIA CONFIERE AUTO-REPARACION EN EL REGIMEN MADURO: con
+   estado oculto recurrente la cola post-ablacion se SOSTIENE (o
+   sube) donde sin memoria COLAPSA a ~0. La dinamica de 2o orden
+   re-nuclea la turbulencia desde el potencial interno que sobrevive
+   en las celdas del borde. Es el 3er criterio (que v3 fallo), en
+   la direccion correcta y en el regimen donde importa (el maduro,
+   donde v3 moria).
+   MATICES HONESTOS: (1) NO es universal -- en la ablacion temprana
+   (t=6000) ambos regeneran y OFF hasta gana: el sistema joven aun
+   tiene momentum de la sopa. La memoria ayuda cuando el motor ya
+   depende de si mismo. (2) n=1 semilla (solo la 13 sostiene). (3)
+   la memoria NO hizo mas TIPICO el regimen (sigue 1/20). Primera
+   pieza que mueve la auto-reparacion, no un triunfo cerrado.
+
+figura: results/utero_memoria.png

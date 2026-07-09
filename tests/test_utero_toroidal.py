@@ -17,14 +17,14 @@ def prog(*instrs):
 def test_wrap_output_is_mod_1():
     # CONST 13 -> R3 = (13-8)/4 = 1.25 ; wrap -> 0.25
     code = prog((CONST, 13, 0, 3))
-    v, _, _ = execute(code, 0.0, 0.0, 0.0, (None, code, None), wrap=True)
+    v, _, _, _ = execute(code, 0.0, 0.0, 0.0, (None, code, None), wrap=True)
     assert abs(v - 0.25) < 1e-12
 
 
 def test_wrap_negative_wraps_into_unit():
     # CONST 4 -> R3 = (4-8)/4 = -1.0... -1.0 % 1 = 0.0 ; usar -0.75: CONST 5
     code = prog((CONST, 5, 0, 3))            # R3 = -0.75 -> 0.25
-    v, _, _ = execute(code, 0.0, 0.0, 0.0, (None, code, None), wrap=True)
+    v, _, _, _ = execute(code, 0.0, 0.0, 0.0, (None, code, None), wrap=True)
     assert abs(v - 0.25) < 1e-12
 
 

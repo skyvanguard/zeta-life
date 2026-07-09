@@ -23,7 +23,7 @@ def test_totality_random_programs_never_crash():
         code[:, 0] = rng.integers(0, N_OPS, K)
         code[:, 1:] = rng.integers(0, 16, (K, 3))
         ctx = (code, code, code)
-        v, nxt, spawn = execute(code, rng.random(), rng.random(), rng.random(), ctx)
+        v, nxt, spawn, _ = execute(code, rng.random(), rng.random(), rng.random(), ctx)
         assert np.isfinite(v) and 0.0 < v < 1.0
         assert nxt.shape == (K, 4)
 
@@ -58,7 +58,7 @@ def test_matter_sensitive_physics_survives():
 def test_muto_rewrites_own_next_opcode():
     # CONST 10 -> R0 = (10-8)/4 = 0.5 ; MUTO pos 5 desde R0 -> op = int(0.5*10) = 5
     code = prog((CONST, 10, 0, 0), (MUTO, 5, 0, 0), (ADD, 1, 1, 3))
-    _, nxt, _ = execute(code, 0.2, 0.5, 0.8, (None, code, None))
+    _, nxt, _, _ = execute(code, 0.2, 0.5, 0.8, (None, code, None))
     assert nxt[5, 0] == 5
     assert code[5, 0] == NOP  # la regla ORIGINAL no cambió (escritura staged)
 
@@ -66,7 +66,7 @@ def test_muto_rewrites_own_next_opcode():
 def test_copy_grafts_neighbor_instruction():
     left = prog((ADD, 2, 2, 3))
     code = prog((COPY, 0, 0, 9), (ADD, 1, 1, 3))   # copia instr 0 de izq -> propia 9
-    _, nxt, _ = execute(code, 0.2, 0.5, 0.8, (left, code, None))
+    _, nxt, _, _ = execute(code, 0.2, 0.5, 0.8, (left, code, None))
     np.testing.assert_array_equal(nxt[9], left[0])
 
 

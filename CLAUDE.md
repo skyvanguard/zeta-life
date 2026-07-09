@@ -92,7 +92,8 @@ PYTHONPATH=src python experiments/utero/exp_utero_creciente.py  # v1: async + es
 PYTHONPATH=src python experiments/utero/exp_utero_germinal.py   # v2: variación germinal
 PYTHONPATH=src python experiments/utero/exp_utero_toroidal.py   # v3: materia toroidal (novedad sostenida)
 PYTHONPATH=src python experiments/utero/exp_utero_ruido_vs_funcion.py  # control: ruido vs funcion (seed 13)
-PYTHONPATH=src python experiments/utero/exp_utero_motor.py      # v4: muerte por equilibrio (hipotesis refutada)
+PYTHONPATH=src python experiments/utero/exp_utero_motor.py      # v4: muerte por equilibrio (refutada)
+PYTHONPATH=src python experiments/utero/exp_utero_memoria.py    # v5: memoria (auto-reparacion en regimen maduro)
 ```
 
 ### Introspection ("the north") — SEPARATE GPU venv

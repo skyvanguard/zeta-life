@@ -53,7 +53,7 @@ class UteroCreciente:
     def __init__(self, n0: int = N0, seed: int = 0, max_n: int = MAX_N,
                  germinal: bool = False, toroidal: bool = False,
                  muerte_equilibrio: bool = False, eq_eps: float = 1e-9,
-                 eq_window: int = 100):
+                 eq_window: int = 100, memoria: bool = False):
         """germinal=True (v2): SPAWN no copia exacto — la cría nace con UNA
         instrucción reescrita desde la materia del momento del parto (campos
         b,c del SPAWN + registro; la misma función de MUTO). La variación sale
@@ -73,13 +73,23 @@ class UteroCreciente:
         devenir, deja de ser (Schrödinger: lejos del equilibrio o muerto).
         No es meta ni recompensa: completa el filtro de persistencia, que ya
         mataba a la física ciega a la materia, matando también a la materia
-        quieta. Manos declaradas: eq_eps, eq_window."""
+        quieta. Manos declaradas: eq_eps, eq_window.
+
+        memoria=True (v5): la DIMENSIÓN que Fran no había tocado. Cada celda
+        retiene su R3 crudo (el potencial interno, antes de envolver — NO la
+        materia observable v, que es su proyección con pérdida) y lo re-inyecta
+        como R3 inicial el tick siguiente. Recurrencia / integración temporal:
+        estado oculto tipo potencial de membrana. Da dinámica de 2º orden, que
+        ensancha el borde-del-caos. La cría nace SIN recuerdos (mem=0). Sin
+        manos nuevas."""
         self.germinal = germinal
         self.toroidal = toroidal
         self.muerte_eq = muerte_equilibrio
         self.eq_eps = eq_eps
         self.eq_window = eq_window
         self.eq_count = np.zeros(n0, dtype=np.int64)
+        self.memoria = memoria
+        self.mem = np.zeros(n0, dtype=np.float64)     # R3 crudo persistente
         # materias de prueba de la sonda ciega-a-la-materia (mano declarada)
         self._probe_hi = 0.6180339887498949 if toroidal else 1.0
         self.max_n = max_n
@@ -131,13 +141,17 @@ class UteroCreciente:
             if not self.alive[i]:          # murió antes de su turno
                 continue
             ctx, vl, vr = self._ctx(i)
-            v_new, own_next, spawn = execute(self.code[i], vl, float(self.v[i]),
-                                             vr, ctx, wrap=self.toroidal)
-            # persistencia: la física ciega a la materia muere (sonda)
+            mi = float(self.mem[i]) if self.memoria else 0.0
+            v_new, own_next, spawn, raw = execute(
+                self.code[i], vl, float(self.v[i]), vr, ctx,
+                wrap=self.toroidal, r3_init=mi)
+            # persistencia: la física ciega a la materia muere (sonda, misma
+            # memoria fija -> prueba de sensibilidad a la MATERIA sola)
             h = self._probe_hi
             p1 = _output_only(self.code[i], 0.0, 0.0, 0.0, ctx,
-                              wrap=self.toroidal)
-            p2 = _output_only(self.code[i], h, h, h, ctx, wrap=self.toroidal)
+                              wrap=self.toroidal, r3_init=mi)
+            p2 = _output_only(self.code[i], h, h, h, ctx,
+                              wrap=self.toroidal, r3_init=mi)
             if (not math.isfinite(v_new)
                     or (abs(v_new - p1) < PROBE_EPS
                         and abs(v_new - p2) < PROBE_EPS
@@ -146,6 +160,7 @@ class UteroCreciente:
                 self.v[i] = 0.0
                 self.code[i] = 0
                 self.eq_count[i] = 0
+                self.mem[i] = 0.0
                 continue
             # v4: muerte por equilibrio — lo que deja de devenir, deja de ser
             if self.muerte_eq:
@@ -158,10 +173,12 @@ class UteroCreciente:
                     self.v[i] = 0.0
                     self.code[i] = 0
                     self.eq_count[i] = 0
+                    self.mem[i] = 0.0
                     continue
             # async: efectos inmediatos
             self.v[i] = v_new
             self.code[i] = own_next
+            self.mem[i] = raw            # memoria: R3 crudo persistente
             if spawn is None:
                 continue
             side, mpos, mop = spawn
@@ -180,6 +197,7 @@ class UteroCreciente:
                 self.v[t] = v_new
                 self.alive[t] = True
                 self.eq_count[t] = 0
+                self.mem[t] = 0.0           # la cría nace sin recuerdos
                 colonized += 1
 
         # crecimiento del mundo (fin de tick; tope = la placa de Petri)
@@ -191,6 +209,7 @@ class UteroCreciente:
             self.code = np.concatenate([self.code, c[None]])
             self.alive = np.concatenate([self.alive, [True]])
             self.eq_count = np.concatenate([self.eq_count, [0]])
+            self.mem = np.concatenate([self.mem, [0.0]])
             grown += 1
         if edge_left is not None and self.n < self.max_n:
             c, val = edge_left
@@ -198,6 +217,7 @@ class UteroCreciente:
             self.code = np.concatenate([c[None], self.code])
             self.alive = np.concatenate([[True], self.alive])
             self.eq_count = np.concatenate([[0], self.eq_count])
+            self.mem = np.concatenate([[0.0], self.mem])
             self.left_grown += 1
             grown += 1
             grew_left = True
@@ -232,10 +252,11 @@ class UteroCreciente:
 def run_history(n0: int = N0, seed: int = 0, ticks: int = 2000,
                 max_n: int = MAX_N, germinal: bool = False,
                 toroidal: bool = False,
-                muerte_equilibrio: bool = False) -> dict:
+                muerte_equilibrio: bool = False, memoria: bool = False) -> dict:
     """Correr un útero creciente registrando historia + frames alineados."""
     u = UteroCreciente(n0=n0, seed=seed, max_n=max_n, germinal=germinal,
-                       toroidal=toroidal, muerte_equilibrio=muerte_equilibrio)
+                       toroidal=toroidal, muerte_equilibrio=muerte_equilibrio,
+                       memoria=memoria)
     keys = ("alive_frac", "n_world", "code_change", "value_change",
             "colonized", "grown", "new_genomes", "diversity")
     hist: dict = {k: [] for k in keys}
