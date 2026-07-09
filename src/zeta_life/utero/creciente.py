@@ -50,7 +50,14 @@ FROZEN_VALUE_EPS = 1e-7
 class UteroCreciente:
     """Línea 1-D asincrónica que crece donde su física la abre."""
 
-    def __init__(self, n0: int = N0, seed: int = 0, max_n: int = MAX_N):
+    def __init__(self, n0: int = N0, seed: int = 0, max_n: int = MAX_N,
+                 germinal: bool = False):
+        """germinal=True (v2): SPAWN no copia exacto — la cría nace con UNA
+        instrucción reescrita desde la materia del momento del parto (campos
+        b,c del SPAWN + registro; la misma función de MUTO). La variación sale
+        del estado del mundo, no de un RNG nuestro. False = v1 (copia exacta),
+        byte-idéntica a los resultados commiteados."""
+        self.germinal = germinal
         self.max_n = max_n
         self.rng = np.random.default_rng(seed)
         self.v = self.rng.uniform(0.0, 1.0, size=n0)
@@ -118,15 +125,19 @@ class UteroCreciente:
             self.code[i] = own_next
             if spawn is None:
                 continue
-            t = i - 1 if spawn == 0 else i + 1
+            side, mpos, mop = spawn
+            child = own_next.copy()
+            if self.germinal:               # v2: nace con UNA instrucción
+                child[mpos, 0] = mop        # reescrita desde la materia
+            t = i - 1 if side == 0 else i + 1
             if t < 0:                       # escribe en el más-allá izquierdo
                 if edge_left is None:
-                    edge_left = (own_next.copy(), v_new)
+                    edge_left = (child, v_new)
             elif t >= self.n:               # más-allá derecho
                 if edge_right is None:
-                    edge_right = (own_next.copy(), v_new)
+                    edge_right = (child, v_new)
             elif not self.alive[t]:         # vacío interior: colonización
-                self.code[t] = own_next.copy()
+                self.code[t] = child
                 self.v[t] = v_new
                 self.alive[t] = True
                 colonized += 1
@@ -177,9 +188,9 @@ class UteroCreciente:
 
 
 def run_history(n0: int = N0, seed: int = 0, ticks: int = 2000,
-                max_n: int = MAX_N) -> dict:
+                max_n: int = MAX_N, germinal: bool = False) -> dict:
     """Correr un útero creciente registrando historia + frames alineados."""
-    u = UteroCreciente(n0=n0, seed=seed, max_n=max_n)
+    u = UteroCreciente(n0=n0, seed=seed, max_n=max_n, germinal=germinal)
     keys = ("alive_frac", "n_world", "code_change", "value_change",
             "colonized", "grown", "new_genomes", "diversity")
     hist: dict = {k: [] for k in keys}

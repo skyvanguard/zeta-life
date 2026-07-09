@@ -1,0 +1,51 @@
+==========================================================================
+EL UTERO -- v2 germinal: variacion en la reproduccion, sin mano nuestra
+==========================================================================
+n0=16 -> max 256  ticks=4000  semillas=20
+la cria nace con UNA instruccion reescrita desde la materia del parto
+(campos b,c del SPAWN + registro; funcion de MUTO; sin RNG inyectado).
+
+seed  veredicto  mundo   vivo  genomas novedad_2da_mitad partos_2da_mitad
+   0  cristal       16   0.12       23                 0                0
+   1  cristal      256   0.96       52                 0                0
+   2  cristal      256   1.00       22                 0                0
+   3  cristal       17   0.12       21                 0                0
+   4  cristal      256   0.96       30                 0                0
+   5  pulso        256   0.98       38                 0              805
+   6  pulso        256   0.97       42                 0             1334
+   7  cristal      256   0.99       25                 0                0
+   8  pulso         16   0.25       26                 0                0
+   9  pulso        256   0.98       44                 0                0
+  10  termica       17   0.00       39                 0                0
+  11  cristal       19   0.11       27                 0                0
+  12  cristal       17   0.12       29                 0                0
+  13  pulso        256   0.96      210                 0             1326
+  14  cristal       16   0.81       38                 0                0
+  15  cristal       16   0.12       21                 0                0
+  16  termica       16   0.00       16                 0                0
+  17  cristal      256   0.98       21                 0                0
+  18  cristal       16   0.50       33                 0                0
+  19  pulso        256   0.97       35                 0                0
+
+termica: 2   cristal: 12   pulso: 6   crecieron a la pared: 10/20
+
+novedad media por tramo (500 ticks):
+  v2 germinal:   23.6  0.0  0.0  0.0  0.0  0.0  0.0  0.0
+  v1 copia-exacta: 12.1  0.0  0.0  0.0  0.0  0.0  0.0  0.0
+tramo inicial: germinal 23.6 vs exacta 12.1 (la variacion germinal SI acuna mas al principio)
+novedad 2da mitad (total, 20 seeds): germinal=0  exacta=0
+partos en la 2da mitad (total): 3465 -- semillas con partos tardios: 3/20
+
+=> VEREDICTO HONESTO: la variacion germinal acuna mas genomas al
+   inicio pero la novedad SE SECA IGUAL -- y el diagnostico es
+   preciso: los PARTOS CONTINUAN en varias semillas, pero acunan
+   CERO genomas nuevos. La mutacion es determinista sobre la
+   materia, y la materia se ASENTO: mismo contexto -> misma cria,
+   parto tras parto. La jaula se mudo una vez mas: ya no es la
+   reproduccion (varia), es la MATERIA CONGELADA que alimenta la
+   variacion con lo mismo. La novedad estructural necesita
+   materia que no se asiente (dinamica no-contractiva) o memoria
+   del linaje -- el proximo cruce es de la DINAMICA DE LA
+   MATERIA, no del codigo.
+
+figura: results/utero_germinal.png

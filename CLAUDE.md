@@ -89,6 +89,7 @@ PYTHONPATH=src python experiments/datasets/exp_real_data_psi.py
 PYTHONPATH=src python experiments/utero/exp_primer_latido.py    # Nivel 1: parámetros
 PYTHONPATH=src python experiments/utero/exp_nivel2_latido.py    # Nivel 2: reglas-programa
 PYTHONPATH=src python experiments/utero/exp_utero_creciente.py  # v1: async + espacio creciente
+PYTHONPATH=src python experiments/utero/exp_utero_germinal.py   # v2: variación germinal
 ```
 
 ### Introspection ("the north") — SEPARATE GPU venv

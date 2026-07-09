@@ -97,7 +97,11 @@ def execute(code: np.ndarray, vl: float, v: float, vr: float,
             if src is not None:
                 own_next[c % K] = src[b % K]
         elif op == SPAWN:
-            spawn = a % 2
+            # side=a%2; los campos b,c codifican la VARIACIÓN GERMINAL de la
+            # cría (usada por la encarnación 'germinal'; nivel2/v1 la ignoran
+            # y copian exacto): posición c%K, opcode nuevo desde |R[b]| en el
+            # momento del parto — la misma función de MUTO, acoplada a materia.
+            spawn = (a % 2, c % K, int(abs(r[b % 4]) * N_OPS) % N_OPS)
         # NOP: nada
     return _sigmoid(r[3]), own_next, spawn
 
@@ -154,7 +158,7 @@ class UteroNivel2:
                 new_v[i] = v_new
                 new_code[i] = own_next
                 if spawn is not None:
-                    t = l if spawn == 0 else r_
+                    t = l if spawn[0] == 0 else r_
                     if not alive[t]:      # sólo hacia vacío de inicio de tick
                         spawns.append((t, i))
 

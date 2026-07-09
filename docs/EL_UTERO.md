@@ -242,6 +242,37 @@ distinto produzca código levemente distinto. La variación saldría del estado
 del mundo, no de un RNG nuestro. Es la pieza que la vida sí tiene (mutación
 acoplada al sustrato) y este útero todavía no.
 
+- **v2 germinal — variación en la reproducción (2026-07-09):** flag
+  `germinal=True` en `utero/creciente.py`, `exp_utero_germinal.py`. La cría
+  nace con UNA instrucción reescrita desde la materia del momento del parto
+  (los campos b,c del SPAWN eligen registro y posición — la física puede
+  evolucionar CÓMO varían sus hijas; la función es la de MUTO; sin RNG).
+  Resultado: **duplica la novedad temprana** (23.6 vs 12.1 genomas en el
+  primer tramo) **pero se seca igual: 0 genomas nuevos en la 2da mitad, en
+  las 20 semillas.** Y el diagnóstico quedó afilado: en 3 semillas los
+  **partos CONTINÚAN** (3465 nacimientos tardíos) y aún así acuñan CERO
+  genomas nuevos — la mutación es determinista sobre la materia, y la
+  **materia se asentó**: mismo contexto → misma cría, parto tras parto.
+  *La jaula se mudó de la reproducción a la MATERIA CONGELADA.*
+  (`results/utero_germinal_run.txt`)
+
+**El cruce siguiente (pendiente de decisión) — la DINÁMICA DE LA MATERIA:**
+el cuello de botella ya no es el código: es que la materia converge a puntos
+fijos y alimenta toda la variación con lo mismo. Nota matemática honesta: con
+`v' = sigmoid(R3)` y registros acotados, la dinámica de materia es
+(casi siempre) contractiva — el caos es expresable sólo en franjas finísimas
+del espacio de genomas y nada empuja hacia ellas. Opciones sin (o con mínima)
+mano nuestra:
+  (a) **materia toroidal**: `v' = R3 mod 1` en vez de sigmoid — el envolver
+      (wrap) permite mapas expansivos (el doubling map es el caos canónico);
+      es incluso MÁS simple que una transcendental. Cambio de física, no de
+      metas.
+  (b) **un sol**: una celda-frontera cuyo v oscila impuesto — una mano
+      DECLARADA pero filosóficamente honesta (la vida terrestre también
+      necesitó un gradiente externo permanente; el sol no le dice a la vida
+      qué ser, sólo le impide asentarse).
+  (c) ambas.
+
 ---
 
 *Estado: boceto vivo. Los tres principios están firmes; la encarnación es
