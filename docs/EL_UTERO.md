@@ -218,6 +218,30 @@ adyacente-posible necesita lugar donde abrirse), acoplamiento más rico entre
 materia y código. Los tres principios quedan intactos; la encarnación es lo
 que debe cambiar.
 
+- **v1 creciente — async + espacio que se abre desde adentro (2026-07-09):**
+  `utero/creciente.py`, `exp_utero_creciente.py`. Línea con fronteras: el
+  mundo crece SOLO donde una física hace SPAWN hacia el más-allá del borde
+  (el crecimiento no es mano nuestra); actualización asincrónica en orden
+  aleatorio sembrado; vara de novedad nueva y más dura: **genomas nunca
+  vistos por tramo** (con azar en el orden, "no ciclar" ya no prueba nada).
+  Resultado: **el espacio SÍ se abre** — 13/20 mundos crecen 16→256 hasta la
+  pared, crecimiento hecho por la física misma. **Pero la novedad se seca
+  igual:** ~12 genomas nuevos en el primer tramo y CERO después, en las 20
+  semillas — idéntico al baseline síncrono (que acuña más al inicio, 78, y
+  también muere a 0). El adyacente-posible se abrió en lo ESPACIAL pero no
+  en lo ESTRUCTURAL. Diagnóstico: la colonización copia EXACTO (sin
+  variación en la reproducción — el ruido lo quitamos a propósito) y los
+  eventos MUTO/COPY se apagan cuando la materia se asienta. *La jaula se
+  mudó de nuevo: monocultivo / código congelado.*
+  (`results/utero_creciente_run.txt`)
+
+**El cruce siguiente (pendiente de decisión):** variación en la reproducción
+SIN mano nuestra — que SPAWN no copie exacto sino que escriba **modulado por
+la materia** (como ya hace MUTO), de modo que reproducirse en un contexto
+distinto produzca código levemente distinto. La variación saldría del estado
+del mundo, no de un RNG nuestro. Es la pieza que la vida sí tiene (mutación
+acoplada al sustrato) y este útero todavía no.
+
 ---
 
 *Estado: boceto vivo. Los tres principios están firmes; la encarnación es

@@ -86,8 +86,9 @@ PYTHONPATH=src python experiments/kernel/exp_yvyra_experiment.py     # Phases 3-
 # Datasets:
 PYTHONPATH=src python experiments/datasets/exp_real_data_psi.py
 # El Útero (sustrato auto-reescribiente, docs/EL_UTERO.md):
-PYTHONPATH=src python experiments/utero/exp_primer_latido.py   # Nivel 1: parámetros
-PYTHONPATH=src python experiments/utero/exp_nivel2_latido.py   # Nivel 2: reglas-programa
+PYTHONPATH=src python experiments/utero/exp_primer_latido.py    # Nivel 1: parámetros
+PYTHONPATH=src python experiments/utero/exp_nivel2_latido.py    # Nivel 2: reglas-programa
+PYTHONPATH=src python experiments/utero/exp_utero_creciente.py  # v1: async + espacio creciente
 ```
 
 ### Introspection ("the north") — SEPARATE GPU venv

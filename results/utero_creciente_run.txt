@@ -1,0 +1,55 @@
+==========================================================================
+EL UTERO CRECIENTE -- v1: asincronia + espacio que se abre desde adentro
+==========================================================================
+n0=16 -> max 256 (pared de la placa)  ticks=4000  semillas=20
+manos visibles: orden aleatorio sembrado, max_n, sonda ciega-a-la-
+materia, vacio frio. El crecimiento NO es mano nuestra: es SPAWN de la
+fisica hacia el mas-alla del borde.
+
+seed  veredicto  mundo   vivo  genomas novedad_2da_mitad divers_fin
+   0  cristal       16   0.12       22                 0          2
+   1  cristal      256   0.96       37                 0          8
+   2  cristal      256   0.99       22                 0          2
+   3  pulso        256   0.96       25                 0          6
+   4  cristal      256   0.96       25                 0          6
+   5  pulso        256   0.98       35                 0          6
+   6  pulso        256   1.00       44                 0          5
+   7  cristal      256   0.99       26                 0          5
+   8  cristal      256   0.97       30                 0          2
+   9  cristal      256   0.98       24                 0          4
+  10  cristal      256   0.98       27                 0          1
+  11  cristal       19   0.11       24                 0          2
+  12  cristal       17   0.12       27                 0          2
+  13  cristal      256   0.97       45                 0          5
+  14  cristal       16   0.81       34                 0          5
+  15  cristal       16   0.12       21                 0          2
+  16  termica       16   0.00       16                 0          0
+  17  cristal      256   0.98       20                 0          2
+  18  cristal       16   0.50       30                 0          7
+  19  pulso        256   0.97       28                 0          4
+
+termica: 1/20   cristal: 15/20   pulso: 4/20
+mundos que crecieron hasta la pared (256): 13/20 -- la fisica SI abre su propio espacio
+novedad en la 2da mitad (todas las semillas): 0 genomas nuevos
+
+novedad media por tramo de 500 ticks (v1 creciente):
+  [0-500)=12.1  [500-1000)=0.0  [1000-1500)=0.0  [1500-2000)=0.0  [2000-2500)=0.0  [2500-3000)=0.0  [3000-3500)=0.0  [3500-4000)=0.0
+
+--------------------------------------------------------------------------
+BASELINE -- Nivel 2 sincrono/fijo con la misma vara (10 semillas):
+  [0-500)=78.1  [500-1000)=0.0  [1000-1500)=0.0  [1500-2000)=0.0  [2000-2500)=0.0  [2500-3000)=0.0  [3000-3500)=0.0  [3500-4000)=0.0
+
+novedad tardia media -- v1: 0.0  baseline sincrono: 0.0
+
+=> VEREDICTO HONESTO: el espacio se abre (crecimiento real, hecho
+   por la fisica misma) pero la NOVEDAD SE SECA igual: los genomas
+   se acunan al principio y despues nada nuevo, en todas las
+   semillas. El adyacente-posible se abrio en lo ESPACIAL pero no
+   en lo ESTRUCTURAL. Diagnostico: la colonizacion copia EXACTO
+   (sin variacion en la reproduccion) y los eventos MUTO/COPY se
+   apagan cuando la materia se asienta. La jaula se mudo de nuevo:
+   ahora es monocultivo/codigo congelado. El proximo cruce es la
+   VARIACION EN LA REPRODUCCION sin mano nuestra (p.ej. SPAWN que
+   escribe modulado por la materia, como MUTO, en vez de copiar).
+
+figura: results/utero_creciente.png
