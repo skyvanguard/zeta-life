@@ -297,6 +297,24 @@ espuma caótica que nace y muere sin dejar linaje? Ideas: rastrear LINAJES
 genomas nuevos, comparar contra un null (paseo aleatorio por el espacio de
 genomas con la misma tasa de nacimientos).
 
+- **Control ruido-vs-función (2026-07-09): FUNCIÓN, 2/3 — con matices.**
+  `exp_utero_ruido_vs_funcion.py`, vara definida ANTES de mirar. Línea base
+  espuma: intervalo de reescritura ~3.2 ticks. Sobre 6.198 genomas tardíos
+  (t≥6000): **(1) Propagación: SÍ** — 17.1% visita ≥2 celdas; pero pop
+  simultánea ≥2 sólo 0.6%: los genomas *viajan* más de lo que *replican* —
+  **estructuras itinerantes persistentes, tipo glider**. **(2) Persistencia:
+  SÍ** — 24.7% vive >10× la línea base; los top viven ~5.800 ticks (mediana
+  0: distribución bimodal — mucha espuma + una cola pesada de estructura;
+  nota honesta: "vida" = lapso primera↔última aparición, no existencia
+  continua verificada — aunque re-acuñar por azar el mismo genoma exacto en
+  un espacio astronómico también sería estructura, no ruido uniforme).
+  **(3) Regeneración post-ablación: NO** — matadas las 122 celdas activas en
+  t=8000, la novedad estalla (recolonización) y luego muere: 383→70→…→3. La
+  bomba NO se regenera. *Lectura honesta: hay función — estructuras
+  persistentes que viajan — pero el MOTOR de novedad es frágil: depende de
+  la configuración turbulenta particular y no se auto-repara (no es
+  autopoiético todavía).* (`results/utero_ruido_vs_funcion_run.txt`)
+
 ---
 
 *Estado: boceto vivo. Los tres principios están firmes; la encarnación es

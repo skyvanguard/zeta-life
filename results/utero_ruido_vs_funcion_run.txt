@@ -1,0 +1,28 @@
+==========================================================================
+EL UTERO -- control ruido-vs-funcion (seed 13, v3 toroidal)
+==========================================================================
+ticks=12000  genomas totales=26393  mundo final=256  vivo final=0.99
+LINEA BASE espuma: tasa de reescritura por celda = 0.308 -> intervalo medio ~3.2 ticks
+
+GENOMAS TARDIOS (acunados en t>=6000): 6198
+  vida (ticks): mediana=0  p90=1514  max=5861
+  poblacion max: mediana=1  max=2  con pop>=2: 40 (0.6%)
+  celdas visitadas: con >=2 celdas: 1059 (17.1%)  max=6
+  que viven >10x el intervalo de reescritura (32 ticks): 1528 (24.7%)
+  top-5 por vida: vida=5861 pop=1 celdas=2; vida=5783 pop=1 celdas=3; vida=5776 pop=1 celdas=3; vida=5676 pop=1 celdas=3; vida=5612 pop=1 celdas=2
+
+--------------------------------------------------------------------------
+ABLACION en t=8000: matar las celdas con codigo activo en los
+ultimos 200 ticks; seguir hasta t=12000.
+celdas ablacionadas: 122
+novedad por tramo PRE-ablacion  (t=6000..8000): [453, 269, 258, 345]
+novedad por tramo POST-ablacion (t=8000..12000): [2367, 383, 70, 58, 68, 20, 15, 3]
+
+VEREDICTO (vara definida antes de mirar):
+  propagacion (>=2 pop o celdas, umbral 5-10%): SI
+  persistencia (>10x linea base, umbral 5%): SI
+  regeneracion de la bomba tras ablacion: NO
+  => FUNCION: la novedad deja huella (se propaga/persiste) y/o el
+     regimen se auto-mantiene. Mas que espuma caotica.
+
+figura: results/utero_ruido_vs_funcion.png
